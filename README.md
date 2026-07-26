@@ -8,18 +8,16 @@
 ## Mods Included in QOL Lite: (Subject to Change)
 
     - Top Bar Plus
-	
-	- Always Show Active and Passive Cooldowns (Optional)
 
-	- Larger & Transparent Map
+	- Better Map
+	
+	- Map Event Reminders
 
     - Advanced Testing Tools In Hideout
 
     - Menu (for queuing while in Custom Servers or Hideout)
 
     - Statlocker
-
-    - Stats in Shop
 
     - Clean Damage Indicator
 
