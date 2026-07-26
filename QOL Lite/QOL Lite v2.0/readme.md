@@ -1,24 +1,20 @@
-## This is the version of QOL Lite with Always Show Active and Passive Cooldowns.
+## This is the default version of QOL Lite.
 
 	Features:
 		
 		- Top Bar Plus
 	
-		- Larger & Transparent Minimap
+		- Better Map
 		
-		- Always Show Passive Cooldowns
+		- Map Event Reminders
+		
+		- Enhanced Quickbuy
 
 		- Advanced Testing Tools In Hideout
 
 		- Menu (for queuing while in Custom Servers or Hideout)
 
 		- Statlocker
-
-		- Stats in Shop
-
-		- Clean Damage Indicator
-
-		- Vindicta Scope Downscale
 
 		- Optimized McGinnis Wall
 
