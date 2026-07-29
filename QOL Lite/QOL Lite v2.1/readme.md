@@ -9,6 +9,9 @@
 - Replaced the stale ShowRank bridge with the current shared bridge and connected the profile, player-context, top-bar, Escape, and player-list surfaces to it.
 - Removed the minimalist-only underground vignette opacity mask while retaining the normal underground minimap opacity.
 - Recompiled all Panorama layouts and styles, including nested assets. All 46 Panorama scripts use Closure Compiler ADVANCED with Panorama APIs, cross-script properties, and XML entrypoints preserved.
+- Restored Recent Purchases item and hero icon data after Closure removed the cross-script maps, and added an enabled-by-default UMM toggle with safe disable/re-enable cleanup.
+- Updated the Top Bar Plus objective tracker so missing Rift marker evidence no longer leaves the status stuck on `Rift live`.
+- Removed unsupported Panorama CSS declarations that produced parsing warnings in the top bar, minimap, and hero-testing menu.
 
 ## Not included
 
