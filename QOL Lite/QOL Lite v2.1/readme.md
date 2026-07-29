@@ -8,7 +8,7 @@
 - Collapsed the KOTH meter outside active matches, including the hideout, so stale capture classes cannot leave it visible.
 - Replaced the stale ShowRank bridge with the current shared bridge and connected the profile, player-context, top-bar, Escape, and player-list surfaces to it.
 - Removed the minimalist-only underground vignette opacity mask while retaining the normal underground minimap opacity.
-- Recompiled all Panorama layouts and styles. All 46 Panorama scripts were rebuilt through Closure Compiler ADVANCED before Source 2 compilation.
+- Recompiled all Panorama layouts and styles, including nested assets. All 46 Panorama scripts use Closure Compiler ADVANCED with Panorama APIs, cross-script properties, and XML entrypoints preserved.
 
 ## Not included
 
