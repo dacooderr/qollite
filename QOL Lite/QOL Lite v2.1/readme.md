@@ -11,7 +11,7 @@
 - Removed the minimalist-only underground vignette opacity mask while retaining the normal underground minimap opacity.
 - Added QOL Lock's independent Minimalist Opacity control to Better Map, including 0% base-map opacity without hiding markers or tunnel overlays.
 - Restored QOL Lock's fully transparent Minimalist backing and compact pak47-compiled custom tunnel texture.
-- Slightly darkened only the surface base map while keeping underground artwork, tunnels, and markers at full brightness for clear level distinction.
+- Kept the surface map render at full brightness and opacity, then switched underground to CSS-owned `brightness: 0` and `opacity: 0.6`; Better Map no longer forces inline `map_render` opacity.
 - Recompiled all Panorama layouts and styles, including nested assets. All 46 Panorama scripts use Closure Compiler ADVANCED with Panorama APIs, cross-script properties, and XML entrypoints preserved.
 - Restored Recent Purchases item and hero icon data after Closure removed the cross-script maps, and added an enabled-by-default UMM toggle with safe disable/re-enable cleanup.
 - Updated the Top Bar Plus objective tracker so missing Rift marker evidence no longer leaves the status stuck on `Rift live`.
