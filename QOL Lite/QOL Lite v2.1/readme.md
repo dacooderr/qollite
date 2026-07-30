@@ -7,6 +7,7 @@
 - Restored the engine-owned King of the Hill meter. The old hand-built substitute could not receive native progress, capture-state, or participant updates.
 - Collapsed the KOTH meter outside active matches, including the hideout, so stale capture classes cannot leave it visible.
 - Replaced the stale ShowRank bridge with the current shared bridge and connected the profile, player-context, top-bar, Escape, and player-list surfaces to it.
+- Showed the engine game clock and team net worth in the hideout while keeping both hidden during new-game HUD loading and preserving backwards-clock state reset.
 - Removed the minimalist-only underground vignette opacity mask while retaining the normal underground minimap opacity.
 - Added QOL Lock's independent Minimalist Opacity control to Better Map, including 0% base-map opacity without hiding markers or tunnel overlays.
 - Restored QOL Lock's fully transparent Minimalist backing and natural grey map artwork while retaining its custom tunnel texture.
