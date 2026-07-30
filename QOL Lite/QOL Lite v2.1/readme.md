@@ -10,7 +10,8 @@
 - Showed the engine game clock and team net worth in the hideout while keeping both hidden during new-game HUD loading and preserving backwards-clock state reset.
 - Removed the minimalist-only underground vignette opacity mask while retaining the normal underground minimap opacity.
 - Added QOL Lock's independent Minimalist Opacity control to Better Map, including 0% base-map opacity without hiding markers or tunnel overlays.
-- Restored QOL Lock's fully transparent Minimalist backing and natural grey map artwork while retaining its custom tunnel texture.
+- Restored QOL Lock's fully transparent Minimalist backing and compact pak47-compiled custom tunnel texture.
+- Slightly darkened only the surface base map while keeping underground artwork, tunnels, and markers at full brightness for clear level distinction.
 - Recompiled all Panorama layouts and styles, including nested assets. All 46 Panorama scripts use Closure Compiler ADVANCED with Panorama APIs, cross-script properties, and XML entrypoints preserved.
 - Restored Recent Purchases item and hero icon data after Closure removed the cross-script maps, and added an enabled-by-default UMM toggle with safe disable/re-enable cleanup.
 - Updated the Top Bar Plus objective tracker so missing Rift marker evidence no longer leaves the status stuck on `Rift live`.
