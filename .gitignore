@@ -1,0 +1,45 @@
+# This repository tracks the *extracted* contents of the pack, so most binary
+# formats here (.vtex, .vmat, .vmdl, .dmx, .vpcf, .png) are deliberately
+# committed. Only build output, scratch space and local tooling belong below.
+
+# --- Release artifacts -------------------------------------------------------
+# The packed VPK is a release artifact, not source. Fourteen of them were
+# committed and later deleted before the repo switched to tracking the extracted
+# tree; keep it that way.
+*.vpk
+pak01_dir.vpk
+
+# Archives people produce while packaging or downloading upstream mods
+*.7z
+*.zip
+*.rar
+
+# --- Compiled Panorama -------------------------------------------------------
+# Source 2 compile output: *.vxml_c, *.vcss_c, *.vjs_c, *.vtex_c and friends.
+# The repo stores the decompiled sources instead. (Plain .vtex without the _c
+# suffix IS tracked -- that is a shipped texture, not compile output.)
+*_c
+
+# --- Scratch space -----------------------------------------------------------
+# Where decompilers and packing tools get pointed. Never source.
+/decompiled/
+/extracted/
+/build/
+/dist/
+/tmp/
+/_scratch/
+
+# --- Tooling -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Editors and OS ----------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+desktop.ini
+.DS_Store
