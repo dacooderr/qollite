@@ -19,12 +19,12 @@
 
     - Statlocker
 
-    - Clean Damage Indicator
-
     - Vindicta Scope Downscale
 
     - Optimized McGinnis Wall
 
     - Sinner's Light Fix
 
-    - 4;3 Option in Video Settings
+    - 4x3 Option in Video Settings
+
+	- 4x3 Fix
