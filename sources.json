@@ -1,0 +1,94 @@
+{
+  "_comment": "Upstream sources for every mod bundled in QOL Lite. Checked by scripts/check_upstream.py against the GameBanana API. Human-readable context lives in docs/BUNDLE.md.",
+  "checked": null,
+  "mods": [
+    {
+      "feature": "minimap",
+      "tier": "first-party",
+      "gamebanana_id": 664456,
+      "upstream": "https://github.com/gfkm-gpt/deadlockmapmod (confirm canonical remote)",
+      "note": "BetterMap. Rebuild from upstream; do not edit the bundled scripts.",
+      "pinned": {}
+    },
+    {
+      "feature": "event-reminders",
+      "tier": "first-party",
+      "gamebanana_id": 697050,
+      "upstream": "https://github.com/gfkm/MapEventReminders",
+      "note": "Rebuild from upstream; do not edit the bundled scripts.",
+      "pinned": {}
+    },
+    {
+      "feature": "top-bar",
+      "tier": "vendored",
+      "gamebanana_id": 623518,
+      "upstream": null,
+      "note": "Match not byte-verified against the bundled build.",
+      "pinned": {}
+    },
+    {
+      "feature": "show-rank",
+      "tier": "vendored",
+      "gamebanana_id": 681028,
+      "upstream": null,
+      "note": "Match not byte-verified. Calls api.deadlock-api.com.",
+      "pinned": {}
+    },
+    {
+      "feature": "quickbuy",
+      "tier": "vendored",
+      "gamebanana_id": 664041,
+      "upstream": null,
+      "note": "Enhanced QuickBuy by Aminsx.",
+      "pinned": {}
+    },
+    {
+      "feature": "statlocker",
+      "tier": "vendored",
+      "gamebanana_id": 675877,
+      "upstream": null,
+      "note": "Statlocker Integration by tanaee.",
+      "pinned": {}
+    },
+    {
+      "feature": "hero-testing",
+      "tier": "vendored",
+      "gamebanana_id": 616749,
+      "upstream": null,
+      "note": "Match not byte-verified.",
+      "pinned": {}
+    },
+    {
+      "feature": "assets/mcginnis-wall",
+      "tier": "vendored",
+      "gamebanana_id": 690514,
+      "upstream": null,
+      "note": "Created by Aminsx; dacooderr listed as redistributor.",
+      "pinned": {}
+    },
+    {
+      "feature": "recent-purchases",
+      "tier": "vendored",
+      "gamebanana_id": null,
+      "upstream": null,
+      "note": "UNRESOLVED: candidates 607703 (Hanturaya) and 679055 (bytenode). Ask before pinning.",
+      "pinned": {}
+    },
+    {
+      "feature": "passives",
+      "tier": "vendored",
+      "gamebanana_id": null,
+      "upstream": null,
+      "note": "No GameBanana match found under 'Always Show Passives'.",
+      "pinned": {}
+    },
+    {
+      "feature": "assets/sinners-light",
+      "tier": "vendored",
+      "gamebanana_id": null,
+      "upstream": null,
+      "note": "No GameBanana match found.",
+      "pinned": {}
+    }
+  ]
+}
