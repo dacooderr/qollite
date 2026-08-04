@@ -1,0 +1,76 @@
+name: Check bundled mods for upstream updates
+
+# QOL Lite bundles mods written by other people. When an author ships an update,
+# nothing tells us -- the pack keeps serving the old build until a user notices.
+# This runs the check on a schedule and files one issue when something drifts.
+#
+# It only reports. It downloads no mod files and changes nothing in the tree.
+#
+# Requires: Actions enabled, and workflow permissions allowing issues: write.
+# Both are repository settings only an admin can see or change.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"   # Mondays, 06:17 UTC. Off the hour to be polite to the API.
+  workflow_dispatch:        # lets a maintainer run it on demand from the Actions tab
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: check-upstream
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Verify the checker itself still works
+        # Offline, against fixtures. If the tool is broken, say so rather than
+        # reporting a clean bill of health we have not earned.
+        run: python scripts/test_check_upstream.py
+
+      - name: Check upstreams
+        id: check
+        run: |
+          set +e
+          python scripts/check_upstream.py | tee report.txt
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+        # exit 0 = in sync / nothing pinned, 1 = drift found, 2 = error
+
+      - name: Open or update the drift issue
+        if: steps.check.outputs.status == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "Bundled mods have moved upstream"
+        run: |
+          BODY=$(printf '%s\n\n```\n%s\n```\n\n%s\n' \
+            "One or more bundled mods have a newer version on GameBanana." \
+            "$(cat report.txt)" \
+            "Updating a bundled mod means re-doing the merge, not copying files — see docs/BUNDLE.md and CONTRIBUTING.md. After rebundling, run \`python scripts/check_upstream.py --update\` and update the matching rows in docs/BUNDLE.md in the same commit.")
+
+          EXISTING=$(gh issue list --state open --label upstream-drift \
+                       --search "$TITLE in:title" --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "commented on existing issue #$EXISTING"
+          else
+            gh label create upstream-drift --color FBCA04 \
+              --description "A bundled mod has a newer version upstream" 2>/dev/null || true
+            gh issue create --title "$TITLE" --label upstream-drift --body "$BODY"
+          fi
+
+      - name: Fail the run if the check errored
+        if: steps.check.outputs.status == '2'
+        run: |
+          echo "check_upstream.py exited 2 (could not read the manifest)."
+          cat report.txt
+          exit 1

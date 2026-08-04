@@ -1,0 +1,93 @@
+{
+  "_sName": "Enhanced QuickBuy",
+  "_sVersion": "1.6",
+  "_tsDateUpdated": 1784549924,
+  "_tsDateModified": 1784549805,
+  "_sLicense": "<a rel=\"license\" href=\"http://creativecommons.org/licenses/by-nc-nd/4.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png\" /></a><br />This work is licensed under a <a rel=\"license\" href=\"http://creativecommons.org/licenses/by-nc-nd/4.0/\">Creative Commons Attribution-NonCommercial-NoDerivs 4.0 Unported License</a>.",
+  "_aFiles": [
+    {
+      "_idRow": 1759410,
+      "_sFile": "enhanced_quickbuy_c1725.zip",
+      "_nFilesize": 28438,
+      "_tsDateAdded": 1784548960,
+      "_nDownloadCount": 2823,
+      "_sDownloadUrl": "https://gamebanana.com/dl/1759410",
+      "_sMd5Checksum": "8a0dc414af438f95468a99e36b57a4f4",
+      "_sAnalysisState": "done",
+      "_sAnalysisResult": "ok",
+      "_sAnalysisResultVerbose": "File passed preliminary analysis",
+      "_sAvState": "done",
+      "_sAvResult": "clean",
+      "_bIsArchived": false,
+      "_bHasContents": true,
+      "_sVersion": "1.6",
+      "_aModManagerIntegrations": [
+        {
+          "_idToolRow": 20646,
+          "_bSupportsRemoteInstall": true,
+          "_aGameRowIds": [
+            20948
+          ],
+          "_sModManagerAlias": "DeadlockModManager",
+          "_sInstallerName": "Deadlock Mod Manager",
+          "_idSubmitterRow": 4765184,
+          "_sInstallerUrl": "https://gamebanana.com/tools/20646",
+          "_sIconUrl": "https://images.gamebanana.com/img/ico/tools/68bc15e737261.png",
+          "_sDownloadUrl": "deadlock-mod-manager:https://gamebanana.com/mmdl/1759410,Mod,664041"
+        }
+      ]
+    }
+  ],
+  "_aSubmitter": {
+    "_idRow": 4798159,
+    "_sName": "Aminsx",
+    "_sUserTitle": "Bananite",
+    "_sHonoraryTitle": "",
+    "_tsJoinDate": 1757729106,
+    "_sAvatarUrl": "https://images.gamebanana.com/img/av/692cccf47107f.png",
+    "_sSigUrl": "",
+    "_sProfileUrl": "https://gamebanana.com/members/4798159",
+    "_sPointsUrl": "https://gamebanana.com/members/logs/pointslog/4798159",
+    "_sMedalsUrl": "https://gamebanana.com/members/stats/medals/4798159",
+    "_bIsOnline": false,
+    "_sLocation": "<a href=\"https://gamebanana.com\">Home</a> > <a href=\"https://gamebanana.com/games/20948\"><img src=\"https://images.gamebanana.com/img/ico/games/69ca8632eca6d.png\"/><span>Deadlock</span></a> > <a href=\"https://gamebanana.com/mods/games/20948\">Mods</a> > <a href=\"https://gamebanana.com/mods/cats/31713\">HUD</a> > <a href=\"https://gamebanana.com/mods/664041\">Enhanced QuickBuy</a>",
+    "_sOnlineTitle": "",
+    "_sOfflineTitle": "",
+    "_nPoints": 650,
+    "_nPointsRank": 134163,
+    "_aNormalMedals": [
+      [
+        "m_age_1.png",
+        "One month a member",
+        "normal",
+        3842650
+      ],
+      [
+        "m_age_2.png",
+        "6 months a member",
+        "normal",
+        4526414
+      ]
+    ],
+    "_aRareMedals": [],
+    "_aLegendaryMedals": [],
+    "_bHasRipe": false,
+    "_nBuddyCount": 1,
+    "_nSubscriberCount": 4,
+    "_aDonationMethods": [],
+    "_bAccessorIsBuddy": false,
+    "_bBuddyRequestExistsWithAccessor": false,
+    "_bAccessorIsSubscribed": false,
+    "_aDefaultLicenseChecklist": [
+      "yes",
+      "ask",
+      "ask",
+      "ask",
+      "ask",
+      "ask",
+      "no",
+      "ask"
+    ],
+    "_sDefaultLicense": ""
+  }
+}

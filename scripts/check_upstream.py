@@ -34,6 +34,13 @@ THROTTLE_S = 0.5  # be a good citizen; this is someone else's free service
 
 
 def fetch(mod_id):
+    """Fetch a mod's profile. Reads from a fixture directory instead when
+    QOLLITE_UPSTREAM_FIXTURES is set, so the tool can be tested offline and
+    deterministically -- see scripts/test_check_upstream.py."""
+    fixtures = os.environ.get("QOLLITE_UPSTREAM_FIXTURES")
+    if fixtures:
+        with open(os.path.join(fixtures, f"{mod_id}.json"), encoding="utf-8") as fh:
+            return json.load(fh)
     req = urllib.request.Request(API.format(mod_id), headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
@@ -75,13 +82,16 @@ def main():
     ap.add_argument("--update", action="store_true",
                     help="record the current upstream state as the new baseline")
     ap.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    ap.add_argument("--sources", default=SOURCES, metavar="PATH",
+                    help="manifest to read (default: sources.json at the repo root)")
     args = ap.parse_args()
 
-    if not os.path.exists(SOURCES):
-        print(f"error: {SOURCES} not found", file=sys.stderr)
+    sources_path = args.sources
+    if not os.path.exists(sources_path):
+        print(f"error: {sources_path} not found", file=sys.stderr)
         return 2
 
-    with open(SOURCES, encoding="utf-8") as fh:
+    with open(sources_path, encoding="utf-8") as fh:
         sources = json.load(fh)
 
     results, failed = [], []
@@ -91,8 +101,10 @@ def main():
     for entry in entries:
         try:
             live = summarise(fetch(entry["gamebanana_id"]))
-        except (urllib.error.URLError, ValueError, TimeoutError) as exc:
-            failed.append((entry["feature"], str(exc)[:60]))
+        except (OSError, ValueError, KeyError) as exc:
+            # OSError covers URLError, HTTPError, timeouts and DNS failures.
+            # One unreachable mod must not cost us the report on all the others.
+            failed.append((entry["feature"], f"{type(exc).__name__}: {exc}"[:70]))
             continue
 
         pinned = entry.get("pinned", {})
@@ -103,7 +115,8 @@ def main():
                             "live": live, "changed": [], "baseline": False})
             if args.update:
                 entry["pinned"] = live
-            time.sleep(THROTTLE_S)
+            if not os.environ.get("QOLLITE_UPSTREAM_FIXTURES"):
+                time.sleep(THROTTLE_S)
             continue
 
         changed = []
@@ -120,11 +133,12 @@ def main():
                         "live": live, "changed": changed, "baseline": True})
         if args.update:
             entry["pinned"] = live
-        time.sleep(THROTTLE_S)
+        if not os.environ.get("QOLLITE_UPSTREAM_FIXTURES"):
+            time.sleep(THROTTLE_S)
 
     if args.update:
         sources["checked"] = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
-        with open(SOURCES, "w", encoding="utf-8", newline="\r\n") as fh:
+        with open(sources_path, "w", encoding="utf-8", newline="\r\n") as fh:
             json.dump(sources, fh, indent=2, ensure_ascii=False)
             fh.write("\n")
         print(f"sources.json updated ({len(results)} entries)")

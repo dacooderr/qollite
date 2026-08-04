@@ -1,0 +1,86 @@
+{
+  "_sName": "Statlocker Integration",
+  "_sVersion": "1.0",
+  "_tsDateUpdated": 1778546624,
+  "_tsDateModified": 1780295267,
+  "_sLicense": "<a rel=\"license\" href=\"http://creativecommons.org/licenses/by-nc-nd/4.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png\" /></a><br />This work is licensed under a <a rel=\"license\" href=\"http://creativecommons.org/licenses/by-nc-nd/4.0/\">Creative Commons Attribution-NonCommercial-NoDerivs 4.0 Unported License</a>.",
+  "_aFiles": [
+    {
+      "_idRow": 1699570,
+      "_sFile": "statlockerintegrationfix.zip",
+      "_nFilesize": 115598,
+      "_tsDateAdded": 1778546497,
+      "_nDownloadCount": 2833,
+      "_sDownloadUrl": "https://gamebanana.com/dl/1699570",
+      "_sMd5Checksum": "f0dbbf9e4fe72febdf139943f493aaef",
+      "_sAnalysisState": "done",
+      "_sAnalysisResult": "ok",
+      "_sAnalysisResultVerbose": "File passed preliminary analysis",
+      "_sAvState": "done",
+      "_sAvResult": "clean",
+      "_bIsArchived": false,
+      "_bHasContents": true,
+      "_aModManagerIntegrations": [
+        {
+          "_idToolRow": 20646,
+          "_bSupportsRemoteInstall": true,
+          "_aGameRowIds": [
+            20948
+          ],
+          "_sModManagerAlias": "DeadlockModManager",
+          "_sInstallerName": "Deadlock Mod Manager",
+          "_idSubmitterRow": 4765184,
+          "_sInstallerUrl": "https://gamebanana.com/tools/20646",
+          "_sIconUrl": "https://images.gamebanana.com/img/ico/tools/68bc15e737261.png",
+          "_sDownloadUrl": "deadlock-mod-manager:https://gamebanana.com/mmdl/1699570,Mod,675877"
+        }
+      ]
+    }
+  ],
+  "_aSubmitter": {
+    "_idRow": 5469707,
+    "_sName": "tanaee",
+    "_sUserTitle": "Bananite",
+    "_sHonoraryTitle": "",
+    "_tsJoinDate": 1778278827,
+    "_sAvatarUrl": "https://images.gamebanana.com/static/img/defaults/avatar.gif",
+    "_sSigUrl": "",
+    "_sProfileUrl": "https://gamebanana.com/members/5469707",
+    "_sPointsUrl": "https://gamebanana.com/members/logs/pointslog/5469707",
+    "_sMedalsUrl": "https://gamebanana.com/members/stats/medals/5469707",
+    "_bIsOnline": false,
+    "_sLocation": "<a href=\"https://gamebanana.com\">Home</a> > <a href=\"https://gamebanana.com/games/20948\"><img src=\"https://images.gamebanana.com/img/ico/games/69ca8632eca6d.png\"/><span>Deadlock</span></a> > <a href=\"https://gamebanana.com/mods/games/20948\">Mods</a> > <a href=\"https://gamebanana.com/mods/cats/46154\">Quality of Life/Fixes</a> > <a href=\"https://gamebanana.com/mods/623518\">Top Bar Plus [Beta]</a>",
+    "_sOnlineTitle": "",
+    "_sOfflineTitle": "",
+    "_nPoints": 98,
+    "_nPointsRank": 0,
+    "_aNormalMedals": [
+      [
+        "m_age_1.png",
+        "One month a member",
+        "normal",
+        4929637
+      ]
+    ],
+    "_aRareMedals": [],
+    "_aLegendaryMedals": [],
+    "_bHasRipe": false,
+    "_nBuddyCount": 0,
+    "_nSubscriberCount": 1,
+    "_aDonationMethods": [],
+    "_bAccessorIsBuddy": false,
+    "_bBuddyRequestExistsWithAccessor": false,
+    "_bAccessorIsSubscribed": false,
+    "_aDefaultLicenseChecklist": [
+      "yes",
+      "ask",
+      "ask",
+      "ask",
+      "ask",
+      "ask",
+      "no",
+      "ask"
+    ],
+    "_sDefaultLicense": ""
+  }
+}
