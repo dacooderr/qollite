@@ -1,0 +1,1 @@
+var d=function(){var b=!0;return{info:function(a){try{$.Msg("[BetterMap] "+a)}catch(c){}},error:function(a){try{$.Msg("[BetterMap] [ERROR] "+a)}catch(c){}},log:function(a){if(b)try{$.Msg("[BetterMap] "+a)}catch(c){}},setDebug:function(a){b=!!a},isDebug:function(){return b}}}();typeof d!=="undefined"&&(this.QolLiteMapLog=d);

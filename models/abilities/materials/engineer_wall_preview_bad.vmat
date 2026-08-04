@@ -1,0 +1,20 @@
+"Layer0"
+{
+	"shader"	"pbr.vfx"
+	"g_vColorTint1"	"[0.850000 0.030000 0.060000 0.000000]"
+	"TextureColor1"	"[1.000000 1.000000 1.000000 0.000000]"
+	"TextureMetalness1"	"[0.000000 0.000000 0.000000 0.000000]"
+	"TextureAmbientOcclusion"	"materials/default/default_ao.tga"
+	"TextureColor"	"models/abilities/materials/engineer_wall_preview_bad_vmat_g_tcolor_7d46cca1.png"
+	"TextureNormalRoughness"	"materials/default/default_normal.tga"
+	"TextureSelfIllumMask"	"materials/default/default_mask.tga"
+	"TextureTintMask"	"materials/default/default_mask.tga"
+	"Compiled Textures"
+	{
+		"g_tAmbientOcclusion"	"materials/default/default_ao_tga_559f1ac6.vtex"
+		"g_tColor"	"models/abilities/materials/engineer_wall_preview_bad_vmat_g_tcolor_7d46cca1.vtex"
+		"g_tNormalRoughness"	"materials/default/default_normal_tga_5a869113.vtex"
+		"g_tSelfIllumMask"	"materials/default/default_mask_tga_344101f8.vtex"
+		"g_tTintMask"	"materials/default/default_mask_tga_344101f8.vtex"
+	}
+}

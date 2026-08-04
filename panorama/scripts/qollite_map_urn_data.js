@@ -1,0 +1,1 @@
+var a={dl_midtown:{spawns:{left:{mid:{u:.19382,v:.5},top:{u:.2872,v:.34524},bottom:{u:.32887,v:.64137}},right:{mid:{u:.80618,v:.5},top:{u:.67113,v:.35863},bottom:{u:.7128,v:.65476}}}}};typeof a!=="undefined"&&(this.QolLiteMapUrnData=a);

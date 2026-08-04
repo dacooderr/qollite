@@ -1,0 +1,61 @@
+<!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
+		<include src="s2r://panorama/styles/dashboard.vcss_c" />
+		<include src="s2r://panorama/styles/popups/citadel_popup_global_leaderboard.vcss_c" />
+		<include src="s2r://panorama/styles/leaderboard_search.vcss_c" />
+	</styles>
+	<scripts>
+		<include src="s2r://panorama/scripts/qollite_leaderboard.vjs_c" />
+	</scripts>
+	<snippets>
+		<snippet name="PlayerSnippet">
+			<Panel class="playerSnippet">
+				<Panel class="playerInfoContainer LeftRightFlow">
+					<Label class="playerRatingLabel" text="{i:player_rank}" />
+					<Label class="playerRatingName" text="{s:player_name}" />
+					<CitadelRankedBadgeMini id="RankedBadge" show_rank_tooltip="true" />
+				</Panel>
+				<Panel id="TopHeroesContainer" />
+			</Panel>
+		</snippet>
+		<snippet name="HeroCardSnippet">
+			<Panel class="heroCardSnippet">
+				<CitadelHeroCard id="LeaderboardHeroCard" />
+			</Panel>
+		</snippet>
+		<snippet name="Hero">
+			<Panel class="Hero">
+				<CitadelHeroImage id="HeroImage" heroimagestyle="vertical" scaling="cover" />
+			</Panel>
+		</snippet>
+	</snippets>
+	<CitadelPopupGlobalLeaderboard class="PopupPanel Hidden" popupbackground="dim" oncancel="CitadelIntroPopupClosed();">
+		<Panel id="HeroSelectionContainer">
+			<Panel class="headerContainer">
+				<Label class="headerLabel" text="#Citadel_GlobalLeaderboard_Title" />
+				<Label class="headerDescLabel" text="#Citadel_GlobalLeaderboard_Desc" />
+			</Panel>
+			<Panel id="Heroes" />
+		</Panel>
+		<Panel id="CountryContainer" class="TopBottomFlow">
+			<Panel class="countryHeader LeftRightFlow">
+				<Label class="heroLabel" text="{s:leaderboard_hero_name}" />
+				<Image id="LeaderboardHeroIcon" class="heroIcon" />
+			</Panel>
+			<Panel id="CountriesSelection" />
+			<Panel id="PlayersRatingContainer" class="TopBottomFlow">
+				<Panel class="searchContainer">
+					<TextEntry id="PlayerSearchInput" acceptsfocus="true" acceptsinput="true" placeholder="Search players..." ontextentrychange="QolLiteLeaderboardFilterPlayers()" />
+				</Panel>
+				<Panel id="PlayersHeader" />
+				<Panel id="PlayersContainer" />
+				<Panel id="SearchingIcon" />
+				<Label id="ErrorLoadingLabel" text="#Citadel_GlobalLeaderboard_Error" />
+				<Label id="LeaderboardEmptyLabel" text="#Citadel_GlobalLeaderboard_Empty" />
+			</Panel>
+			<Label class="footerNote" html="true" text="{s:leaderboard_footer_text}" />
+		</Panel>
+	</CitadelPopupGlobalLeaderboard>
+</root>

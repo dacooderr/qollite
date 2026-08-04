@@ -1,0 +1,1 @@
+var a={enabled:!0,showSpawn:!0,showWarning:!0,warnSecs:15,soundEnabled:!0,soundEvent:"UI.RevealVote",events:{weak_camps:!0,breakables:!0,medium_camps:!0,bridge_buffs:!0,strong_camps:!0,sinners_sacrifice:!0,soul_urn:!0},durationSecs:6,graceSecs:5,debugSchedule:!1};typeof a!=="undefined"&&(this.QolLiteNotificationsConfig=a);
