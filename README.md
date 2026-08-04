@@ -1,7 +1,7 @@
 # QOL Lite
-**QOL Lite acts as a QOL Lock replacement to avoid 1% low issues. It includes the basic mods included in QOL Lock as well as QOL Lite exclusive fixes such as *Sinners Light Fix*, *Optimized Soul Containers*, *Vindicta Scope Downscale*, and *Optimized McGinnis Wall* without the big performance hit that comes with QOL Lock.**
+**QOL Lite is a Quality of Life Collection of preexisting and custom made mods made for awareness and competitive play.**
 
-**YOU CANNOT HAVE ANY OF THE MODS INSTALLED ALREADY INCLUDED IN QOL Lite OR USE QOL LOCK WHILE USING QOL Lite OR IT WILL CRASH OR JUST NOT WORK!**
+**YOU CANNOT HAVE ANY OF THE MODS INSTALLED ALREADY INCLUDED IN QOL Lite OR USE OTHER QUALITY OF LIFE MODS WHILE USING THIS MOD**
 
 **QOL Lite MUST ALSO BE #1 PRIORITY IN YOUR MOD LOAD ORDER AT ALL TIMES!**
 
