@@ -61,7 +61,7 @@ commit.**
 | Loop | Interval | Rate | Work per tick | Gated? |
 |---|---:|---:|---|---|
 | `qollite_notifications_bootstrap.js` → `k()` | 0.25 s | 4 Hz | Reads cached clock, calls `Scheduler.tick()` | Loop unconditional; `tick()` returns early when disabled |
-| `qollite_notifications_manager.js` → `z()` | 0.25 s | 4 Hz | Expires visible notices | ✅ **Self-limiting** — only re-arms while a notice is on screen. *This is the pattern to copy.* |
+| `qollite_notifications_manager.js` → `z()` | 0.25 s | 4 Hz | Expires visible notices | ✅ **Self-limiting** — only re-arms while a notice is on screen. *This is the pattern to copy — annotated source in [`PANORAMA.md`](PANORAMA.md) §4.* |
 
 ### `citadel_hud_top_bar.xml`
 

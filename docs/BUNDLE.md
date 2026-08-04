@@ -3,7 +3,8 @@
 > What is inside the pack, who wrote it, where it came from, and whether we can rebuild it.
 >
 > **Audience:** maintainers, contributors, and anyone auditing what ships to users.
-> **Status:** incomplete — every `TBD` is a question only the maintainers can answer.
+> **Status:** partially filled — authors and licenses traced via the GameBanana API (§7); every `TBD`
+> and every *Probable* is still a question only the maintainers can close.
 > **Last verified:** 2026-08-05 against commit `ac57b17`.
 
 QOL Lite is a **distribution**, not a single codebase. It bundles roughly a dozen features, most of
@@ -21,7 +22,8 @@ work is it*, and *how do we update it*. This file is where those answers live.
 4. [Vendored — third-party mods](#4-vendored--third-party-mods)
 5. [Unattributed](#5-unattributed)
 6. [Licensing](#6-licensing)
-7. [Maintaining this file](#7-maintaining-this-file)
+7. [Staying current with upstream](#7-staying-current-with-upstream)
+8. [Maintaining this file](#8-maintaining-this-file)
 
 ---
 
@@ -79,10 +81,11 @@ Developed separately, bundled here. These are the only script files we can meani
 ### Minimap (BetterMap)
 
 - **Author:** gfkm
-- **Upstream:** `github.com/gfkm-gpt/deadlockmapmod` *(the working copy currently has no live
-  `origin`; confirm the canonical remote before relying on this)*
-- **Bundled version:** TBD — no version is recorded anywhere in the pack
-- **License:** **none declared** — see [§6](#6-licensing)
+- **GameBanana:** [664456 — Better Map / Customize](https://gamebanana.com/mods/664456), v1.01
+- **Upstream repo:** `github.com/gfkm-gpt/deadlockmapmod` *(the working copy has no live `origin`;
+  confirm the canonical remote before relying on this)*
+- **Bundled version:** TBD — nothing in the pack records which build is in it
+- **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes, from the upstream project
 - **Files:** `panorama/scripts/qollite_map_*.js` (12), `panorama/layout/hud.xml` (shared),
   `panorama/styles/hud_minimap.css`, `panorama/images/minimap/**`, `materials/minimap/**`
@@ -95,9 +98,10 @@ Developed separately, bundled here. These are the only script files we can meani
 ### Event reminders (Map Event Reminders)
 
 - **Author:** gfkm
-- **Upstream:** `github.com/gfkm/MapEventReminders`
+- **GameBanana:** [697050 — Map Event Reminders](https://gamebanana.com/mods/697050)
+- **Upstream repo:** `github.com/gfkm/MapEventReminders`
 - **Bundled version:** TBD
-- **License:** **none declared** — see [§6](#6-licensing)
+- **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes, from the upstream project
 - **Files:** `panorama/scripts/qollite_notifications_*.js` (11),
   `panorama/layout/base_hud_and_db_overlay.xml`, `panorama/styles/notif.css`
@@ -111,17 +115,33 @@ Everything below ships as a **build artifact only**. The readable source is not 
 most cases, we do not know where it is. Treat these as read-only: report bugs upstream, do not patch
 the minified output.
 
-| Feature | Author | Upstream | Version | License | Docs |
-|---|---|---|---|---|---|
-| Top Bar Plus | TBD | TBD | TBD | TBD | [top-bar](systems/top-bar.md) |
-| Show Rank | TBD | TBD | TBD | TBD | [show-rank](systems/show-rank.md) |
-| Statlocker | TBD | TBD | TBD | TBD | [statlocker](systems/statlocker.md) |
-| Enhanced Quickbuy | TBD | TBD | TBD | TBD | [quickbuy](systems/quickbuy.md) |
-| Recent Purchases | TBD | TBD | TBD | TBD | [recent-purchases](systems/recent-purchases.md) |
-| Always Show Passives & Actives | TBD | TBD | TBD | TBD | [passives](systems/passives.md) |
-| Advanced Testing Tools In Hideout | TBD | TBD | TBD | TBD | [hero-testing](systems/hero-testing.md) |
-| Optimized McGinnis Wall | TBD | TBD | TBD | TBD | [assets](systems/assets.md) |
-| Sinner's Light Fix | TBD | TBD | TBD | TBD | [assets](systems/assets.md) |
+| Feature | Credited author(s) | GameBanana | Version | Confidence |
+|---|---|---|---|---|
+| Top Bar Plus | **bonclide** (tweaks, objective HUD) + Waltee (objective damage + base) + NA-45 (team-fight HUD) + bytenode (recent purchases); timers by BreadRollius (icons) + Hanturaya (base) | [623518](https://gamebanana.com/mods/623518) | 4.0d | Probable |
+| Show Rank | **Hanturaya**; image logic by bytenode; rank API by deadlock.api (manuelhexe) | [681028](https://gamebanana.com/mods/681028) | — | Probable |
+| Enhanced Quickbuy | **Aminsx** | [664041](https://gamebanana.com/mods/664041) | 1.6 | Confirmed |
+| Recent Purchases | **Unresolved** — two candidates, see below | [607703](https://gamebanana.com/mods/607703) or [679055](https://gamebanana.com/mods/679055) | — | **Unresolved** |
+| Always Show Passives & Actives | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
+| Advanced Testing Tools In Hideout | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 | Probable |
+| Optimized McGinnis Wall | **Aminsx** (creator); dacooderr listed as redistributor | [690514](https://gamebanana.com/mods/690514) | — | Confirmed |
+| Sinner's Light Fix | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
+
+**All of the above are licensed CC BY-NC-ND 4.0** on GameBanana. See [§6](#6-licensing) — the terms
+matter, and they are not what the repository's `LICENSE` file says.
+
+**Confidence levels.** *Confirmed* means a single unambiguous match whose credits name one author.
+*Probable* means the name matches a single plausible Deadlock mod, but **the bundled files were not
+byte-compared against the upstream download** — nobody has verified that the version in the pack is
+that mod. Only the maintainers can close that gap.
+
+**The Recent Purchases ambiguity.** Two Deadlock mods share the concept:
+[607703 "Overhaul Recent Purchases Revived"](https://gamebanana.com/mods/607703) by Hanturaya, whose
+description highlights *"with old icons too on the list"*, and
+[679055 "Byte's Recent Purchases Overhaul"](https://gamebanana.com/mods/679055) by bytenode. The
+bundled build carries a ~3,000-entry localized icon table, which points at the former — but that is
+inference, not evidence. Complicating it further, Top Bar Plus credits *"bytenode (Recent Purchases
+mod)"*, so a recent-purchases implementation may also arrive bundled inside Top Bar Plus.
+**Ask before recording either as fact.**
 
 **Internal identifiers that may help trace an upstream.** Three of these register with Universal Mod
 Manager under stable ids, which are likely to match their original project names
@@ -168,42 +188,117 @@ files:
 
 ## 6. Licensing
 
-**This section records an open question, not a legal opinion.**
+**This section records verified facts and an open question. It is not legal advice.**
 
-The repository carries **GPL-3.0** (`LICENSE`, 674 lines) and contains **no attribution of any
-kind** — no per-feature authors, no upstream links, no per-mod license files, and no credits in the
-README.
+### What the bundled mods actually say
 
-Two things follow that the maintainers should resolve:
+Every bundled mod traced so far is published on GameBanana under **CC BY-NC-ND 4.0**, and each one
+carries a machine-readable permission checklist. Those checklists are **not uniform**, and the
+distinction matters because QOL Lite is a derivative bundle distributed on GameBanana:
 
-1. **A repo-wide license cannot cover work we do not own.** GPL-3.0 at the root reads as a claim over
-   everything in the tree, including a dozen features written by other people. Whatever the intent,
-   the file as it stands does not describe the actual situation.
-2. **If any bundled mod is itself GPL-licensed, redistributing it carries obligations** — notably
-   providing corresponding source for that component. The pack currently ships only minified and
-   compiled artifacts, so it would not satisfy that.
+| Mod | "Use parts in another Mod, distribute on GameBanana" | "…on another site" | "Redistribute as-is elsewhere" |
+|---|---|---|---|
+| Top Bar Plus | ✅ yes | ✅ yes | ❌ no |
+| Testing Tools in Hideout | ✅ yes | ✅ yes | ❌ no |
+| Optimized McGinnis Wall | ⚠️ ask | ❌ no | ❌ no |
+| Show Rank, Enhanced Quickbuy, Statlocker, Recent Purchases | ⚠️ ask | ⚠️ ask | ⚠️ ask |
+| **QOL Lite itself** | ❌ no | ❌ no | ❌ no |
 
-Also worth noting: **our own two mods declare no license at all** upstream. Under default copyright
-that is "all rights reserved", which sits awkwardly under a GPL-3.0 root. Adding an explicit license
-to BetterMap and Map Event Reminders is a cheap fix entirely within our control, and worth doing
-regardless of how the wider question lands.
+So bundling is **explicitly permitted** for some, **requires asking** for most, and QOL Lite's own
+pack is locked down entirely. Given that dacooderr already redistributes Aminsx's wall with proper
+credit on GameBanana, permissions plausibly exist for several of these — they are simply **not
+written down anywhere in this repository**, which is the actual gap.
 
-None of this is unusual for a game-mod collection, and none of it is urgent in the sense of anything
-being broken. But it is exactly the kind of thing that becomes expensive later, and filling in
-[§4](#4-vendored--third-party-mods) is most of the work either way — you cannot ask an author's
-permission if you do not know who they are.
+### The concrete problem
 
-**Suggested order:** contact the authors of the bundled mods → record author, upstream, and license
-per entry above → add a credits section to the README → revisit the root `LICENSE` once the picture
-is clear.
+**The repository's `LICENSE` (GPL-3.0) contradicts the terms the bundled work is published under.**
+
+GPL-3.0 grants exactly what CC BY-NC-ND withholds: commercial use, derivative works, and
+redistribution by anyone. Applying it repo-wide asserts permissions over other people's mods that
+they have not granted — and it also contradicts dacooderr's own GameBanana listing for QOL Lite,
+which says no to every reuse option.
+
+This is very likely an accident of `git init` rather than intent. It is also cheap to fix.
+
+### Our own two mods
+
+BetterMap and Map Event Reminders are published on GameBanana under CC BY-NC-ND like everything else,
+but their **upstream repositories declare no license at all**, which under default copyright means all
+rights reserved. That is the one piece entirely within our control, and worth aligning regardless of
+how the wider question lands.
+
+### Suggested order
+
+1. Confirm with each author that bundling is permitted, and **record the answer per entry in
+   [§4](#4-vendored--third-party-mods)**. Where the checklist already says yes, record that instead.
+2. Add a credits section to the README naming every author above.
+3. Replace the repo-wide `LICENSE` with something that describes reality: our own merge-layer terms,
+   plus a pointer to each bundled mod's own license.
+
+Nothing here is unusual for a mod collection, and nothing is on fire. But the manifest is the fix for
+both this and the update problem, which is why it is worth doing once, properly.
 
 ---
 
-## 7. Maintaining this file
+## 7. Staying current with upstream
+
+The bundled mods keep being developed by their authors. Without a way to notice that, the pack
+silently keeps shipping an old build until a user reports it — which is the failure mode a
+distribution has to avoid above all others.
+
+**GameBanana has a public API, and it exposes everything needed for this.** Both of these work
+without a key:
+
+```
+https://gamebanana.com/apiv11/Mod/<id>/ProfilePage
+https://api.gamebanana.com/Core/Item/Data?itemtype=Mod&itemid=<id>&fields=...
+```
+
+Useful fields on `ProfilePage`:
+
+| Field | Use |
+|---|---|
+| `_sVersion` | The author's own version string |
+| `_tsDateUpdated` | When they last shipped |
+| `_aFiles[]._sMd5Checksum` | Per-file checksums — detects a re-upload that did not bump the version |
+| `_sLicense`, `_aLicenseChecklist` | Terms, including a machine-readable permissions list |
+| `_aCredits` | Credited authors **with roles** — not the same as the uploader |
+| `_aSubmitter._sName` | Who uploaded it |
+
+Search within Deadlock (game id **20948**):
+
+```
+https://gamebanana.com/apiv11/Game/20948/Subfeed?_nPage=1&_sName=<query>
+```
+
+### The tooling
+
+[`sources.json`](../sources.json) records one entry per bundled mod: its GameBanana id, its tier, and
+a `pinned` block describing the version that is actually bundled.
+
+```
+python scripts/check_upstream.py            # report drift
+python scripts/check_upstream.py --update   # re-pin after rebundling
+python scripts/check_upstream.py --json     # for CI
+```
+
+**A `pinned` block is a claim about what ships**, not a snapshot of upstream. Running `--update` on a
+checkout you have not rebundled records upstream's current state as though it were ours, producing
+exactly the false "we are up to date" the tool exists to prevent. Pin only what you have verified.
+
+Entries with no `gamebanana_id` cannot be tracked at all — that is why the unresolved rows in
+[§4](#4-vendored--third-party-mods) matter beyond bookkeeping.
+
+**Courtesy:** this is someone else's free service. The script throttles to two requests a second;
+keep it that way, and do not poll it on a schedule tighter than daily.
+
+---
+
+## 8. Maintaining this file
 
 **Adding a feature to the pack** — add its entry here before it ships, with author, upstream,
-version, and license filled in. An entry that cannot be filled in is a reason to pause, not a
-formality to skip.
+version, and license filled in, plus a row in [`sources.json`](../sources.json). An entry that cannot
+be filled in is a reason to pause, not a formality to skip.
 
 **Updating a vendored mod** — bump its **Bundled version** in the same commit that updates its files,
 so the manifest never describes a build that is no longer shipping.

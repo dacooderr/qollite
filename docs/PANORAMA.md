@@ -185,6 +185,66 @@ its instances find each other **within** a context; it is *not* a cross-context 
 An unlaid-out panel reads `0×0` at offset `3.4e38` (FLT_MAX) — the reliable way to tell a *collapsed*
 panel from a merely *hidden* one.
 
+### Two patterns worth copying
+
+Both come from the event-reminder modules, and they share a theme: **design the failure, not just
+the happy path.** Panorama cannot report failure (§3), so the only thing that saves you is deciding in
+advance what breakage looks like.
+
+Source shown is the readable upstream, not the minified form that ships here.
+
+#### Stop the loop, don't skip the body
+
+A tick that re-arms unconditionally costs the same whether its feature is on or off. Re-arm only
+while there is something to do, and let the feature's own entry point restart it:
+
+```js
+function sweep() {
+    _sweeping = false;
+    var n = now(), changed = false, has = false, k;
+    for (k in items) {
+        var it = items[k];
+        if (it.expireAt && n >= it.expireAt) { delete items[k]; changed = true; continue; }
+        has = true;                    // something is still live
+    }
+    if (changed) { render(); }
+    if (has) { schedule(); }           // re-arm ONLY while work remains
+}
+function schedule() { if (!_sweeping) { _sweeping = true; $.Schedule(0.25, sweep); } }
+```
+
+Two details carry the weight:
+
+- **`if (has) schedule()`** — with nothing on screen the loop stops existing, rather than waking up
+  and returning early. Whatever creates an item calls `schedule()` to start it again.
+- **The `_sweeping` latch** — five items arriving in one frame schedule one sweep, not five.
+
+Contrast `qollite_map_settings.js`, which re-arms every 0.03 s regardless of state. That difference
+is [`TECH_DEBT.md`](TECH_DEBT.md) D1 and D2 in one line.
+
+#### Give bridged state a TTL
+
+State that arrives over the bus can stop arriving — a context rebuilds, a panel gets renamed, a
+subscription is lost. A naive receiver keeps serving its last value forever, so the consumer silently
+runs on a frozen clock. Expire it instead:
+
+```js
+var STALE_MS = 3000;  // no clock for 3s -> inactive
+
+getMatchTime: function () {
+    if (last === null) { return null; }
+    if (Date.now() - lastAtMs > STALE_MS) { return null; }   // stale
+    return last;
+}
+```
+
+The value of this is entirely in **what the breakage becomes**. Without the TTL a dead bridge means
+"the match clock is permanently 7:12" and every downstream decision is quietly wrong. With it, a dead
+bridge means "there is no clock", the scheduler simply does not run, and the failure is honest and
+greppable.
+
+It also adds no new failure path: `null` is a case the consumer already has to handle.
+
 ### Game data APIs — probe, never assume
 
 Deadlock does **not** expose Dota's `Game.*` / `Players.*` surface reliably. ✅ QOL Lite's own code
