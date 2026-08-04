@@ -87,6 +87,20 @@ layout ↔ style ↔ script. A renamed `id` breaks nothing loudly — it just st
 python scripts/check_consistency.py
 ```
 
+### Check whether a bundled mod has moved
+
+```
+python scripts/check_upstream.py          # report drift against GameBanana
+python scripts/test_check_upstream.py     # offline test suite for the checker
+```
+
+Read-only — it downloads no mod files and changes nothing in the tree. See
+[`docs/BUNDLE.md`](docs/BUNDLE.md) §7.
+
+On Windows, double-clicking a `.py` closes the console before you can read it. Use
+`scripts\check.cmd` (or `scripts\check.cmd test`) instead — it keeps the window open and saves the
+output to `%TEMP%\qollite_upstream.txt`.
+
 ### Verify in the game
 
 **There is no test runner, and Panorama cannot report failure.** A dispatched event, a style write, or
