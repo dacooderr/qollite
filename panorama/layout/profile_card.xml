@@ -2,29 +2,15 @@
 <root>
 	<styles>
 		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
-		<include src="s2r://panorama/styles/citadel_ranked_badge_mini.vcss_c" />
 		<include src="s2r://panorama/styles/profile_card.vcss_c" />
 	</styles>
-	<scripts>
-		<include src="s2r://panorama/scripts/qollite_showrank.vjs_c" />
-	</scripts>
-	<CitadelProfileCard class="ShowRankProfileCardRoot" onmouseover="if ($.ShowRankTriggerProfileCard) $.ShowRankTriggerProfileCard(&apos;profile_card_mouseover&apos;);">
+	<CitadelProfileCard>
 		<Panel id="MiniProfileContainer" class="TopBottomFlow">
 			<Panel id="ContentsMain">
 				<Panel id="ContentsMainBackground" />
 				<Panel id="ContentsMainForeground">
 					<Panel id="AccountID">
-						<Label id="WebMediaDemoAccountLabel" class="AccountID" text="#Citadel_ProfileCard_AccountID" />
-						<Label id="ShowRankHiddenAccountID" class="HiddenAccountID" text="{i:r:account_id}" hittest="false" />
-						<Panel class="WebMediaDemoAccountIdRow">
-							<Button class="WebMediaDemoProfileLink" onactivate="if ($.ShowRankOpenStatlocker) $.ShowRankOpenStatlocker();">
-								<Label text="StatLocker Profile" />
-							</Button>
-							<Panel class="WebMediaDemoMediaSlot" hittest="false">
-								<CitadelRankedBadgeMini id="WebMediaDemoLocalBadge" class="WebMediaDemoLocalBadge" hittest="false" />
-								<Image id="WebMediaDemoMedia" class="WebMediaDemoMedia" scaling="stretch-to-fit-preserve-aspect" hittest="false" />
-							</Panel>
-						</Panel>
+						<Label class="AccountID" text="#Citadel_ProfileCard_AccountID" />
 					</Panel>
 					<Panel id="HeroInfo">
 						<CitadelHeroImage id="HeroImage" />
