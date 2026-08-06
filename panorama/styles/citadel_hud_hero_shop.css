@@ -6,19 +6,19 @@
 @import url("s2r://panorama/styles/base/citadel_hud_hero_shop.vcss_c");
 .AspectRatio4x3 #Shop
 {
-    width: 100%;
-    margin-right: 0px;
+	width: 100%;
+	margin-right: 0px;
 }
 
 .AspectRatio4x3 #MainPanel
 {
-    transform: scale3d(0.9, 0.9, 0.9) translate3d(60px, -50px, 0px);
+	transform: scale3d(0.9, 0.9, 0.9) translate3d(60px, -50px, 0px);
 }
 
 .AspectRatio4x3 #HeroScenePanel
 {
-    margin-bottom: 200px;
-    margin-right: 170px;
+	margin-bottom: 200px;
+	margin-right: 170px;
 }
 
 CitadelHudHeroShop

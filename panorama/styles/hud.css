@@ -415,9 +415,9 @@ Button:hover
 @import url("s2r://panorama/styles/base/hud.vcss_c");
 .AspectRatio4x3 #health_and_abilities_container
 {
-    horizontal-align: center;
-    margin-right: 962px;
-    margin-left: 200px;
+	horizontal-align: center;
+	margin-right: 962px;
+	margin-left: 200px;
 }
 
 CitadelHudModifierIcons

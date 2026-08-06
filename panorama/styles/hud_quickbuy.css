@@ -5,12 +5,12 @@
 @import url("s2r://panorama/styles/base/hud_quickbuy.vcss_c");
 .AspectRatio4x3 .gShopOpen .QuickbuyQueueOuter
 {
-    margin-left: 17px;
+	margin-left: 17px;
 }
 
 .AspectRatio4x3 #QuickbuyShopSummary
 {
-    margin-left: 210px;
+	margin-left: 210px;
 }
 
 @keyframes 'quickbuy_pulse'
