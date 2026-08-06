@@ -61,7 +61,7 @@ CitadelHudTopBar.showNewTopbar
 	height: 100%;
 	horizontal-align: center;
 	z-index: -1;
-	margin-top: 105px;
+	margin-top: 0px;
 }
 
 .ChatContainer CitadelHudTopBarChat
@@ -3284,6 +3284,7 @@ CitadelHudTopBarPlayer:not(.HealthVisible) #HeroContents
 	ignore-parent-flow: true;
 	width: fit-children;
 	height: fit-children;
+	position: 0px 70px 0px;
 	z-index: 99;
 }
 
