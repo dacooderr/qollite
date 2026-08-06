@@ -9,7 +9,6 @@
 	</styles>
 	<scripts>
 		<include src="s2r://panorama/scripts/qollite_topbar.vjs_c" />
-		<include src="s2r://panorama/scripts/qollite_showrank.vjs_c" />
 		<include src="s2r://panorama/scripts/qollite_notifications_clock_bridge.vjs_c" />
 		<include src="s2r://panorama/scripts/qollite_notifications_urn_detector.vjs_c" />
 	</scripts>
@@ -35,10 +34,6 @@
 					<Label class="ScoreLabel" html="true" text="{s:team_networth}" />
 				</Panel>
 			</Panel>
-		</Panel>
-		<Panel id="ShowRankTeamAverageLayer" class="ShowRankTeamAverageLayer" hittest="false">
-			<Image id="ShowRankAverageFriendlyImage" class="ShowRankTeamAverageRankImage ShowRankTeamAverageFriendlyImage" scaling="stretch-to-fit-preserve-aspect" hittest="false" />
-			<Image id="ShowRankAverageEnemyImage" class="ShowRankTeamAverageRankImage ShowRankTeamAverageEnemyImage" scaling="stretch-to-fit-preserve-aspect" hittest="false" />
 		</Panel>
 		<Panel id="StretBrawlContainer">
 			<Label class="roundTitle" text="#Citadel_StreetBrawl_RoundTitle" />
