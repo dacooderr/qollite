@@ -17,7 +17,7 @@ That leaves three different kinds of file, and they are not equally editable:
 
 | Kind | Files | What it is | Editable? |
 |---|---|---|---|
-| **Decompiled** | `panorama/**/*.xml`, `panorama/**/*.css`, `materials/**/*.vmat`, `models/**/*.vmdl` | Reconstructed by Source 2 Viewer from the compiled `_c` artifacts. Every one carries a `<!-- ... reconstructed by Source 2 Viewer -->` or `/* Prettified by Source 2 Viewer */` header. | Readable and diffable. Recompiling them is possible but the output is not guaranteed byte-identical to what the original author compiled. |
+| **Decompiled** | `panorama/**/*.xml`, `panorama/**/*.css`, `materials/**/*.vmat`, `models/**/*.vmdl` | Reconstructed by Source 2 Viewer from the compiled `_c` artifacts. Every one carries a `<!-- ... reconstructed by Source 2 Viewer -->` or `/* Prettified by Source 2 Viewer */` header. | Readable and diffable. Recompiling them is possible but the output is not guaranteed byte-identical to what the original author compiled — see [`FIELD_NOTES.md`](FIELD_NOTES.md) §1 for what that has already cost. |
 | **Shipped verbatim** | `panorama/scripts/*.js` | Panorama stores JS uncompiled inside the VPK, so these are the exact bytes the game runs. They carry no decompiler header. | Yes — but see below. |
 | **Extracted binary** | `*.png`, `*.dmx`, `*.vtex`, `*.vpcf` | Textures, meshes and particle definitions pulled out of the pack. | Only by replacing them. |
 
