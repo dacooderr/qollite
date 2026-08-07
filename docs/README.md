@@ -21,6 +21,7 @@ vendored — read it before editing anything under `panorama/scripts/`.
 | Know what a specific feature does and which files it owns | [`systems/README.md`](systems/README.md) → the feature's page |
 | Add or change a setting exposed through Universal Mod Manager | [`UMM.md`](UMM.md) |
 | Know what is already broken, dead, or expensive | [`TECH_DEBT.md`](TECH_DEBT.md) |
+| Avoid a trap someone already fell into | [`FIELD_NOTES.md`](FIELD_NOTES.md) |
 
 ## Document map
 
@@ -32,6 +33,7 @@ docs/
 ├── PANORAMA.md        the UI engine: what it can do, how it fails, how to debug it
 ├── UMM.md             the Universal Mod Manager settings protocol as this mod implements it
 ├── TECH_DEBT.md       known traps, dead files, the polling budget
+├── FIELD_NOTES.md     hazards learned the hard way; read before rebuilding assets
 └── systems/
     ├── README.md      catalogue of every feature, plus the Valve-path ownership map
     └── <feature>.md   one page per feature — 13 of them
