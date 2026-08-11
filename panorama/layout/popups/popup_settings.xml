@@ -340,6 +340,9 @@
 							<CitadelSettingsKeyBinder id="OpenHeroSheetBinder" bind="OpenHeroSheet" />
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow>
+							<CitadelSettingsKeyBinder id="InteractBinder" bind="Interact" new-setting-index="5" />
+						</PopupSettingsSettingsRow>
+						<PopupSettingsSettingsRow>
 							<CitadelSettingsKeyBinder id="PurchaseQuickbuyBinder" bind="PurchaseQuickbuy" />
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow>
@@ -379,9 +382,6 @@
 						</PopupSettingsSettingsRow>
 					</PopupSettingsSettingsSubsection>
 					<PopupSettingsSettingsSubsection id="citadel_settings_hideoutkeybinds">
-						<PopupSettingsSettingsRow>
-							<CitadelSettingsKeyBinder id="HideoutInteractBinder" bind="HideoutUse" />
-						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow>
 							<CitadelSettingsKeyBinder id="HideoutNewsBinder" bind="HideoutNews" />
 						</PopupSettingsSettingsRow>
@@ -433,9 +433,6 @@
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow>
 							<CitadelSettingsKeyBinder id="ResetCameraBinder" bind="ResetCamera" />
-						</PopupSettingsSettingsRow>
-						<PopupSettingsSettingsRow>
-							<CitadelSettingsKeyBinder id="Cosmetic1Binder" bind="Cosmetic1" search-alias="#citadel_keybind_cosmetic1_search" />
 						</PopupSettingsSettingsRow>
 					</PopupSettingsSettingsSubsection>
 					<PopupSettingsSettingsSubsection id="citadel_settings_spectatorkeybinds">
@@ -515,7 +512,7 @@
 							<CitadelSettingsCheckbox class="CommunicationToggle" text="#citadel_settings_communication_allow_text" convar="citadel_allow_spectated_text" />
 							<CitadelSettingsCheckbox class="CommunicationToggle" text="#citadel_settings_communication_allow_pings" convar="citadel_allow_spectated_pings" />
 						</PopupSettingsSettingsRow>
-						<PopupSettingsSettingsRow>
+						<PopupSettingsSettingsRow id="SteamTextFilterSection">
 							<Label class="SettingLabel AlignVerticalCenter" text="#citadel_settings_steam_text_filter_title" searchable="true" />
 							<Button class="InputButton Fill" onactivate="CitadelShowSteamTextFilterSettings()">
 								<Panel class="Bottom" />
@@ -671,7 +668,6 @@
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(0);" id="16x9Button" text="#citadel_settings_aspectratio169" />
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(1);" id="16x10Button" text="#citadel_settings_aspectratio1610" />
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(2);" id="21x9Button" text="#citadel_settings_aspectratio219" />
-									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(3);" id="4x3Button" text="4x3" />
 								</Panel>
 							</PopupSettingsSettingsRow>
 							<PopupSettingsSettingsRow id="ResolutionPanel">
@@ -1111,23 +1107,13 @@
 						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_camera_hero_fov_tooltip, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
 							<CitadelSettingsSlider id="CameraFOV" convar="citadel_camera_hero_fov" min="75" max="90" percentage="false" displayprecision="1" text="#citadel_camera_hero_fov" textentry="true" new-setting-index="1" />
 						</PopupSettingsSettingsRow>
+						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( &apos;Widens the horizontal view without replacing Camera FOV. 1.78 is standard 16:9, 2.40 is about 107 FOV, and 3.00 is about 119 FOV when Camera FOV is 90.&apos;, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
+							<CitadelSettingsSlider id="BetterFOVAspectRatio" convar="r_aspectratio" min="1.78" max="3.0" percentage="false" displayprecision="2" text="Extended FOV Scale" textentry="true" />
+						</PopupSettingsSettingsRow>
 					</PopupSettingsSettingsSubsection>
 					<PopupSettingsSettingsSubsection id="citadel_settings_shop">
 						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_settings_active_item_slot_popup, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
 							<CitadelSettingsToggle class="CheckBox" text="#citadel_settings_show_active_slot_popup" convar="citadel_show_active_slot_popup" />
-						</PopupSettingsSettingsRow>
-					</PopupSettingsSettingsSubsection>
-					<PopupSettingsSettingsSubsection id="citadel_settings_skill_rating">
-						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_settings_skill_rating_notification_tip , SettingsMenuTooltip)" onmouseout="UIHideTextTooltip()">
-							<CitadelSettingsToggle text="#citadel_settings_skill_rating_notification" convar="citadel_show_rating_notification_on_change" />
-						</PopupSettingsSettingsRow>
-						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_settings_skill_rating_post_game_tip , SettingsMenuTooltip)" onmouseout="UIHideTextTooltip()">
-							<CitadelSettingsToggle text="#citadel_settings_skill_rating_post_game" convar="citadel_show_average_rating_on_postgame" />
-						</PopupSettingsSettingsRow>
-					</PopupSettingsSettingsSubsection>
-					<PopupSettingsSettingsSubsection id="Citadel_QueueOptions_Modal_Title">
-						<PopupSettingsSettingsRow id="TeammatePreference" onmouseover="UIShowTextTooltipStyled( #citadel_settings_mm_preference_serious_desc , SettingsMenuTooltip)" onmouseout="UIHideTextTooltip()">
-							<CitadelSettingsToggle text="#citadel_settings_mm_preference_text" id="MMPreferenceCheckbox" />
 						</PopupSettingsSettingsRow>
 					</PopupSettingsSettingsSubsection>
 					<PopupSettingsSettingsSubsection id="citadel_settings_interface">

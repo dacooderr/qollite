@@ -605,6 +605,8 @@
       removeBadge(root);
       setAttribute(root, "friends_rank_rendered_account", "");
       setAttribute(root, "friends_rank_image_url", "");
+      setAttribute(root, "friends_rank_requested_account", "");
+      setAttribute(root, "friends_rank_requested_fingerprint", "");
       setAttribute(root, "friends_rank_subrank", "");
       setAttribute(root, "friends_rank_terminal_account", "");
       setAttribute(root, "friends_rank_terminal_fingerprint", "");
@@ -633,6 +635,8 @@
       var panelId;
       if (!isPanelValid(host) || !url || !$.CreatePanel) return false;
       removeBadge(root);
+      setAttribute(root, "friends_rank_requested_account", account);
+      setAttribute(root, "friends_rank_requested_fingerprint", fingerprint);
       localSequence += 1;
       panelId = "FriendsRankBadge_" + String(localSequence);
       try {
@@ -652,6 +656,8 @@
             if (getAttribute(root, "friends_rank_badge_panel") !== panelId) return;
             if (live.loading || live.mismatch || live.account !== account || live.fingerprint !== fingerprint) return;
             setAttribute(root, "friends_rank_rendered_account", account);
+            setAttribute(root, "friends_rank_requested_account", "");
+            setAttribute(root, "friends_rank_requested_fingerprint", "");
             setAttribute(root, "friends_rank_terminal_account", "");
             setAttribute(root, "friends_rank_terminal_fingerprint", "");
             setRootState(root, "FriendsRankStateRequested", "");
@@ -672,6 +678,8 @@
             setAttribute(root, "friends_rank_rendered_account", "");
             setAttribute(root, "friends_rank_image_url", "");
             setAttribute(root, "friends_rank_badge_panel", "");
+            setAttribute(root, "friends_rank_requested_account", "");
+            setAttribute(root, "friends_rank_requested_fingerprint", "");
             setAttribute(root, "friends_rank_terminal_account", account);
             setAttribute(root, "friends_rank_terminal_fingerprint", fingerprint);
             setRootState(root, "FriendsRankStateUnavailable", "");
@@ -686,6 +694,8 @@
         return true;
       } catch (e0) {
         debugLog("SetImage exception account=" + account + " error=" + String(e0));
+        setAttribute(root, "friends_rank_requested_account", "");
+        setAttribute(root, "friends_rank_requested_fingerprint", "");
         storeFailure(cacheKey, nowMs());
         setAttribute(root, "friends_rank_terminal_account", account);
         setAttribute(root, "friends_rank_terminal_fingerprint", fingerprint);
@@ -701,6 +711,12 @@
       var now = nowMs();
       if (!isPanelValid(root) || currentToken(root) !== token) return false;
       if (live.mismatch || live.account !== account) return false;
+      if (
+        getAttribute(root, "friends_rank_requested_account") === account &&
+        getAttribute(root, "friends_rank_requested_fingerprint") === live.fingerprint
+      ) {
+        return true;
+      }
       if (cachedFailure(cacheKey, now)) {
         clearRank(root, false, false);
         commitStatlockerIdentity(root, account, live.fingerprint);
@@ -757,8 +773,9 @@
         var now = nowMs();
         var live = snapshot(root);
         var nextDelay;
+        var elapsed = now - startedAt;
         if (!isPanelValid(root) || currentToken(root) !== token) return;
-        if (config.activeWatchMs > 0 && now - startedAt > config.activeWatchMs) {
+        if (isMainProfile(root) && config.activeWatchMs > 0 && elapsed > config.activeWatchMs) {
           setAttribute(root, "friends_rank_phase", "idle");
           return;
         }
@@ -779,6 +796,10 @@
         } else if (
           getAttribute(root, "friends_rank_rendered_account") !== account &&
           !(
+            getAttribute(root, "friends_rank_requested_account") === account &&
+            getAttribute(root, "friends_rank_requested_fingerprint") === fingerprint
+          ) &&
+          !(
             getAttribute(root, "friends_rank_terminal_account") === account &&
             getAttribute(root, "friends_rank_terminal_fingerprint") === fingerprint
           )
@@ -786,8 +807,10 @@
           applyRank(root, token, account);
         }
         nextDelay = !isMainProfile(root)
-          ? Number(config.popupGuardIntervalSeconds || 0.016)
-          : now - startedAt < config.activeWatchFastMs
+          ? config.activeWatchMs <= 0 || elapsed < config.activeWatchMs
+            ? Number(config.popupGuardIntervalSeconds || 0.016)
+            : Number(config.popupPollSeconds || 0.1)
+          : elapsed < config.activeWatchFastMs
               ? config.activeWatchFastIntervalSeconds
               : config.activeWatchIdleIntervalSeconds;
         schedule(root, token, nextDelay, tick);
