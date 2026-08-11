@@ -11,3 +11,8 @@
 	visibility: visible;
 }
 
+@import url("s2r://panorama/styles/base/hud_abilities.vcss_c");
+.items .ability_container.item_passive.Hidden
+{
+    visibility: visible;
+}
