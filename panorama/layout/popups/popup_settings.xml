@@ -668,6 +668,7 @@
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(0);" id="16x9Button" text="#citadel_settings_aspectratio169" />
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(1);" id="16x10Button" text="#citadel_settings_aspectratio1610" />
 									<RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(2);" id="21x9Button" text="#citadel_settings_aspectratio219" />
+                                    <RadioButton group="AspectRatioButtons" class="" onactivate="CitadelSetAspectRatio(3);" id="4x3Button" text="4x3" />									
 								</Panel>
 							</PopupSettingsSettingsRow>
 							<PopupSettingsSettingsRow id="ResolutionPanel">
