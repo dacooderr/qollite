@@ -78,7 +78,7 @@ particles/         replacement particle systems (McGinnis wall)
 scripts/           repo tooling (Python) — not shipped; see §8 and §9
 ```
 
-231 files in total (measured 2026-09-30 at commit `60b6645` — the same file set
+231 files in total (measured 2026-09-30 on branch `fix/remerge-6722`, uncommitted — the same file set
 as `4bb5c0e`, which added eight: three Valve 6722 copies and one old Valve layout, listed in §4, and
 four textures under `materials/` and `models/`, not reviewed here).
 
@@ -105,7 +105,7 @@ single most important structural constraint in the mod; §6 covers how features 
 
 ### Which layout loads which scripts
 
-Read out of the layouts' `<scripts>` blocks on commit `60b6645`, 2026-09-30:
+Read out of the layouts' `<scripts>` blocks on branch `fix/remerge-6722` (uncommitted), 2026-09-30:
 
 | Layout | Scripts | Feature |
 |---|---|---|
@@ -115,32 +115,24 @@ Read out of the layouts' `<scripts>` blocks on commit `60b6645`, 2026-09-30:
 | `citadel_hud_top_bar_player.xml` | `qollite_topbar` — **once per player row** | [top bar](systems/top-bar.md) |
 | `citadel_db_page_profile.xml` | `friends_rank_config`, `friends_rank` | Friends Rank (no page yet — see [systems/README.md](systems/README.md)) |
 | `profile_card.xml` | `friends_rank_config`, `friends_rank` — **per instance** ([`FIELD_NOTES.md`](FIELD_NOTES.md) §5) | Friends Rank |
-| `post_game/citadel_db_post_game_scoreboard_new.xml` | `friends_rank_scoreboard` | Friends Rank |
+| `post_game/citadel_db_post_game_scoreboard_new.xml`, `post_game/citadel_db_post_game_team.xml` | `friends_rank_scoreboard` | Friends Rank |
+| `ability_hud_elements/element_gun.xml` | `mercurial_magnum_notifier` | ammo-buff notifier (no page yet) |
+| `citadel_hud_hero_shop.xml` | `qollite_recent_purchase_icons`, `qollite_recent_purchases` | [recent purchases](systems/recent-purchases.md) |
 | `hud_quickbuy.xml` | `qollite_quickbuy` | [quickbuy](systems/quickbuy.md) |
+| `hud_hero_testing.xml` | `qollite_hero_testing` | [hero testing](systems/hero-testing.md) |
 | `popups/citadel_popup_global_leaderboard.xml` | `qollite_leaderboard` | [leaderboard search](systems/leaderboard-search.md) |
 
-**Included by no layout:**
-
-- `qollite_profile.js` — its include was dropped from `citadel_db_page_profile.xml` in `9935d0c`.
-- `qollite_recent_purchases.js`, `qollite_recent_purchase_icons.js`, `mercurial_magnum_notifier.js`,
-  `qollite_hero_testing.js` — since `4bb5c0e`, whose `citadel_hud_hero_shop.xml`,
-  `ability_hud_elements/element_gun.xml` and `hud_hero_testing.xml` are Valve's 6722 files verbatim.
-  With the includes, the features' markup went too, so these read as deliberate removals of
-  [recent purchases](systems/recent-purchases.md), the ammo-buff notifier and the mod's
-  [hero testing](systems/hero-testing.md) panel — **pending the maintainer's confirmation**. The same
-  commit took Friends Rank out of `post_game/citadel_db_post_game_team.xml` (MVP cards).
-
-The files ship but never run ([`TECH_DEBT.md`](TECH_DEBT.md) §4). `qollite_showrank.js` no longer
-exists — it was removed with [Show Rank](systems/show-rank.md) in `ecdacbb`, together with its
+**Included by no layout:** `qollite_profile.js`. Its include was dropped from
+`citadel_db_page_profile.xml` in `9935d0c`, so the file ships but never runs
+([`TECH_DEBT.md`](TECH_DEBT.md) §4). `qollite_showrank.js` no longer exists — it was removed with [Show Rank](systems/show-rank.md) in `ecdacbb`, together with its
 includes in six layouts.
 
-Layouts overridden with no script: `ability_hud_elements/element_gun`, `citadel_db_page_learn`,
-`citadel_db_page_news`, `citadel_db_page_news_entry`, `citadel_db_page_training`,
-`citadel_hero_stats_{armor,tech,weapon}_panel`, `citadel_hud_hero_shop`, `citadel_hud_koth`,
-`citadel_ui_context_menu_player`, `citadel_ui_modified_{abilities,stats}_panel`, `hud_ability_icon`,
-`hud_escape_menu`, `hud_hero_testing`, `hud_paused`, `hud_quickbuy_entry`, `players_list_entry`,
-`popups/popup_settings`, `post_game/citadel_db_page_post_game`, `post_game/citadel_db_post_game_team`.
-Eleven of them are Valve 6722's file with no mod change (§4); `post_game/citadel_db_page_post_game`
+Layouts overridden with no script: `citadel_db_page_learn`, `citadel_db_page_news`,
+`citadel_db_page_news_entry`, `citadel_db_page_training`, `citadel_hero_stats_{armor,tech,weapon}_panel`,
+`citadel_hud_koth`, `citadel_ui_context_menu_player`, `citadel_ui_modified_{abilities,stats}_panel`,
+`hud_ability_icon`, `hud_escape_menu`, `hud_paused`, `hud_quickbuy_entry`, `players_list_entry`,
+`popups/popup_settings`, `post_game/citadel_db_page_post_game`.
+Seven of them are Valve 6722's file with no mod change (§4); `post_game/citadel_db_page_post_game`
 sits at a path the game no longer loads (§4).
 
 ### The `.js` vs `.vjs_c` split in `<include>`
@@ -213,21 +205,18 @@ Valve copy: `citadel_db_page_profile`, `citadel_db_page_watch`, `citadel_hud_her
 `post_game/citadel_db_post_game_scoreboard_new`. Six of them (`hero_builds`, `hero_shop`,
 `ability_order`, `item_draft_panel`, `db_page_watch`, the post-game scoreboard) were cut to this shape
 in `4bb5c0e`; `hud_quickbuy` was cut at the re-merge that followed, keeping Enhanced Quickbuy's rules
-after the `@import`. The inlined copies were checked to be only duplication of `base/`. That is the
+after the `@import`, and `hero_shop` has Recent Purchases' rules after its 4×3 rules. The inlined copies were checked to be only duplication of `base/`. That is the
 ideal shape, and also the shape the rebase tool's base-picker gets wrong (§9).
 
-**Overrides with no mod change at all.** Measured 2026-09-30 by diffing every override against Valve
-6722 (header line and reference form ignored): 20 files are Valve's own. Stylesheets:
-`base.css`, `citadel_base_styles.css`, `citadel_hero_stats_armor_panel.css`, `citadel_hud_koth.css`,
-`dashboard.css`, `hero_testing_menu.css`, `hud_damage_report.css`,
-`popups/citadel_popup_global_leaderboard.css`, `profile_card.css`. Layouts:
-`ability_hud_elements/element_gun.xml`, `citadel_db_page_news_entry.xml`, `citadel_hud_hero_shop.xml`,
-`citadel_hud_koth.xml`, `citadel_ui_context_menu_player.xml`,
-`citadel_ui_modified_{abilities,stats}_panel.xml`, `hud_ability_icon.xml`, `hud_hero_testing.xml`,
-`players_list_entry.xml`, `post_game/citadel_db_post_game_team.xml`. Eight of them are new in `4bb5c0e`
-(`base.css`, `citadel_base_styles.css` and `hud_ability_icon.xml` added; `element_gun.xml`,
-`citadel_hud_hero_shop.xml`, `hud_hero_testing.xml`, `hero_testing_menu.css` and
-`post_game/citadel_db_post_game_team.xml` reset to Valve when their features were removed). Each one
+**Overrides with no mod change at all.** Measured 2026-09-30 on branch `fix/remerge-6722`
+(uncommitted) by diffing every override against Valve 6722 (header line and reference form ignored):
+15 files are Valve's own. Stylesheets: `base.css`, `citadel_base_styles.css`,
+`citadel_hero_stats_armor_panel.css`, `citadel_hud_koth.css`, `dashboard.css`,
+`hud_damage_report.css`, `popups/citadel_popup_global_leaderboard.css`, `profile_card.css`. Layouts:
+`citadel_db_page_news_entry.xml`, `citadel_hud_koth.xml`, `citadel_ui_context_menu_player.xml`,
+`citadel_ui_modified_{abilities,stats}_panel.xml`, `hud_ability_icon.xml`, `players_list_entry.xml`.
+Three of them are new in `4bb5c0e`: `base.css`, `citadel_base_styles.css` and `hud_ability_icon.xml`.
+Each one
 overrides Valve with Valve today and goes stale at the next patch; `citadel_base_styles.css` is loaded
 by almost every layout. `profile_card.css` is **not** a `base/` override (its `base/` copy was deleted
 in `ecdacbb`). See [`TECH_DEBT.md`](TECH_DEBT.md) §4.
@@ -380,11 +369,11 @@ lines** — every Valve line present, every removal one the mod made on purpose.
   unrelated old Valve file and the merge grafts a whole Valve sheet into the overlay. Correct
   handling: **keep the override unchanged** — its Valve content arrives through the refreshed `base/`
   copy.
-- **Full replacements** (at 6722: `hud_hero_testing.xml`, `hero_testing_menu.css`). The mod replaced
-  Valve's panel wholesale, so every candidate differed by ~1,400 lines and the merge replayed Valve's
-  entire history into the mod. Correct handling: discard the merge and port only the build-to-build
-  changes the mod's own markup depends on. Both files have been Valve's own since `4bb5c0e`
-  ([hero testing](systems/hero-testing.md)), so no full replacement is left in the tree.
+- **Full replacements** (`hud_hero_testing.xml`, `hero_testing_menu.css`). The mod replaces Valve's
+  panel wholesale, so every candidate differs by ~1,400 lines and the merge replays Valve's entire
+  history into the mod. Correct handling: discard the merge and port only the build-to-build changes
+  the mod's own markup depends on (for 6722: removed panel events rebound to convars — see
+  [`BUNDLE.md`](BUNDLE.md) §4).
 - **A subtly wrong base the tool cannot flag.** `hud_escape_menu.xml` was auto-based on `d8d5f3e`,
   older than its real fork point `5372faa`, because a mod wrapper happened to cancel part of a later
   Valve move and so shrank the diff. The evidence for the real base was line provenance: the mod
@@ -429,12 +418,22 @@ pre-patch content. Symptoms: BetterMap vanished from UMM (`hud.xml` had the old 
 its bootstrap gave up waiting for Minimap / Player / Preview), and "Voted!" stayed on the player
 rows (the pasted `topbar_rank_topbar.css` was the pre-patch fork, with no vote rules).
 
+The pasted tree also held Valve 6722 copies of layouts and stylesheets the mod overrides, which
+dropped features **unintentionally** — the maintainer confirmed he meant to remove none: recent
+purchases (`citadel_hud_hero_shop.xml` and its rules in `citadel_hud_hero_shop.css`), the ammo-buff
+notifier (`ability_hud_elements/element_gun.xml`), the mod's hero-testing panel (`hud_hero_testing.xml`,
+`hero_testing_menu.css`), and Friends Rank's MVP-card markup (`post_game/citadel_db_post_game_team.xml`)
+with the Statlocker rules of `citadel_db_page_profile.css`. All of them were restored from `1f0fe0f`.
+One Valve copy was a fix: it stopped a crash on the post-game MVP screen, whose cause is unknown —
+the restored MVP-card layout is an open risk ([`TECH_DEBT.md`](TECH_DEBT.md) D17).
+
 A diff against the parent cannot tell a fix from a revert. **Detect it with a 3-way classification
 against the common ancestor:** `git merge-file --diff3 <theirs> <ancestor> <ours>` per touched file.
 A hunk where one side still equals the ancestor was changed by the other side only, so that change
 wins (the parent diff showed it as a revert); a hunk changed on both sides is resolved against the
-new Valve file. A removal that breaks a still-loaded script is restored unless the script include
-went too. Branch `fix/remerge-6722` was built this way; it changed contents only,
+new Valve file. A removal that breaks a still-loaded script is restored. A feature whose markup and
+script include vanished together is **not** evidence of a deliberate removal — a pasted Valve copy
+does exactly that — so ask the maintainer before leaving it out. Branch `fix/remerge-6722` was built this way; it changed contents only,
 so the file list the build must compile is the same as at `4bb5c0e`.
 
 ### 10. Check in game
@@ -449,13 +448,13 @@ game):
 | Area | Check |
 |---|---|
 | Top bar | No "Voted!" on portraits in a match; the vote sticker shows only when Valve shows it. Clock, souls and death icons look like vanilla 6722. Top Bar Plus buff / rejuv / urn pills still work; the top bar still shows in the hideout. |
-| Ability bar | No "+0" above and no "Undo" under the icons outside an upgrade. Always-show-passives, including the restored `#hud_passive_items` rules in `hud.css`. (The ammo-buff notifier is not loaded since `4bb5c0e`.) |
-| Shop, quickbuy | The quickbuy total sits after Valve's summary without overlapping it; the preview slots are positioned and the UMM off switch hides them (rules moved after the `@import` at the re-merge); 4×3 positions; Valve's new key hints vs the preview slots. (Recent purchases is not loaded since `4bb5c0e`.) |
+| Ability bar | No "+0" above and no "Undo" under the icons outside an upgrade. Always-show-passives, including the restored `#hud_passive_items` rules in `hud.css`; the ammo-buff notifiers. |
+| Shop, quickbuy | The quickbuy total sits after Valve's summary without overlapping it; the preview slots are positioned and the UMM off switch hides them (rules moved after the `@import` at the re-merge); 4×3 positions; Valve's new key hints vs the preview slots; recent purchases (feed, icons, per-hero badges, UMM off switch). |
 | Minimap (BetterMap 2.1) | BetterMap is listed in UMM again. Size slider scales the map, not only the frame; corner and offsets; Minimalist mode and its opacity slider (a local delta, [`BUNDLE.md`](BUNDLE.md) §3); enlarge-on-ult-targeting; underground POI level; urn tracker; player icons. |
 | Event reminders | Camp, urn and Sinner's Sacrifice alerts fire on time; nothing fires in Street Brawl. |
 | Damage numbers | `hud_event_indicator.css` offsets and glow still look intended with 6722's longer lifetimes. |
-| Menus | Escape menu Unstick / Reconnect; settings: 4×3 option and the FOV aspect row in the new camera section; training page: VoiceLines card where Library was; post-game: Statlocker button on the scoreboard (MVP cards no longer carry one since `4bb5c0e`). |
-| Hideout | Hero testing is Valve's native 6722 menu since `4bb5c0e`: it opens and its tabs work. |
+| Menus | Escape menu Unstick / Reconnect; settings: 4×3 option and the FOV aspect row in the new camera section; training page: VoiceLines card where Library was; post-game: Statlocker button on the scoreboard and on the MVP cards. **The MVP screen crashed once with this layout** — if it does again, bisect per [`TECH_DEBT.md`](TECH_DEBT.md) D17. |
+| Hideout | Hero testing (the mod's panel): Change Team, No Death, Unlimited Ammo, No Cooldown, Fast Stamina — the convar delta, [`BUNDLE.md`](BUNDLE.md) §4. |
 | Frame time | Same match with the pack on and off; `console.log` free of new Panorama warnings. |
 
 **Files the 6722 update added — make sure the build compiles them.** A manual build that only

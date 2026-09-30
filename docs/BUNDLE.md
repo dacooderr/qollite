@@ -5,7 +5,7 @@
 > **Audience:** maintainers, contributors, and anyone auditing what ships to users.
 > **Status:** partially filled — authors and licenses traced via the GameBanana API (§7); every `TBD`
 > and every *Probable* is still a question only the maintainers can close.
-> **Last verified:** 2026-09-30 against commit `60b6645`.
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
 
 QOL Lite is a **distribution**, not a single codebase. It bundles roughly a dozen features, most of
 them originally written by other people, into one pack so they can share Valve's HUD files instead of
@@ -202,26 +202,17 @@ the minified output.
 | Top Bar Plus | **bonclide** (tweaks, objective HUD) + Waltee (objective damage + base) + NA-45 (team-fight HUD) + bytenode (recent purchases); timers by BreadRollius (icons) + Hanturaya (base) | [623518](https://gamebanana.com/mods/623518) | 4.0d | Probable |
 | ~~Show Rank~~ — **removed** in `ecdacbb` ([page](systems/show-rank.md)) | **Hanturaya**; image logic by bytenode; rank API by deadlock.api (manuelhexe) | [681028](https://gamebanana.com/mods/681028) | — | Probable |
 | Enhanced Quickbuy | **Aminsx** | [664041](https://gamebanana.com/mods/664041) | 1.6 | Confirmed |
-| Recent Purchases — **not loaded since `4bb5c0e`**, pending confirmation ([page](systems/recent-purchases.md)) | **Unresolved** — two candidates, see below | [607703](https://gamebanana.com/mods/607703) or [679055](https://gamebanana.com/mods/679055) | — | **Unresolved** |
+| Recent Purchases | **Unresolved** — two candidates, see below | [607703](https://gamebanana.com/mods/607703) or [679055](https://gamebanana.com/mods/679055) | — | **Unresolved** |
 | Always Show Passives & Actives | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Advanced Testing Tools In Hideout — **not loaded since `4bb5c0e`**, pending confirmation; Valve's native menu ships instead ([page](systems/hero-testing.md)) | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 (until `1f0fe0f`, with the local delta below) | Probable |
+| Advanced Testing Tools In Hideout | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 + local delta (below) | Probable |
 | Optimized McGinnis Wall | **Aminsx** (creator); dacooderr listed as redistributor | [690514](https://gamebanana.com/mods/690514) | — | Confirmed |
 | Sinner's Light Fix | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, `element_gun.xml` images) — **not loaded since `4bb5c0e`**, pending confirmation | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
+| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, `element_gun.xml` images) | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
 | Experimental Extended FOV Slider (`#BetterFOVAspectRatio` in `popups/popup_settings.xml`) | **Maffinz**, per the message of `ac24ca8` | TBD | TBD | **Unverified** — only a commit message |
 
 **Every row above with a GameBanana entry is licensed CC BY-NC-ND 4.0** there; the last two rows have
 no traced source or license yet. See [§6](#6-licensing) — the terms
 matter, and they are not what the repository's `LICENSE` file says.
-
-**Not loaded since `4bb5c0e`.** That commit reset `citadel_hud_hero_shop.xml`,
-`ability_hud_elements/element_gun.xml` and `hud_hero_testing.xml` to Valve 6722 verbatim, dropping
-both the feature markup and the script includes; the same commit removed Friends Rank's Statlocker
-button from the post-game MVP cards (§5). Removing the include along with the markup reads as
-deliberate, so the re-merge kept it — but the maintainer has **not confirmed** it. Until confirmed, the
-three rows stay here and their files stay in the repo ([`TECH_DEBT.md`](TECH_DEBT.md) §4); a
-confirmed removal then follows [§8](#8-maintaining-this-file). Restoring one means taking its layout
-and stylesheet parts back from `1f0fe0f`.
 
 **Confidence levels.** *Confirmed* means a single unambiguous match whose credits name one author.
 *Probable* means the name matches a single plausible Deadlock mod, but **the bundled files were not
@@ -250,11 +241,7 @@ Manager under stable ids, which are likely to match their original project names
 Show Rank, while it shipped, branded its shared state `$.__QolLiteShowRankWebMediaBridge` with
 `version: 236`. The Friends Rank scripts ([§5](#5-unattributed)) carry `version: 16` in their config.
 
-### Advanced Testing Tools — local delta (gone)
-
-**No longer applies.** Since `4bb5c0e` `hud_hero_testing.xml` is Valve's own 6722 file, so the mod's
-panel — and this delta with it — is not in the tree. Kept as the record of what the mod needed on
-6711+ if it comes back.
+### Advanced Testing Tools — local delta
 
 Recorded 2026-09-30. Build 6711 removed the C++ panel events and console commands several of the
 mod's buttons dispatch (`HeroTestingChangeTeam`, `HeroTestingUpdateDisableDeath`,
@@ -306,7 +293,7 @@ files:
 | 4×3 option and fix | Plausibly first-party; treated as merge-layer in [§2](#2-first-party--the-merge-layer) pending confirmation |
 | Minimap texture replacements | Neutral-camp icons and the tunnels overlay. The tunnels overlay is QOL Lite-only (not in upstream BetterMap) and has been referenced by nothing since the 6722 update; the neutral icons' `dmm_custom_*` rules match nothing, here or upstream ([`TECH_DEBT.md`](TECH_DEBT.md) §4). BetterMap's own texture, `base/bm_vignette_png`, is recorded in [§3](#3-first-party--our-own-mods) |
 | Vindicta Scope Downscale | `panorama/images/hud/crosshair/scope_common_psd.png` plus its entry in `panorama/image_compiler.vdata`, re-added in `fb74e00` ("re-added Vindicta Scope Downscale"). Author not recorded |
-| **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and `post_game/citadel_db_post_game_scoreboard_new.xml`. Its edits to `post_game/citadel_db_post_game_team.xml` (the Statlocker button on MVP cards) are gone since `4bb5c0e`, pending confirmation. Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
+| **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and both post-game layouts. Its `post_game/citadel_db_post_game_team.xml` edits (the MVP-card button) carry an open crash risk, cause unknown ([`TECH_DEBT.md`](TECH_DEBT.md) D17). Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
 | `panorama/styles/hud_event_indicator.css` | Damage-number / floating-indicator restyle: `.WindowRoot` offset (`margin-left: 50px; margin-top: -100px`), `.batched` numbers at 80 px red with a 20 px yellow glow, fountain keyframes rising straight up (every `translateX` → 0), `pop` dropped from the cumulative animation. Present since the `959f80e` import; no doc, README entry or commit message names it, no script references its classes. Rebased onto 6722 edit by edit (Valve's longer lifetimes kept) |
 
 ---

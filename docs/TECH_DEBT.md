@@ -5,7 +5,7 @@
 >
 > **Audience:** anyone planning work, and anyone reviewing a change.
 > **Status:** open ledger.
-> **Last verified:** 2026-09-30 against commit `60b6645` — game build 6722.
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted) — game build 6722.
 
 Severity reflects impact on the project's two design goals — *small footprint* and *low runtime
 cost* ([`README.md`](README.md) § Design goals).
@@ -38,15 +38,16 @@ exists for anything in this file. Nothing here was observed in game.
 | [D4](#4-dead-files) | Files that ship but nothing loads | Medium | Footprint | Open — grew in `4bb5c0e` |
 | [D5](#5-source-provenance) | Readable script source is not in this repo | **High** | Maintainability | Resolved for the two first-party mods; open for the rest |
 | [D6](#d6-debug-logging-was-on-by-default) | Debug logging on by default | Low | Runtime cost | **Resolved** 2026-09-30 |
-| [D7](#d7-duplicate-import) | Duplicate `@import` | Low | Footprint | Open (2 of 3 files) |
+| [D7](#d7-duplicate-import) | Duplicate `@import` | Low | Footprint | Open |
 | [D9](#6-no-attribution-for-bundled-work) | No attribution for bundled third-party work | **High** | Licensing | Open |
 | [D10](#d10-the-passives-toggle-cannot-turn-passives-off) | Passives UMM toggle cannot turn the feature off | Medium | Opt-in model | Open |
-| [D11](#d11-ammo-notifier-looks-up-an-id-with-the-wrong-case) | Ammo notifier looks up `abilitiesContainer`, the id is `AbilitiesContainer` | Low | Correctness | **Resolved by removal** in `4bb5c0e`, pending confirmation |
-| [D12](#d12-hero-testing-loads-in-every-match) | Hero testing loads in every match, not only the hideout | Medium | Runtime cost | **Resolved by removal** in `4bb5c0e`, pending confirmation |
+| [D11](#d11-ammo-notifier-looks-up-an-id-with-the-wrong-case) | Ammo notifier looks up `abilitiesContainer`, the id is `AbilitiesContainer` | Low | Correctness | Open |
+| [D12](#d12-hero-testing-loads-in-every-match) | Hero testing loads in every match, not only the hideout | Medium | Runtime cost | Open, unmeasured |
 | [D13](#d13-friends-rank-popup-watch-polls-at-frame-rate) | Friends Rank popup watch re-arms every 0.016 s | Medium | Runtime cost | Open, unmeasured |
 | [D14](#d14-blur-on-always-present-hud-panels) | `world-blur` on HUD panels that are always present | Low | Runtime cost | Open, unmeasured |
 | [D15](#d15-damage-number-glow-times-longer-lifetimes) | Damage-number glow × Valve's longer indicator lifetimes | Low | Runtime cost | Open, unmeasured |
 | [D16](#d16-calls-and-textures-the-game-no-longer-has) | Calls and textures the game no longer has | Low | Correctness | Open |
+| [D17](#d17-post-game-mvp-screen-crash-cause-unknown) | A crash on the post-game MVP screen, stopped by shipping Valve's layout; the mod's layout is back | **High** if it recurs | Correctness | Open — cause unknown, untested |
 
 ---
 
@@ -85,11 +86,19 @@ tracker's DEBUG-only scans are gone. On an offline mock of the HUD tree that too
 from ~385/s to ~352/s — a relative figure, not an engine measurement. What did **not** change is D1:
 six loops that run with their feature off (two of them new in 2.1), all upstream design.
 
-### `hud_quickbuy.xml` — every match
+### `ability_hud_elements/element_gun.xml` — every match
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `mercurial_magnum_notifier.js` | 0.05 s while a tracked item is owned or Split Shot / Blood Tribute is active, else 0.5 s | 20 Hz / 2 Hz | Every 0.5 s (throttled): `FindChildTraverse` **from the top-most UI root** for `upgrade_split_shot`, `upgrade_ethereal_bullets` and `abilitiesContainer` — the last never matches (D11), and the first two fail whenever the items are not owned | **No setting at all** — no UMM entry, no page in `docs/systems/` |
+
+### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
 | `qollite_quickbuy.js` → `C()` | 0.1 s | 10 Hz | ~12–15 `FindChildTraverse`, a recursive walk of `#QuickbuyQueue` + `#QuickbuySellQueue`, and a `FindChildTraverse("CurrentGoldAmount")` **at every ancestor level** until one contains it | **No** — re-arms unconditionally; UMM `enabled` only affects display |
+| `qollite_recent_purchases.js` → `ja()` | 0.1 s | 10 Hz | Class searches over the recent-purchases container; in one of its internal states (minified, not decoded further) also `FindChildrenWithClassTraverse("HeroNameHidden")` over the **whole UI** | ✅ Stops when UMM `enabled` is false (default **true**) |
+| `qollite_recent_purchases.js` → `na()` | 1 s | 1 Hz | `FindChildTraverse("Hud")` from the root | ✅ Same gate |
 
 ### `base_hud_and_db_overlay.xml` — match and dashboard
 
@@ -128,6 +137,12 @@ The same script is included by the top bar and by each row, so a 12-player match
 | `friends_rank_scoreboard.js` | 0.15 s | — | binds the post-game buttons | ✅ 8 tries |
 | `qollite_leaderboard.js` | — | — | on keystroke | ✅ |
 
+### `hud_hero_testing.xml` — loaded in every match (D12)
+
+Four loops at 0.2 s and two at 0.5 s. All bounded: `q()` and `Da()` stop once
+`#hero_testing_container` / `#htpp_drag_bar` are found (they would poll forever at 5 Hz if those
+panels disappeared); `ma()` runs 120 ticks (60 s) from `InitializeTestingToolsLayout`.
+
 ### Not running
 
 Loops in scripts no layout includes, so they never start (§4):
@@ -135,12 +150,6 @@ Loops in scripts no layout includes, so they never start (§4):
 | Script | Loops it would run | Not included since |
 |---|---|---|
 | `qollite_profile.js` | 1 s, 0.35 s while the profile page shows | `9935d0c` |
-| `qollite_recent_purchases.js` | `ja()` 0.1 s (10 Hz, class searches, in one state over the whole UI) and `na()` 1 s (`FindChildTraverse("Hud")` from the root); both gated on UMM `enabled` | `4bb5c0e` |
-| `mercurial_magnum_notifier.js` | 20 Hz / 2 Hz with root-level searches every 0.5 s, no setting | `4bb5c0e` |
-| `qollite_hero_testing.js` | four bounded loops at 0.2 s and two at 0.5 s | `4bb5c0e` |
-
-The last three were removed with their features' markup in `4bb5c0e`, pending the maintainer's
-confirmation. If a feature comes back, its loop comes back into the tables above.
 
 ### D1. Loops run while their feature is off
 
@@ -223,12 +232,11 @@ each script for a `"umm"` register):
 | Feature | Script(s) | Standing cost (§2) |
 |---|---|---|
 | [Top bar](systems/top-bar.md) | `qollite_topbar.js` | 1 Hz + 13 copies of a 2 Hz loop |
+| Ammo-buff notifier (no page yet) | `mercurial_magnum_notifier.js` | 20 Hz / 2 Hz, root-level searches |
 | Friends Rank (no page yet) | `friends_rank*.js` | Profile page and per profile card; calls `api.deadlock-api.com` — [`BUNDLE.md`](BUNDLE.md) § Third-party services |
+| [Hero testing](systems/hero-testing.md) | `qollite_hero_testing.js` | bounded loops, but loaded per match (D12) |
 
-[Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`. The
-ammo-buff notifier (20 Hz / 2 Hz, root-level searches) and the mod's [hero testing](systems/hero-testing.md)
-panel were on this list until `4bb5c0e` stopped loading them — removed pending the maintainer's
-confirmation (§2 Not running).
+[Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`.
 
 **Fix:** register each with UMM. Whether they default on or off is a product decision; *having the
 switch* is not optional if opt-in is what keeps the runtime cost defensible.
@@ -254,21 +262,6 @@ No layout `<include>`, no `@import`, no script reference anywhere in the repo:
 | `materials/minimap/neutral_vault.png` | 916 B |
 | `panorama/styles/ability_hud_elements/hero_testing_menu.css` — referenced by no layout since the `959f80e` import (the testing layout loads `styles/hero_testing_menu`) | 439 lines |
 | `panorama/layout/post_game/citadel_db_page_post_game.xml` — added in `4bb5c0e` at a path Valve dropped in 6711 ([`ARCHITECTURE.md`](ARCHITECTURE.md) §4) | 53 lines |
-
-**Not loaded since `4bb5c0e`** — the features' layouts went back to Valve 6722, taking the includes
-with them. Removed **pending the maintainer's confirmation**, so the files are kept until then:
-
-| File | Size |
-|---|---:|
-| `panorama/scripts/qollite_recent_purchases.js` ([recent purchases](systems/recent-purchases.md)) | 10.6 KB |
-| `panorama/scripts/qollite_recent_purchase_icons.js` — the 3,018-entry icon table | 385 KB |
-| `panorama/scripts/mercurial_magnum_notifier.js` (ammo-buff notifier) | 7.1 KB |
-| `panorama/styles/mercurial_magnum_notifier.css` | 124 lines |
-| `panorama/images/mercurial_magnum/`, `split_shot/`, `blood_tribute/` — the notifier's three icons (`.png` + `.vtex`) | 57 KB |
-| `panorama/scripts/qollite_hero_testing.js` ([hero testing](systems/hero-testing.md)) | 29.7 KB |
-
-Deleting them is the step that makes the removal final ([`BUNDLE.md`](BUNDLE.md) §8); restoring a
-feature means restoring its layout markup and includes from `1f0fe0f`.
 
 The three stylesheets live under mod-invented directories, so unlike a Valve path they are not loaded
 implicitly — nothing can reach them. They are almost certainly leftovers from an earlier merge of the
@@ -304,7 +297,6 @@ Valve with Valve — and goes stale on every patch ([`FIELD_NOTES.md`](FIELD_NOT
 | `panorama/styles/citadel_hud_koth.css`, `layout/citadel_hud_koth.xml` | 951, 44 | `5adefb4` "potential fix for lingering rift pop-up" |
 | `panorama/styles/citadel_base_styles.css` — Valve's global sheet, loaded by almost every layout | 5,733 | `4bb5c0e` |
 | `panorama/styles/base.css`, `layout/hud_ability_icon.xml` | 33, 50 | `4bb5c0e` |
-| `panorama/layout/ability_hud_elements/element_gun.xml`, `citadel_hud_hero_shop.xml`, `hud_hero_testing.xml`, `post_game/citadel_db_post_game_team.xml`, `styles/hero_testing_menu.css` | 68, 137, 748, 53, 1,100 | older; reset to Valve 6722 in `4bb5c0e` when their features were removed |
 | `panorama/layout/citadel_db_page_news_entry.xml`, `citadel_ui_context_menu_player.xml`, `citadel_ui_modified_{abilities,stats}_panel.xml`, `players_list_entry.xml`, `styles/citadel_hero_stats_armor_panel.css`, `styles/popups/citadel_popup_global_leaderboard.css` | small | `959f80e` (import); not listed here before this measurement |
 
 `hud_damage_report.css` and `profile_card.css` are candidates for deletion. `dashboard.css` and the
@@ -364,8 +356,9 @@ do not know who they are.
 
 ## 7. Bugs found at the 6722 update
 
-None of these was caused by the patch; each was found while checking the overrides against it. The
-patch-caused breakage was fixed in the rebase itself.
+None of D10–D16 was caused by the patch; each was found while checking the overrides against it.
+The patch-caused breakage was fixed in the rebase itself. D17 is different: a crash the maintainer saw
+in game after the rebase.
 
 ### D10. The passives toggle cannot turn passives off
 
@@ -382,9 +375,6 @@ second `@import`, leaving the gated ones.
 
 ### D11. Ammo notifier looks up an id with the wrong case
 
-**Status: resolved by removal in `4bb5c0e`, pending the maintainer's confirmation** — no layout
-includes the script any more (§4). If the feature comes back, this entry applies again.
-
 **Severity: Low. Verified by reading; effect unknown.** `mercurial_magnum_notifier.js` calls
 `FindChildTraverse("abilitiesContainer")`. In `hud.xml` the id is `AbilitiesContainer` and
 `abilitiesContainer` is its **class** (`hud.xml:558`), the same before and after the patch. Whether
@@ -392,11 +382,6 @@ Panorama's id lookup is case-insensitive is unknown; if it is not, Blood Tribute
 worked, and the failed lookup is a whole-tree search every 0.5 s. Vendored — report upstream.
 
 ### D12. Hero testing loads in every match
-
-**Status: resolved by removal in `4bb5c0e`, pending the maintainer's confirmation.**
-`hud_hero_testing.xml` and `hero_testing_menu.css` are Valve 6722's native testing menu verbatim
-(748 and 1,100 lines, no script include), so nothing of the mod loads per match any more; what loads
-is what vanilla loads. The entry below describes the mod's panel as it shipped until `1f0fe0f`.
 
 **Severity: Medium. Inferred, unmeasured.** `hud.xml:486` instantiates
 `<CitadelHudHeroTesting id="hud_hero_testing" />` unconditionally, as Valve's own `hud.xml` does, so
@@ -451,10 +436,33 @@ is unknown — it is set from C++. The override's origin is unrecorded ([`BUNDLE
   plus `book_images/geist/geist_book_cover_vertical_png` (`:240`, and `citadel_db_page_shared.css:164`),
   already missing in 6701. Those cards render without that art; replacements are a design choice.
 - `panorama/scripts/qollite_recent_purchase_icons.js` — `images/heroes/tokamak_sm_psd`, removed in
-  6711; that hero's purchases showed no portrait. Moot while the script is not loaded (§4).
+  6711; that hero's purchases show no portrait.
 - `panorama/layout/citadel_hud_top_bar.xml:68,72,80,84` — Top Bar Plus's `<Image>`s use
   `icon_powerup.svg` / `icon_rejuvenator.svg`, not the `.vsvg` form Valve uses. **Unverified** whether
   they resolve.
+
+### D17. Post-game MVP screen crash, cause unknown
+
+**Severity: High if it recurs. Status: open — cause unknown, nothing tested.** After `1f0fe0f` the
+maintainer saw the game crash on the post-game MVP screen and stopped it by replacing
+`panorama/layout/post_game/citadel_db_post_game_team.xml` with Valve 6722's file (in `4bb5c0e`). The
+mod's version is back in the tree, so the crash may return. Which part of it crashed — if any; the
+crash was not reproduced against this file in isolation — is unknown. Valve's pure 6722 file is known
+not to crash.
+
+What the mod's version adds to Valve's (`citadel_db_post_game_team.xml`):
+
+- lines 14–17: four `FriendsRankScoreboard*AccountID` labels bound to dialog variables
+  (`{i:r:account_id}`, `{i:account_id}`, `{i:player_account_id}`, `{i:r:player_account_id}`);
+- line 9: the `friends_rank_scoreboard.vjs_c` include (and the stylesheet include at line 6);
+- lines 39–41: the `#FriendsRankScoreboardStatlockerButton`;
+- line 55: the `FriendsRankPostGameTeam` class on the root, which `friends_rank_scoreboard.js`
+  activates on.
+
+**If the crash returns, bisect in this order**, one in-game post-game screen per step: (1) remove the
+four labels; (2) remove the `friends_rank_scoreboard.vjs_c` include; (3) remove the Statlocker button;
+(4) drop the `FriendsRankPostGameTeam` root class. Record the step that stops it here, and report it to
+Friends Rank's author once one is recorded ([`BUNDLE.md`](BUNDLE.md) §5).
 
 ---
 
@@ -474,9 +482,9 @@ upstream's own value.
 ### D7. Duplicate import
 
 `@import` of the same `base/` copy twice, a sign of files merged more than once without review:
-`hud_abilities.css` (3 and 14), `hud_ability_icon_passive.css` (3 and 118). Harmless on its own; the
-second copy arrived with the rules in D10. `citadel_db_page_profile.css` had one too (lines 3 and 48)
-until `4bb5c0e` cut it to a single `@import` plus its 4×3 rules.
+`citadel_db_page_profile.css` (lines 3 and 48), `hud_abilities.css` (3 and 14),
+`hud_ability_icon_passive.css` (3 and 118). Harmless on its own; in the last two the second copy
+arrived with the rules in D10.
 
 ### D8. Upstream naming leaked into shipped identifiers
 
