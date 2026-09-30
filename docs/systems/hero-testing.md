@@ -4,7 +4,7 @@
 >
 > **Origin:** Advanced Testing Tools In Hideout (+ a local delta) · **Status:** ❌ **removed** on
 > 2026-09-30, at the maintainer's request · **Runs in:** nowhere — the game uses Valve's own menu
-> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted).
+> **Last verified:** 2026-09-30 against commit `78bbf2a`.
 
 > ### This feature is no longer in the pack
 > Its four files are deleted on branch `fix/remerge-6722` (staged, not yet committed on 2026-09-30).

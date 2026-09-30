@@ -108,7 +108,7 @@ single most important structural constraint in the mod; §6 covers how features 
 
 ### Which layout loads which scripts
 
-Read out of the layouts' `<scripts>` blocks on branch `fix/remerge-6722` (uncommitted), 2026-09-30:
+Read out of the layouts' `<scripts>` blocks at commit `78bbf2a`, 2026-09-30:
 
 | Layout | Scripts | Feature |
 |---|---|---|

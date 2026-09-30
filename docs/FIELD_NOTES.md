@@ -4,7 +4,7 @@
 >
 > **Audience:** anyone about to edit, rebuild, or remove something in this pack.
 > **Status:** living document — add to it whenever something surprises you.
-> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted).
+> **Last verified:** 2026-09-30 against commit `78bbf2a`.
 
 This is deliberately not [`TECH_DEBT.md`](TECH_DEBT.md), which tracks problems that should be fixed.
 Most of what follows cannot be fixed; it is how the project *is*, and the cost of not knowing it is
