@@ -18,7 +18,7 @@ That leaves three different kinds of file, and they are not equally editable:
 | Kind | Files | What it is | Editable? |
 |---|---|---|---|
 | **Decompiled** | `panorama/**/*.xml`, `panorama/**/*.css`, `materials/**/*.vmat`, `models/**/*.vmdl` | Reconstructed by Source 2 Viewer from the compiled `_c` artifacts. Every one carries a `<!-- ... reconstructed by Source 2 Viewer -->` or `/* Prettified by Source 2 Viewer */` header. | Readable and diffable. Recompiling them is possible but the output is not guaranteed byte-identical to what the original author compiled — see [`FIELD_NOTES.md`](FIELD_NOTES.md) §1 for what that has already cost. |
-| **Shipped verbatim** | `panorama/scripts/*.js` | Panorama stores JS uncompiled inside the VPK, so these are the exact bytes the game runs. They carry no decompiler header. | Depends on the script — see below. |
+| **Script source** | `panorama/scripts/*.js` | The VPK holds each script compiled as `.vjs_c`, a resource wrapping the JS text unchanged, so the source here is the exact code the game runs. They carry no decompiler header. **A new `.js` file ships only if the build compiles it** — nothing in the game falls back to the raw file. | Depends on the script — see below. |
 | **Extracted binary** | `*.png`, `*.dmx`, `*.vtex`, `*.vpcf` | Textures, meshes and particle definitions pulled out of the pack. | Only by replacing them. |
 
 ### Scripts: which ones are source and which are build output
@@ -400,3 +400,11 @@ update is **done, unverified in game** — say so in the release notes and the c
 | Menus | Escape menu Unstick / Reconnect; settings: 4×3 option and the FOV aspect row in the new camera section; training page: VoiceLines card where Library was; post-game: Statlocker button beside Valve's new buttons. |
 | Hideout | Hero testing: Change Team, No Death, Unlimited Ammo, No Cooldown, Fast Stamina. |
 | Frame time | Same match with the pack on and off; `console.log` free of new Panorama warnings. |
+
+**Files the 6722 update added — make sure the build compiles them.** A manual build that only
+recompiles files it already knew about drops these silently:
+
+| File | What breaks without it |
+|---|---|
+| `panorama/scripts/qollite_map_minimap.js`, `qollite_map_player.js`, `qollite_map_preview.js` | All of BetterMap. The bootstrap waits for every module and gives up after 1 s, so nothing initialises and nothing registers with UMM. Console: `[BetterMap] [ERROR] boot: gave up after 20 attempts; missing modules: …` |
+| `panorama/images/minimap/base/bm_vignette_png.png` + `.vtex` | Minimalist mode: the underground map disappears. |

@@ -416,7 +416,7 @@ enclosing function**.
   just does not apply. **After any layout or style change, grep the console log for
   `Parsing warning`** — a genuinely broken layout often shows up only there.
 - Known no-op declarations Panorama accepts and ignores: `hittest:` in CSS (use the XML attribute —
-  ✅ this repo is clean of it), `row-gap`, `: inherit`, `max-width: none`, `!important`.
+  BetterMap's upstream rules in `hud.css` and `hud_minimap.css` still carry six of them, harmlessly), `row-gap`, `: inherit`, `max-width: none`, `!important`.
 
 ### Isolate every `init()`
 
