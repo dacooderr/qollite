@@ -3,7 +3,7 @@
 > An expanded testing panel in the hideout: item spawning, world controls, and a movable window.
 >
 > **Origin:** Advanced Testing Tools In Hideout · **Runs in:** nowhere since `4bb5c0e` — Valve's native menu ships instead, pending confirmation · **Off switch:** ❌ none (n/a while not loaded)
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 > ### ⚠️ The mod's panel is not shipped since `4bb5c0e` — pending the maintainer's confirmation
 > `4bb5c0e` replaced `hud_hero_testing.xml` with Valve's 6722 file verbatim (748 lines, no script

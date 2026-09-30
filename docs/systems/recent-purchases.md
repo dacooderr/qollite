@@ -3,7 +3,7 @@
 > Filterable feed of what every player has bought, with icons, plus per-hero purchase badges.
 >
 > **Origin:** Recent Purchases · **Runs in:** nowhere since `4bb5c0e` — not loaded, pending confirmation · **Off switch:** ✅ UMM `recent_purchases` (while loaded)
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 > ### ⚠️ Not loaded since `4bb5c0e` — pending the maintainer's confirmation
 > `4bb5c0e` replaced `citadel_hud_hero_shop.xml` with Valve's 6722 file verbatim: both script

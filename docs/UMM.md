@@ -4,7 +4,7 @@
 >
 > **Audience:** anyone adding or changing a user-facing setting.
 > **Status:** protocol v1, four loaded features integrated (a fifth ships but is not loaded), the rest not (§4).
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 **Contents**
 

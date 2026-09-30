@@ -3,7 +3,7 @@
 > Objective timers and urn tracking added to the match top bar, plus spent-souls rows per player.
 >
 > **Origin:** Top Bar Plus · **Runs in:** every match, and the hideout · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 Rebased onto game build 6722 (layouts and both stylesheets); nothing on this page has been checked in
 game since. `4bb5c0e` dropped every Top Bar Plus panel and the `topbar_rank_topbar` include from

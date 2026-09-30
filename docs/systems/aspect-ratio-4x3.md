@@ -3,7 +3,7 @@
 > Adds 4:3 to the video settings and fixes the UI that breaks at that ratio.
 >
 > **Runs in:** everywhere · **Off switch:** ❌ none (it *is* a setting)
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 Pure CSS plus one radio button. No script, no timers, no runtime cost.
 
