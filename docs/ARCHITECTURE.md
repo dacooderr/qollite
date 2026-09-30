@@ -78,7 +78,7 @@ particles/         replacement particle systems (McGinnis wall)
 scripts/           repo tooling (Python) — not shipped; see §8 and §9
 ```
 
-231 files in total (measured 2026-09-30 on branch `fix/remerge-6722`, uncommitted — the same file set
+231 files in total (measured 2026-09-30 at commit `eb80c34` — the same file set
 as `4bb5c0e`, which added eight: three Valve 6722 copies and one old Valve layout, listed in §4, and
 four textures under `materials/` and `models/`, not reviewed here).
 
@@ -208,8 +208,7 @@ in `4bb5c0e`; `hud_quickbuy` was cut at the re-merge that followed, keeping Enha
 after the `@import`, and `hero_shop` has Recent Purchases' rules after its 4×3 rules. The inlined copies were checked to be only duplication of `base/`. That is the
 ideal shape, and also the shape the rebase tool's base-picker gets wrong (§9).
 
-**Overrides with no mod change at all.** Measured 2026-09-30 on branch `fix/remerge-6722`
-(uncommitted) by diffing every override against Valve 6722 (header line and reference form ignored):
+**Overrides with no mod change at all.** Measured 2026-09-30 at commit `eb80c34` by diffing every override against Valve 6722 (header line and reference form ignored):
 15 files are Valve's own. Stylesheets: `base.css`, `citadel_base_styles.css`,
 `citadel_hero_stats_armor_panel.css`, `citadel_hud_koth.css`, `dashboard.css`,
 `hud_damage_report.css`, `popups/citadel_popup_global_leaderboard.css`, `profile_card.css`. Layouts:
