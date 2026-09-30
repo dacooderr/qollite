@@ -1399,7 +1399,7 @@ CitadelHudModifierIcons
 #objectives_health_friendly
 {
 	width: 1300px;
-	margin-top: 100px;
+	margin-top: 0px;
 	visibility: visible;
 	horizontal-align: center;
 	flow-children: down;

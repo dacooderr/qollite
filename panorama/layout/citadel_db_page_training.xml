@@ -61,6 +61,18 @@
 					</Panel>
 				</Panel>
 			</Panel>
+			<Panel id="LibraryButton" class="playOptionContainer playOptionContainerXS" onactivate="CitadelShowBookLibraryPage()">
+				<Panel class="cardBorder" />
+				<Panel class="playOptionTop">
+					<Panel class="buttonImage" />
+				</Panel>
+				<Panel class="playOptionBottom">
+					<Panel class="bottomOptionContainer">
+						<Label class="playLabel" text="#Citadel_Library_Title" />
+						<Label class="playDesc" text="#Citadel_Library_Welcome" />
+					</Panel>
+				</Panel>
+			</Panel>
 			<Panel id="BrowsableShop" class="playOptionContainer" onactivate="CitadelShowDashboardShop()">
 				<Panel class="cardBorder" />
 				<Panel class="playOptionTop">
@@ -70,20 +82,6 @@
 					<Panel class="bottomOptionContainer">
 						<Label class="playLabel" text="#menu_browseshop" />
 						<Label class="playDesc" text="#menu_play_browse_shop_desc" />
-					</Panel>
-				</Panel>
-			</Panel>
-			<Panel id="VoiceLines" class="playOptionContainer playOptionContainerXS" onactivate="CitadelShowHeroVOTestPage()">
-				<Panel class="cardBorder" />
-				<Panel class="playOptionTop">
-					<Panel class="buttonImage">
-						<Panel class="VoiceLinesGlyph" />
-					</Panel>
-				</Panel>
-				<Panel class="playOptionBottom">
-					<Panel class="bottomOptionContainer">
-						<Label class="playLabel" text="#menu_voicelines" />
-						<Label class="playDesc" text="#menu_voicelines_desc" />
 					</Panel>
 				</Panel>
 			</Panel>

@@ -112,7 +112,6 @@ DropDown Label
 {
 	width: fit-children;
 	margin-right: 0px;
-	border-radius: 10px;
 }
 
 .HudDamageReport.Tab .Header
@@ -136,11 +135,6 @@ DropDown Label
 	visibility: collapse;
 }
 
-.HudDamageReport.Tab #TextContainer
-{
-	visibility: collapse;
-}
-
 .HudDamageReport.Tab .Header #ViewingHeroImage
 {
 	max-height: 40px;
@@ -149,8 +143,7 @@ DropDown Label
 
 .HudDamageReport.Tab #ReportContents
 {
-	opacity: 0.9;
-	background-color: black;
+	opacity: 0.8;
 }
 
 .HudDamageReport.Compact
@@ -654,8 +647,6 @@ DropDown Label
 .HudDamageReport .DamageSection .Footer .DamageTotal .ShowMore Label
 {
 	font-size: 16px;
-	white-space: nowrap;
-	text-overflow: shrink;
 }
 
 .HudDamageReport .DamageSection .Footer .DamageTotal .DamageDesc

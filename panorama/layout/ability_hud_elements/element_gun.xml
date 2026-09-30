@@ -1,14 +1,10 @@
 <!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
 <root>
 	<styles>
-		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
-		<include src="s2r://panorama/styles/ability_hud_elements/element_common.vcss_c" />
-		<include src="s2r://panorama/styles/ability_hud_elements/element_gun.vcss_c" />
-		<include src="s2r://panorama/styles/mercurial_magnum_notifier.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss" />
+		<include src="s2r://panorama/styles/ability_hud_elements/element_common.vcss" />
+		<include src="s2r://panorama/styles/ability_hud_elements/element_gun.vcss" />
 	</styles>
-	<scripts>
-		<include src="s2r://panorama/scripts/mercurial_magnum_notifier.vjs_c" />
-	</scripts>
 	<Citadel_AbilityHUDElement_Gun class="ability_element_gun">
 		<Panel id="DotOutline" class="dot_bits crosshair__dotborder" />
 		<Panel id="Dot" class="dot_bits crosshair__dot" />
@@ -52,9 +48,6 @@
 				<Label class="weapon_ammo_max" text=" / {i:max_clip_ammp}" />
 				<Panel class="weapon_ammo_infinite" />
 			</Panel>
-			<Image id="MercurialMagnumNotifier" class="mercurial_magnum_notifier" src="s2r://panorama/images/mercurial_magnum/upgrade_ethereal_bullets.vtex" hittest="false" style="visibility: collapse; opacity: 0;" />
-			<Image id="SplitShotNotifier" class="split_shot_notifier" src="s2r://panorama/images/split_shot/upgrade_split_shot.vtex" hittest="false" style="visibility: collapse; opacity: 0;" />
-			<Image id="BloodTributeNotifier" class="blood_tribute_notifier" src="s2r://panorama/images/blood_tribute/upgrade_blood_tribute.vtex" hittest="false" style="visibility: collapse; opacity: 0;" />
 			<Label id="auto_fire_indicator" text="#Citadel_Hud_AutoFire" />
 			<Panel id="parry_unavailable">
 				<Panel id="ParryImage" />

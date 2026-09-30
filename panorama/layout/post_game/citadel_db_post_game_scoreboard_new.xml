@@ -43,7 +43,7 @@
 					</Button>
 				</Panel>
 				<Panel class="FriendsRankCommendSlot">
-					<Button id="CommendPlayerButton" class="CommendColumn" onmouseover="UIShowTextTooltip( #Citadel_MatchDetails_CommendTooltip ); CitadelPostGameCommendHover( true );" onmouseout="UIHideTextTooltip();  CitadelPostGameCommendHover( false );">
+					<Button id="CommendPlayerButton" class="CommendColumn" onmouseover="UIShowTextTooltip( #Citadel_MatchDetails_CommendTooltip );" onmouseout="UIHideTextTooltip()">
 						<Panel id="commendIcon" />
 					</Button>
 					<Panel class="GotCommendedIcon CommendColumn" />

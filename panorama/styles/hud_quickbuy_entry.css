@@ -7,6 +7,7 @@
 	width: 50px;
 	padding: 4px;
 	horizontal-align: center;
+	opacity: 0.5;
 	flow-children: right;
 	height: 50px;
 	box-shadow: 0px 0px 40px #00000020;
@@ -75,6 +76,11 @@
 	opacity: 1;
 }
 
+.QuickbuyItem.Sell
+{
+	wash-color: #0000FF88;
+}
+
 .QuickbuyItem .NumberLabel
 {
 	vertical-align: center;
@@ -102,6 +108,7 @@
 {
 	vertical-align: center;
 	horizontal-align: left;
+	margin-top: 3px;
 }
 
 .QuickbuyItem #ModName

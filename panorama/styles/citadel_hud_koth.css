@@ -1,4 +1,4 @@
-/* Prettified by Source 2 Viewer - https://valveresourceformat.github.io */
+/* Prettified by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io */
 
 @define kothScoreResultDisplayTime: 5.1;
 #KothCashInMeter
@@ -180,7 +180,7 @@
 	vertical-align: center;
 	font-size: 18px;
 	color: soulColor;
-	font-family: numericOracle;
+	font-family: oracle;
 	font-weight: bold;
 	text-transform: uppercase;
 	text-shadow: 0px 0px 5.0 offBlack;

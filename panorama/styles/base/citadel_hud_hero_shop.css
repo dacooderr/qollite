@@ -2,7 +2,7 @@
 
 @define rightPanelWidth: 1160px;
 @define tabHeight: 75px;
-@import url("s2r://panorama/styles/citadel_hero_builds_shared.vcss_c");
+@import url("s2r://panorama/styles/citadel_hero_builds_shared.vcss");
 CitadelHudHeroShop
 {
 	width: 100%;

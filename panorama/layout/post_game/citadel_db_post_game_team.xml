@@ -1,20 +1,12 @@
-<!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
+<!-- xml reconstructed by Source 2 Viewer - https://valveresourceformat.github.io -->
 <root>
 	<styles>
-		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
-		<include src="s2r://panorama/styles/post_game/citadel_db_post_game_team.vcss_c" />
-		<include src="s2r://panorama/styles/friends_rank_scoreboard.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss" />
+		<include src="s2r://panorama/styles/post_game/citadel_db_post_game_team.vcss" />
 	</styles>
-	<scripts>
-		<include src="s2r://panorama/scripts/friends_rank_scoreboard.vjs_c" />
-	</scripts>
 	<snippets>
 		<snippet name="Player">
 			<Panel class="Player" hittestChildren="false">
-				<Label id="FriendsRankScoreboardAccountID" class="FriendsRankScoreboardAccountID" text="{i:r:account_id}" hittest="false" />
-				<Label id="FriendsRankScoreboardAccountIDDirect" class="FriendsRankScoreboardAccountID" text="{i:account_id}" hittest="false" />
-				<Label id="FriendsRankScoreboardPlayerAccountID" class="FriendsRankScoreboardAccountID" text="{i:player_account_id}" hittest="false" />
-				<Label id="FriendsRankScoreboardPlayerAccountIDRoot" class="FriendsRankScoreboardAccountID" text="{i:r:player_account_id}" hittest="false" />
 				<Panel class="PlayerCard">
 					<Panel class="PlayerBorder" />
 					<Panel class="HeroScenePanelBackground HeroMaskPanel" />
@@ -36,9 +28,6 @@
 					<Panel id="LocalPlayerIdentifier">
 						<Label text="#Citadel_Post_Game_You" />
 					</Panel>
-					<Button id="FriendsRankScoreboardStatlockerButton" class="FriendsRankScoreboardButton" focusonmousedown="false" onmouseover="UIShowTextTooltip( &apos;View Statlocker Profile&apos; );" onmouseout="UIHideTextTooltip()" hittest="true">
-						<Panel class="FriendsRankScoreboardLogo" hittest="false" />
-					</Button>
 					<Button id="ViewProfileButton" class="PlayerActionButton" onmouseover="UIShowTextTooltip( #Citadel_PlayerContextMenu_ViewProfile );" onmouseout="UIHideTextTooltip()" />
 					<Button id="AddToFriendsButton" class="PlayerActionButton" onmouseover="UIShowTextTooltip( #Citadel_Friends_Add_Friend_Tooltip );" onmouseout="UIHideTextTooltip()" />
 					<Button id="ReportButton" class="PlayerActionButton" onmouseover="UIShowTextTooltip( #Citadel_ReportPlayer_Title );" onmouseout="UIHideTextTooltip()" />
@@ -52,7 +41,7 @@
 			</Panel>
 		</snippet>
 	</snippets>
-	<CitadelPostGameTeam class="FriendsRankPostGameTeam" hittest="false">
+	<CitadelPostGameTeam hittest="false">
 		<CitadelScenePanel id="HeroScenePanelBacker" map="ui/hero_select_backer/post_game_backer" camera="hero_select_backer_camera" particleonly="false" />
 		<Panel class="TeamNameContainer">
 			<Label class="TeamName" />

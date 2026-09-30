@@ -132,7 +132,7 @@ Label.unavailableText
 	background-position: right;
 	background-repeat: no-repeat;
 	background-color: none;
-	background-color: gray;
+	background-image: url("s2r://panorama/images/main_menu/news_shop_rework_png.vtex");
 }
 
 #LearnToPlayer .buttonImage
@@ -142,34 +142,6 @@ Label.unavailableText
 	background-repeat: no-repeat;
 	background-color: none;
 	background-image: url("s2r://panorama/images/main_menu/dl_v1_png.vtex"), url("s2r://panorama/images/match_intro/team1_bg_psd.vtex");
-	background-color: gray;
-}
-
-#VoiceLines .buttonImage
-{
-	background-color: gradient( radial, 50% 50%, 0% 0%, 70% 70%, from( #24352c ), to( #0b0f0c ) );
-}
-
-.VoiceLinesGlyph
-{
-	width: 132px;
-	height: 132px;
-	horizontal-align: center;
-	vertical-align: center;
-	background-image: url("s2r://panorama/images/icons/icon_sound_on.vsvg");
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-	wash-color: brandGreen;
-	opacity: 0.85;
-	transition-property: pre-transform-scale2d, opacity;
-	transition-duration: 0.2s;
-}
-
-#VoiceLines:hover .VoiceLinesGlyph
-{
-	pre-transform-scale2d: 1.1;
-	opacity: 1;
 }
 
 #GettingStarted .buttonImage

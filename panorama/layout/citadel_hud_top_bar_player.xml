@@ -4,6 +4,7 @@
 		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
 		<include src="s2r://panorama/styles/hud_common.vcss_c" />
 		<include src="s2r://panorama/styles/topbar_rank_topbar.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_hud_top_bar.vcss" />
 	</styles>
 	<scripts>
 		<include src="s2r://panorama/scripts/qollite_topbar.vjs_c" />
@@ -82,9 +83,8 @@
 		<Panel id="PlayerNameNWContainer" onmouseover="CitadelTopDownScoreboardPlayerHovered();">
 			<Panel id="BackgroundStrip" />
 			<Panel class="PlayerInfoContainer TopBottomFlow">
-				<Label id="PlayerName" class="PlayerName" text="{s:player_name}" />
+				<Label class="PlayerName" text="{s:player_name}" />
 				<Label class="HeroName" text="{s:hero_name}" />
-				<Label class="HeroNameHidden" text="{g:citadel_hero_name:hero_id}" />
 				<Panel id="KDAContainer" class="TopBottomFlow">
 					<Panel class="KDALabels LeftRightFlow">
 						<Label class="StatLabel" text="#Citadel_Scoreboard_KDA_Kills" />
@@ -111,10 +111,6 @@
 				<CitadelAbilityIcon id="AbilityButton2" class="abilityButton2" read_only="true" ability_slot="2" show_upgrade_pips="true" />
 				<CitadelAbilityIcon id="AbilityButton3" class="abilityButton3" read_only="true" ability_slot="3" show_upgrade_pips="true" />
 				<CitadelAbilityIcon id="AbilityButton4" class="abilityButton4" read_only="true" ability_slot="4" show_upgrade_pips="true" />
-			</Panel>
-			<Panel class="LeftRightFlow AlignHorizontalCenter SpentSoulsValueContainer TopbarRankSpentRow">
-				<Label class="SpentSoulDisplay SpentSoulsTitle TopbarRankSpentTitle" text="Spent:" />
-				<Label id="SpentSoulDisplay" class="SpentSoulDisplay TopbarRankSpentValue" text="-" />
 			</Panel>
 			<Panel id="PlayerModsContainer" class="TopBottomFlow">
 				<CitadelModsPurchasedPanel id="mod_universal" class="mod_universal" mod_category="Universal" read_only="true" is_top_bar="true" />
