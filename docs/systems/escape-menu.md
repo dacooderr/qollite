@@ -3,7 +3,7 @@
 > Adds queueing and navigation to the in-game escape menu.
 >
 > **Runs in:** every match · **Off switch:** ❌ none (nothing to switch off)
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 Pure layout. No script of its own, no timers, no runtime cost.
 

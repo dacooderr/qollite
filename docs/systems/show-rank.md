@@ -3,7 +3,7 @@
 > Showed each player's predicted rank badge across the HUD, scoreboard, and menus.
 >
 > **Origin:** Show Rank · **Status:** ❌ **removed** in `ecdacbb` (2026-08-06) · **Runs in:** nowhere
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 > ### This feature is no longer in the pack
 > `qollite_showrank.js` and its stylesheets were deleted and its includes removed from all six

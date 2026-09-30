@@ -3,7 +3,7 @@
 > Shows the queued item list on the HUD and cumulative costs in the shop.
 >
 > **Origin:** Enhanced Quickbuy · **Runs in:** every match · **Off switch:** ✅ UMM `enhanced_quickbuy`
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 ---
 

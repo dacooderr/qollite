@@ -5,7 +5,7 @@
 >
 > **Audience:** anyone planning work, and anyone reviewing a change.
 > **Status:** open ledger.
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted) — game build 6722.
+> **Last verified:** 2026-09-30 against commit `fa59528` — game build 6722.
 
 Severity reflects impact on the project's two design goals — *small footprint* and *low runtime
 cost* ([`README.md`](README.md) § Design goals).

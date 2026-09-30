@@ -3,7 +3,7 @@
 > Resizable, repositionable minimap with an objective overlay and a settings panel.
 >
 > **Origin:** BetterMap 2.1 (`ca29290`) · **Runs in:** every match · **Off switch:** UMM `bettermap` (partial)
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 The largest feature in the mod: fifteen scripts, a full `hud.xml` override, and about 280 lines of
 custom CSS. The scripts are **generated** from upstream BetterMap by `scripts/bundle_bettermap.py` —

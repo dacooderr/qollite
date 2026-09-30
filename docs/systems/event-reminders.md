@@ -3,7 +3,7 @@
 > Timed on-screen notices before and when map objectives spawn.
 >
 > **Origin:** Map Event Reminders (`12e6b3b`) · **Runs in:** every match · **Off switch:** UMM `eventnotifier` (partial)
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 The most architecturally interesting feature in the mod: it spans **three Panorama contexts** and is
 the only one that had to build its own message protocol to do so.

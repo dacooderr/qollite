@@ -3,7 +3,7 @@
 > Keeps passive and active item icons visible instead of hiding them during play.
 >
 > **Origin:** Always Show Passives & Actives · **Runs in:** every match · **Off switch:** ⚠️ UMM `always_show_passives` — defeated by unconditional rules
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 **The cheapest feature in the mod, and the model the others should follow** — in its design. It costs
 one class toggle and zero timers: all behaviour is CSS. In its current files the off switch does not

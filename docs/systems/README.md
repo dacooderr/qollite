@@ -3,7 +3,7 @@
 > Every feature QOL Lite currently ships, what it owns, and whether the user can turn it off.
 >
 > **Audience:** anyone looking for "which files do I touch to change X".
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 QOL Lite is a **collection**. Most features arrived as independent mods and were merged into one pack
 so they could share Valve's HUD files rather than fight over them

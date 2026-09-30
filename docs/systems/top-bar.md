@@ -3,7 +3,7 @@
 > Objective timers and urn tracking added to the match top bar, plus spent-souls rows per player.
 >
 > **Origin:** Top Bar Plus · **Runs in:** every match, and the hideout · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 Rebased onto game build 6722 (layouts and both stylesheets); nothing on this page has been checked in
 game since.

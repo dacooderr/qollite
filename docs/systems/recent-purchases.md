@@ -3,7 +3,7 @@
 > Filterable feed of what every player has bought, with icons, plus per-hero purchase badges.
 >
 > **Origin:** Recent Purchases · **Runs in:** every match (the shop layout) · **Off switch:** ✅ UMM `recent_purchases`
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 ---
 

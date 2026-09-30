@@ -4,7 +4,7 @@
 >
 > **Audience:** anyone adding or changing a user-facing setting.
 > **Status:** protocol v1, five features integrated, the rest not (§4).
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 **Contents**
 

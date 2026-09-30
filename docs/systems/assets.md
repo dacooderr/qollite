@@ -3,7 +3,7 @@
 > Replacement models, materials, particles, and textures that cut rendering cost or fix visual bugs.
 >
 > **Runs in:** everywhere · **Off switch:** ❌ n/a — these are replacements, not features
-> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted) — only the Vindicta scope and minimap-texture facts were re-checked; the rest is as recorded on 2026-08-05 (`ac57b17`).
+> **Last verified:** 2026-09-30 against commit `fa59528` — only the Vindicta scope and minimap-texture facts were re-checked; the rest is as recorded on 2026-08-05 (`ac57b17`).
 
 The only part of the mod with **negative** cost. Everything else adds work; this removes it.
 
