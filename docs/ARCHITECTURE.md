@@ -386,3 +386,17 @@ line with upstream's own copies by hand. Record the new commits in [`BUNDLE.md`]
 Load a match and the hideout with `-condebug`, read `console.log` for `Parsing warning`, missing
 resources and script errors, and look at every feature the patch touched. Until that is done, the
 update is **done, unverified in game** — say so in the release notes and the commit.
+
+**6722 update — what to look at** (each item is a change made without seeing the game):
+
+| Area | Check |
+|---|---|
+| Top bar | No "Voted!" on portraits in a match; the vote sticker shows only when Valve shows it. Clock, souls and death icons look like vanilla 6722. Top Bar Plus buff / rejuv / urn pills still work; the top bar still shows in the hideout. |
+| Ability bar | No "+0" above and no "Undo" under the icons outside an upgrade. Always-show-passives; the ammo-buff notifiers. |
+| Shop, quickbuy | The quickbuy total sits after Valve's summary without overlapping it; 4×3 positions; recent purchases; Valve's new key hints vs the preview slots. |
+| Minimap (BetterMap 2.1) | Size slider scales the map, not only the frame; corner and offsets; Minimalist mode and its opacity slider (a local delta, [`BUNDLE.md`](BUNDLE.md) §3); enlarge-on-ult-targeting; underground POI level; urn tracker; player icons. |
+| Event reminders | Camp, urn and Sinner's Sacrifice alerts fire on time; nothing fires in Street Brawl. |
+| Damage numbers | `hud_event_indicator.css` offsets and glow still look intended with 6722's longer lifetimes. |
+| Menus | Escape menu Unstick / Reconnect; settings: 4×3 option and the FOV aspect row in the new camera section; training page: VoiceLines card where Library was; post-game: Statlocker button beside Valve's new buttons. |
+| Hideout | Hero testing: Change Team, No Death, Unlimited Ammo, No Cooldown, Fast Stamina. |
+| Frame time | Same match with the pack on and off; `console.log` free of new Panorama warnings. |
