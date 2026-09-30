@@ -62,8 +62,8 @@ log filters match them — not dead code.
 
 ```
 panorama/
-├── layout/        30 .xml files — Valve layouts, overridden
-│   └── popups/ (2)  post_game/ (3)  ability_hud_elements/ (1)
+├── layout/        29 .xml files — Valve layouts, overridden
+│   └── popups/ (2)  post_game/ (3)
 ├── styles/        57 .css files
 │   ├── base/                 14 Valve copies under a mod path (13 + 1 in base/post_game/; see §4)
 │   ├── topbar_rank_base/      2 Valve copies under a mod path (see §4)
@@ -78,9 +78,10 @@ particles/         replacement particle systems (McGinnis wall)
 scripts/           repo tooling (Python) — not shipped; see §8 and §9
 ```
 
-227 tracked files in total, docs and tooling included (measured 2026-09-30 on branch
+226 tracked files in total, docs and tooling included (measured 2026-09-30 on branch
 `fix/remerge-6722`, uncommitted): the 231 of `eb80c34` minus the four files of the removed
-[hero testing](systems/hero-testing.md) feature. `eb80c34` had the same file set as `4bb5c0e`, which
+[hero testing](systems/hero-testing.md) feature and the `ability_hud_elements/element_gun.xml`
+override that loaded the ammo-buff notifier. `eb80c34` had the same file set as `4bb5c0e`, which
 added eight: three Valve 6722 copies and one old Valve layout, listed in §4, and four textures under
 `materials/` and `models/`, not reviewed here.
 
@@ -118,12 +119,13 @@ Read out of the layouts' `<scripts>` blocks on branch `fix/remerge-6722` (uncomm
 | `citadel_db_page_profile.xml` | `friends_rank_config`, `friends_rank` | Friends Rank (no page yet — see [systems/README.md](systems/README.md)) |
 | `profile_card.xml` | `friends_rank_config`, `friends_rank` — **per instance** ([`FIELD_NOTES.md`](FIELD_NOTES.md) §5) | Friends Rank |
 | `post_game/citadel_db_post_game_scoreboard_new.xml`, `post_game/citadel_db_post_game_team.xml` | `friends_rank_scoreboard` | Friends Rank |
-| `ability_hud_elements/element_gun.xml` | `mercurial_magnum_notifier` | ammo-buff notifier (no page yet) |
 | `citadel_hud_hero_shop.xml` | `qollite_recent_purchase_icons`, `qollite_recent_purchases` | [recent purchases](systems/recent-purchases.md) |
 | `hud_quickbuy.xml` | `qollite_quickbuy` | [quickbuy](systems/quickbuy.md) |
 | `popups/citadel_popup_global_leaderboard.xml` | `qollite_leaderboard` | [leaderboard search](systems/leaderboard-search.md) |
 
-**Included by no layout:** `qollite_profile.js`. Its include was dropped from
+**Included by no layout:** `mercurial_magnum_notifier.js` (and its stylesheet), kept for a future UMM
+off switch — the maintainer took the notifier out on 2026-09-30 until players can turn it off; and
+`qollite_profile.js`. Its include was dropped from
 `citadel_db_page_profile.xml` in `9935d0c`, so the file ships but never runs
 ([`TECH_DEBT.md`](TECH_DEBT.md) §4). `qollite_showrank.js` no longer exists — it was removed with [Show Rank](systems/show-rank.md) in `ecdacbb`, together with its
 includes in six layouts.
@@ -442,7 +444,9 @@ dropped features **unintentionally** — the maintainer confirmed he meant to re
 purchases (`citadel_hud_hero_shop.xml` and its rules in `citadel_hud_hero_shop.css`), the ammo-buff
 notifier (`ability_hud_elements/element_gun.xml`), the mod's hero-testing panel (`hud_hero_testing.xml`,
 `hero_testing_menu.css` — since removed for a start-up crash, [`FIELD_NOTES.md`](FIELD_NOTES.md) §10), and Friends Rank's MVP-card markup (`post_game/citadel_db_post_game_team.xml`)
-with the Statlocker rules of `citadel_db_page_profile.css`. All of them were restored from `1f0fe0f`.
+with the Statlocker rules of `citadel_db_page_profile.css`. All of them were restored from `1f0fe0f`;
+the ammo-buff notifier was then taken out again on purpose — not shipped since 2026-09-30, at the maintainer's request, until it has an off switch (UMM) — by deleting the
+`element_gun.xml` override, so the game loads Valve's own file.
 One Valve copy was a fix: it stopped a crash on the post-game MVP screen, whose cause is unknown —
 the restored MVP-card layout is an open risk ([`TECH_DEBT.md`](TECH_DEBT.md) D17).
 

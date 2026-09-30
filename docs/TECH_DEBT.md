@@ -86,12 +86,6 @@ tracker's DEBUG-only scans are gone. On an offline mock of the HUD tree that too
 from ~385/s to ~352/s — a relative figure, not an engine measurement. What did **not** change is D1:
 six loops that run with their feature off (two of them new in 2.1), all upstream design.
 
-### `ability_hud_elements/element_gun.xml` — every match
-
-| Loop | Interval | Rate | Work per tick | Stops when off? |
-|---|---:|---:|---|---|
-| `mercurial_magnum_notifier.js` | 0.05 s while a tracked item is owned or Split Shot / Blood Tribute is active, else 0.5 s | 20 Hz / 2 Hz | Every 0.5 s (throttled): `FindChildTraverse` **from the top-most UI root** for `upgrade_split_shot`, `upgrade_ethereal_bullets` and `abilitiesContainer` — the last never matches (D11), and the first two fail whenever the items are not owned | **No setting at all** — no UMM entry, no page in `docs/systems/` |
-
 ### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
@@ -226,7 +220,6 @@ each script for a `"umm"` register):
 | Feature | Script(s) | Standing cost (§2) |
 |---|---|---|
 | [Top bar](systems/top-bar.md) | `qollite_topbar.js` | 1 Hz + 13 copies of a 2 Hz loop |
-| Ammo-buff notifier (no page yet) | `mercurial_magnum_notifier.js` | 20 Hz / 2 Hz, root-level searches |
 | Friends Rank (no page yet) | `friends_rank*.js` | Profile page and per profile card; calls `api.deadlock-api.com` — [`BUNDLE.md`](BUNDLE.md) § Third-party services |
 
 [Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`;
@@ -367,6 +360,8 @@ always shown and the UMM `always_show_passives` → `enabled` toggle cannot turn
 second `@import`, leaving the gated ones.
 
 ### D11. Ammo notifier looks up an id with the wrong case
+
+*Not shipped since 2026-09-30 (no layout loads the notifier); fix this before bringing it back.*
 
 **Severity: Low. Verified by reading; effect unknown.** `mercurial_magnum_notifier.js` calls
 `FindChildTraverse("abilitiesContainer")`. In `hud.xml` the id is `AbilitiesContainer` and

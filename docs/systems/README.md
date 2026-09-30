@@ -30,7 +30,7 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 | [4×3 aspect ratio](aspect-ratio-4x3.md) | — | Everywhere | ❌ none | none — CSS only |
 | [Asset optimizations](assets.md) | Several | Everywhere | ❌ n/a | negative — saves cost |
 | Friends Rank — *no page yet* | unrecorded ([`../BUNDLE.md`](../BUNDLE.md) §5) | Profile page, profile cards, post-game | ❌ none | per-card watch, up to ~62 Hz ([`../TECH_DEBT.md`](../TECH_DEBT.md) D13); network |
-| Ammo-buff notifier — *no page yet* | "Han" (commit message only) | Match | ❌ none | 20 Hz / 2 Hz |
+| Ammo-buff notifier — *no page yet* | "Han" (commit message only) | — | — | **not shipped** since 2026-09-30, until it has a UMM off switch |
 | ~~[Rank badges](show-rank.md)~~ | Show Rank | — | — | **removed** in `ecdacbb` |
 | ~~[Hero testing tools](hero-testing.md)~~ | Advanced Testing Tools | — (the hideout uses Valve's own menu) | — | **removed** 2026-09-30 — crashed the game at 6722 |
 
@@ -40,7 +40,8 @@ cannot decline. The ❌ rows in the *match* column are the open problem — see
 [`../TECH_DEBT.md`](../TECH_DEBT.md) §2.
 
 Two features in the pack have **no page** — Friends Rank (added in `27087ae`) and the ammo-buff
-notifier (added in `9935d0c`). Both predate the 6722 update; writing their pages is open work.
+notifier (added in `9935d0c`, not shipped since 2026-09-30). Both predate the 6722 update; writing
+their pages is open work.
 
 ---
 
@@ -55,7 +56,6 @@ table** — two features cannot both ship the same path.
 | `layout/base_hud_and_db_overlay.xml` | [Event reminders](event-reminders.md) |
 | `layout/citadel_hud_top_bar.xml` | [Top bar](top-bar.md), [event reminders](event-reminders.md) bridges |
 | `layout/citadel_hud_top_bar_player.xml` | [Top bar](top-bar.md) (per-player row: script, `SpentSoulDisplay`, `.HeroNameHidden` label used by [recent purchases](recent-purchases.md)) |
-| `layout/ability_hud_elements/element_gun.xml` | Ammo-buff notifier |
 | `layout/citadel_db_page_profile.xml`, `profile_card.xml`, `post_game/citadel_db_post_game_scoreboard_new.xml`, `post_game/citadel_db_post_game_team.xml` | Friends Rank (the MVP-card layout carries an open crash risk, [`../TECH_DEBT.md`](../TECH_DEBT.md) D17) |
 | `layout/citadel_ui_context_menu_player.xml`, `players_list_entry.xml` | none — restored to Valve's markup when [Show Rank](show-rank.md) was removed; still overridden |
 | `layout/hud_escape_menu.xml` | [Escape menu](escape-menu.md) |

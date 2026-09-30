@@ -97,7 +97,7 @@
       "tier": "vendored",
       "gamebanana_id": null,
       "upstream": null,
-      "note": "mercurial_magnum_notifier.*; credited to 'Han' only by the message of 9935d0c. See docs/BUNDLE.md section 4.",
+      "note": "Not shipped since 2026-09-30 (no off switch yet). mercurial_magnum_notifier.*; credited to 'Han' only by the message of 9935d0c. See docs/BUNDLE.md section 4.",
       "pinned": {}
     }
   ]

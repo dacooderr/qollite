@@ -207,7 +207,7 @@ the minified output.
 | ~~Advanced Testing Tools In Hideout~~ — **removed** 2026-09-30 at the maintainer's request: its full replacement of `hud_hero_testing.xml` lacked ids the 6722 engine reads and crashed the game at start-up ([page](systems/hero-testing.md), [`FIELD_NOTES.md`](FIELD_NOTES.md) §10) | **bonclide** | [616749](https://gamebanana.com/mods/616749) | — | Probable |
 | Optimized McGinnis Wall | **Aminsx** (creator); dacooderr listed as redistributor | [690514](https://gamebanana.com/mods/690514) | — | Confirmed |
 | Sinner's Light Fix | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, `element_gun.xml` images) | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
+| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, images) — **not shipped since 2026-09-30, at the maintainer's request, until it has an off switch (UMM)**; the `element_gun.xml` override that loaded it is deleted, the script, stylesheet and images stay for that work | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
 | Experimental Extended FOV Slider (`#BetterFOVAspectRatio` in `popups/popup_settings.xml`) | **Maffinz**, per the message of `ac24ca8` | TBD | TBD | **Unverified** — only a commit message |
 
 **Every row above with a GameBanana entry is licensed CC BY-NC-ND 4.0** there; the last two rows have
