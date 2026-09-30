@@ -53,14 +53,6 @@
       "pinned": {}
     },
     {
-      "feature": "hero-testing",
-      "tier": "vendored",
-      "gamebanana_id": 616749,
-      "upstream": null,
-      "note": "Match not byte-verified. Carries a 5-line local delta for build 6711+ (docs/BUNDLE.md section 4).",
-      "pinned": {}
-    },
-    {
       "feature": "assets/mcginnis-wall",
       "tier": "vendored",
       "gamebanana_id": 690514,

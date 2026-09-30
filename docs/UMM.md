@@ -4,7 +4,7 @@
 >
 > **Audience:** anyone adding or changing a user-facing setting.
 > **Status:** protocol v1, five features integrated, the rest not (§4).
-> **Last verified:** 2026-09-30 against commit `eb80c34`.
+> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted).
 
 **Contents**
 
@@ -149,7 +149,6 @@ These features have **no UMM presence and no user-facing switch at all** — the
 | [top bar](systems/top-bar.md) | Cannot be turned off. |
 | Friends Rank (no page yet) | Cannot be turned off. Makes third-party image requests to `api.deadlock-api.com`. |
 | Ammo-buff notifier (no page yet) | Cannot be turned off; polls at up to 20 Hz. |
-| [hero testing](systems/hero-testing.md) | Loops are bounded, but the script loads in every match ([`TECH_DEBT.md`](TECH_DEBT.md) D12). |
 | [Statlocker button](systems/statlocker.md) | Its script is not loaded at all. |
 | [leaderboard search](systems/leaderboard-search.md) | Only runs on the leaderboard popup. |
 | [4×3 support](systems/aspect-ratio-4x3.md) | Pure CSS; effectively free. |

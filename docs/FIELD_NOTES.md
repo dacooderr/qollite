@@ -4,6 +4,7 @@
 >
 > **Audience:** anyone about to edit, rebuild, or remove something in this pack.
 > **Status:** living document — add to it whenever something surprises you.
+> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted).
 
 This is deliberately not [`TECH_DEBT.md`](TECH_DEBT.md), which tracks problems that should be fixed.
 Most of what follows cannot be fixed; it is how the project *is*, and the cost of not knowing it is
@@ -24,6 +25,7 @@ so.
 7. [A layout's panels are styled only by the sheets that layout includes](#7-a-layouts-panels-are-styled-only-by-the-sheets-that-layout-includes)
 8. [Polling for a panel that no longer exists walks the whole tree](#8-polling-for-a-panel-that-no-longer-exists-walks-the-whole-tree)
 9. [A minified build hides its own build flags](#9-a-minified-build-hides-its-own-build-flags)
+10. [A layout the engine reads by id must keep every id it reads](#10-a-layout-the-engine-reads-by-id-must-keep-every-id-it-reads)
 
 ---
 
@@ -204,7 +206,8 @@ What that looked like at the 6722 update (tracker revisions `33e0801209` → `24
   would have rendered at default visibility on every icon. The copy had also missed an earlier,
   unrelated Valve change from July (`10bc3fa`).
 - Valve replaced the hero-testing checkboxes' panel events and console commands with convars. The
-  mod's buttons kept dispatching events that no longer exist — no error, no effect.
+  mod's buttons kept dispatching events that no longer exist — no error, no effect. (The mod's
+  layout was rebound to the convars, then removed from the pack for a worse problem — §10.)
 - `hud_damage_report.css` and `profile_card.css` carry **no mod change at all** yet still override
   Valve; before the patch `hud_damage_report.css` was already reverting a Valve change from February
   (`c878d67`).
@@ -286,6 +289,45 @@ extra tree scans in the urn tracker, so every match paid for diagnostics.
 
 **What to do:** do not infer behaviour from minified output alone — find the build it came from.
 When bundling, set release flags explicitly and record the value as a delta.
+
+---
+
+## 10. A layout the engine reads by id must keep every id it reads
+
+Some Valve layouts are not just markup the C++ instantiates: the C++ class behind the root panel
+looks children up by id and **aborts the game** when one is missing. On 2026-09-30 the pack failed
+at start-up with:
+
+```
+FATAL ERROR: Unable to find child 'BotsSpawnBotCard' in layout file 'panorama\layout\hud_hero_testing.xml'
+```
+
+**Cause.** The pack shipped Advanced Testing Tools' own `hud_hero_testing.xml`, a full replacement of
+Valve's layout. Valve's 6722 layout (tracker `245f2952f9`) is its native testing menu and declares
+53 ids; the mod's layout lacked 50 of them, and 32 of those 50 appear as names in
+`game/citadel/bin/win64/client_strings.txt` of the same build — `BotsSpawnBotCard` among them. An
+earlier reading held that the C++ tolerates missing ids, citing `hero_testing_tabs` (one of the 32)
+as a precedent; the crash disproves that. A missing panel here is not a styling gap — it is a crash.
+
+> **Verified:** the crash is observed (the maintainer's crash dialog, 2026-09-30). The id
+> cross-check is measured: every id in Valve's 6722 layout, minus the ids in the pack's layout at
+> `1f0fe0f` (and `eb80c34`), intersected with the whitespace-split words of `client_strings.txt` —
+> 32 ids. **Inferred:** that the engine reads *these specific* ids. A name in the strings is evidence
+> of a lookup, not proof; only `BotsSpawnBotCard` is proven, by the dialog. Which of the other 31
+> are fatal, merely logged, or unused was not tested. The removal that followed
+> ([hero testing](systems/hero-testing.md)) was not checked in game.
+
+**What to do:**
+
+- Prefer no override. With no file at the path the game loads Valve's own, current layout, and the
+  question never arises.
+- An override of a Valve layout keeps **every** Valve id that `client_strings.txt` names, even where
+  the mod hides or restyles the panel. Hide it in CSS; do not delete it.
+- A full replacement of a Valve layout is safe only if it carries all of those ids — re-check at
+  every patch, because Valve adds ids with new features (6711 added the whole native menu).
+- `scripts/rebase_overrides.py` reports them as `engine-ids` and counts them in its exit code
+  ([`ARCHITECTURE.md`](ARCHITECTURE.md) §9 step 3). Treat the list as "must keep unless proven
+  otherwise".
 
 ---
 

@@ -27,10 +27,17 @@ The base pick is a heuristic and is wrong for two known shapes, which the report
 flags as `review-base` rather than trusting:
   * an override that is only `@import base/...` plus the mod's rules -- it has no
     inlined Valve copy, so there is nothing to merge; keep it as it is;
-  * a full replacement of Valve's file (e.g. hud_hero_testing.xml) -- no Valve
-    revision is close, and merging replays Valve's whole history into the mod.
+  * a full replacement of Valve's file (e.g. the former hud_hero_testing.xml) --
+    no Valve revision is close, and merging replays Valve's whole history into the mod.
 
-Exit codes: 0 = no conflicts   1 = conflicts or review-base flags   2 = error
+It also reports `engine-ids`: ids in the new Valve layout that the override lacks
+and that client.dll names in its strings. The engine looks some of those up and
+aborts start-up when one is missing -- 6722's hud_hero_testing.xml did exactly
+that ("FATAL ERROR: Unable to find child 'BotsSpawnBotCard'"). A name in the
+strings is evidence of a lookup, not proof, so treat the list as "must keep
+unless proven otherwise" (docs/FIELD_NOTES.md §10).
+
+Exit codes: 0 = nothing to do   1 = conflicts, review-base or engine-ids flags   2 = error
 """
 
 import argparse
@@ -64,6 +71,23 @@ DECOMPILER_HEADER = ("reconstructed by Source 2 Viewer", "Prettified by Source 2
 # Since build 6711 Valve's compiled files reference `.vcss`; this repo uses `.vcss_c`.
 # Both resolve; mapping Valve's form keeps the churn out of the merge.
 VCSS_REF = re.compile(r'(s2r://panorama/styles/[^"\)]*?\.vcss)(["\)])')
+# Strings extracted from the client binary; the tracker keeps them per build.
+CLIENT_STRINGS = "game/citadel/bin/win64/client_strings.txt"
+LAYOUT_ID = re.compile(r'\bid="([^"]+)"')
+
+
+def layout_that_ships(entry):
+    """Which text the engine-ids check must read for a rebased layout: the merge
+    result only when --apply would write it. A review-base result is a merge
+    against the wrong base -- it replays Valve's history and so carries Valve's
+    ids -- and is never applied, so the file that ships is still ours."""
+    return entry.get("result") if entry and entry.get("status") != "review-base" else None
+
+
+def missing_engine_ids(valve_layout, our_layout, engine_names):
+    """Ids Valve's layout declares, ours lacks, and the client binary names."""
+    return sorted((set(LAYOUT_ID.findall(valve_layout)) - set(LAYOUT_ID.findall(our_layout)))
+                  & engine_names)
 
 
 def git(cwd, *args):
@@ -208,14 +232,37 @@ def main():
                 if args.apply and e["status"] != "review-base":
                     with open(e["result"], "rb") as src, open(os.path.join(ROOT, f), "wb") as dst:
                         dst.write(src.read())
+        engine_names = set((git_show(args.tracker, args.new, CLIENT_STRINGS) or "").split())
+        by_file = {e["file"]: e for e in report}
+        for f in files:
+            if not f.startswith("panorama/layout/"):
+                continue
+            valve = git_show(args.tracker, args.new, TRACKER_PREFIX + valve_path(f))
+            if valve is None:
+                continue
+            e = by_file.get(f)
+            shipped = layout_that_ships(e)
+            if shipped:
+                with open(shipped, encoding="utf-8") as fh:
+                    ours = fh.read()
+            else:
+                ours = git(ROOT, "show", f"{args.ref}:{f}")
+            missing = missing_engine_ids(valve, ours, engine_names)
+            if missing:
+                if e is None:
+                    e = by_file[f] = {"file": f, "status": "valve-unchanged"}
+                    report.append(e)
+                e["engine_ids"] = missing
+                print(f"engine-ids   {len(missing)} missing, e.g. {', '.join(missing[:5])}  {f}")
         with open(os.path.join(args.out, "report.json"), "w", encoding="utf-8") as fh:
             json.dump(report, fh, indent=1)
     except RuntimeError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    flagged = [e for e in report if e.get("conflicts") or e.get("status") == "review-base"]
+    flagged = [e for e in report
+               if e.get("conflicts") or e.get("status") == "review-base" or e.get("engine_ids")]
     print(f"\n{len(report)} Valve-path files checked, {len(flagged)} need a human "
-          f"(conflicts or review-base). Report: {os.path.join(args.out, 'report.json')}")
+          f"(conflicts, review-base or engine-ids). Report: {os.path.join(args.out, 'report.json')}")
     return 1 if flagged else 0
 
 

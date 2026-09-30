@@ -469,7 +469,8 @@ Settled by in-game testing. Do not spend time re-deriving these.
 - The only reliable pointer event is **`onactivate`** — a full click.
 
 Reposition via discrete controls instead. ✅ The minimap uses corner presets plus offset sliders; the
-hero-testing panel uses a click-to-toggle "Click to Drag" bar rather than cursor following.
+former hero-testing panel ([removed](systems/hero-testing.md)) used a click-to-toggle "Click to Drag"
+bar rather than cursor following.
 
 **Live world state.** See §3 — not observable, and would be a cheat.
 

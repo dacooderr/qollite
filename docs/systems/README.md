@@ -3,7 +3,7 @@
 > Every feature QOL Lite currently ships, what it owns, and whether the user can turn it off.
 >
 > **Audience:** anyone looking for "which files do I touch to change X".
-> **Last verified:** 2026-09-30 against commit `eb80c34`.
+> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted).
 
 QOL Lite is a **collection**. Most features arrived as independent mods and were merged into one pack
 so they could share Valve's HUD files rather than fight over them
@@ -25,7 +25,6 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 | [Enhanced quickbuy](quickbuy.md) | Enhanced Quickbuy | Match | ⚠️ UMM `enhanced_quickbuy` hides it; the loop keeps running | 10 Hz, never stops |
 | [Recent purchases](recent-purchases.md) | Recent Purchases | Shop | ✅ UMM `recent_purchases` | 10 Hz + 1 Hz, stop when off |
 | [Always-show passives](passives.md) | Always Show Passives | Match | ⚠️ UMM `always_show_passives`, but unconditional rules defeat it | none — CSS only |
-| [Hero testing tools](hero-testing.md) | Advanced Testing Tools | Hideout; **loads in every match** | ❌ none | 6 bounded loops |
 | [Leaderboard search](leaderboard-search.md) | — | Leaderboard popup | ❌ none | on keystroke |
 | [Escape menu](escape-menu.md) | — | Match | ❌ none | none — layout only |
 | [4×3 aspect ratio](aspect-ratio-4x3.md) | — | Everywhere | ❌ none | none — CSS only |
@@ -33,6 +32,7 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 | Friends Rank — *no page yet* | unrecorded ([`../BUNDLE.md`](../BUNDLE.md) §5) | Profile page, profile cards, post-game | ❌ none | per-card watch, up to ~62 Hz ([`../TECH_DEBT.md`](../TECH_DEBT.md) D13); network |
 | Ammo-buff notifier — *no page yet* | "Han" (commit message only) | Match | ❌ none | 20 Hz / 2 Hz |
 | ~~[Rank badges](show-rank.md)~~ | Show Rank | — | — | **removed** in `ecdacbb` |
+| ~~[Hero testing tools](hero-testing.md)~~ | Advanced Testing Tools | — (the hideout uses Valve's own menu) | — | **removed** 2026-09-30 — crashed the game at 6722 |
 
 **Off-switch legend:** ✅ registered with Universal Mod Manager · ⚠️ partially · ❌ always on, user
 cannot decline. The ❌ rows in the *match* column are the open problem — see
@@ -61,7 +61,7 @@ table** — two features cannot both ship the same path.
 | `layout/hud_escape_menu.xml` | [Escape menu](escape-menu.md) |
 | `layout/citadel_hud_hero_shop.xml`, `styles/citadel_hud_hero_shop.css` | [Recent purchases](recent-purchases.md) (the stylesheet also carries [4×3](aspect-ratio-4x3.md) rules) |
 | `layout/hud_quickbuy.xml`, `hud_quickbuy_entry.xml` | [Quickbuy](quickbuy.md) |
-| `layout/hud_hero_testing.xml`, `styles/hero_testing_menu.css` | [Hero testing](hero-testing.md) |
+| `layout/hud_hero_testing.xml`, `styles/hero_testing_menu.css` | **not shipped** — Valve's own files load since [hero testing](hero-testing.md) was removed; an override here must keep every id the engine reads ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10) |
 | `layout/citadel_db_page_training.xml` | unattributed — the Resources-page grid |
 | `layout/citadel_hud_koth.xml` | added in `5adefb4` ("potential fix for lingering rift pop-up"); no feature page |
 | `layout/popups/citadel_popup_global_leaderboard.xml` | [Leaderboard search](leaderboard-search.md) |

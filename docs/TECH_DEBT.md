@@ -5,7 +5,7 @@
 >
 > **Audience:** anyone planning work, and anyone reviewing a change.
 > **Status:** open ledger.
-> **Last verified:** 2026-09-30 against commit `eb80c34` — game build 6722.
+> **Last verified:** 2026-09-30 against branch fix/remerge-6722 (uncommitted) — game build 6722.
 
 Severity reflects impact on the project's two design goals — *small footprint* and *low runtime
 cost* ([`README.md`](README.md) § Design goals).
@@ -42,7 +42,7 @@ exists for anything in this file. Nothing here was observed in game.
 | [D9](#6-no-attribution-for-bundled-work) | No attribution for bundled third-party work | **High** | Licensing | Open |
 | [D10](#d10-the-passives-toggle-cannot-turn-passives-off) | Passives UMM toggle cannot turn the feature off | Medium | Opt-in model | Open |
 | [D11](#d11-ammo-notifier-looks-up-an-id-with-the-wrong-case) | Ammo notifier looks up `abilitiesContainer`, the id is `AbilitiesContainer` | Low | Correctness | Open |
-| [D12](#d12-hero-testing-loads-in-every-match) | Hero testing loads in every match, not only the hideout | Medium | Runtime cost | Open, unmeasured |
+| [D12](#d12-hero-testing-loads-in-every-match) | Hero testing loads in every match, not only the hideout | Medium | Runtime cost | **Resolved** 2026-09-30 by removing the feature |
 | [D13](#d13-friends-rank-popup-watch-polls-at-frame-rate) | Friends Rank popup watch re-arms every 0.016 s | Medium | Runtime cost | Open, unmeasured |
 | [D14](#d14-blur-on-always-present-hud-panels) | `world-blur` on HUD panels that are always present | Low | Runtime cost | Open, unmeasured |
 | [D15](#d15-damage-number-glow-times-longer-lifetimes) | Damage-number glow × Valve's longer indicator lifetimes | Low | Runtime cost | Open, unmeasured |
@@ -137,12 +137,6 @@ The same script is included by the top bar and by each row, so a 12-player match
 | `friends_rank_scoreboard.js` | 0.15 s | — | binds the post-game buttons | ✅ 8 tries |
 | `qollite_leaderboard.js` | — | — | on keystroke | ✅ |
 
-### `hud_hero_testing.xml` — loaded in every match (D12)
-
-Four loops at 0.2 s and two at 0.5 s. All bounded: `q()` and `Da()` stop once
-`#hero_testing_container` / `#htpp_drag_bar` are found (they would poll forever at 5 Hz if those
-panels disappeared); `ma()` runs 120 ticks (60 s) from `InitializeTestingToolsLayout`.
-
 ### Not running
 
 Loops in scripts no layout includes, so they never start (§4):
@@ -234,9 +228,9 @@ each script for a `"umm"` register):
 | [Top bar](systems/top-bar.md) | `qollite_topbar.js` | 1 Hz + 13 copies of a 2 Hz loop |
 | Ammo-buff notifier (no page yet) | `mercurial_magnum_notifier.js` | 20 Hz / 2 Hz, root-level searches |
 | Friends Rank (no page yet) | `friends_rank*.js` | Profile page and per profile card; calls `api.deadlock-api.com` — [`BUNDLE.md`](BUNDLE.md) § Third-party services |
-| [Hero testing](systems/hero-testing.md) | `qollite_hero_testing.js` | bounded loops, but loaded per match (D12) |
 
-[Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`.
+[Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`;
+[hero testing](systems/hero-testing.md) was removed on 2026-09-30.
 
 **Fix:** register each with UMM. Whether they default on or off is a product decision; *having the
 switch* is not optional if opt-in is what keeps the runtime cost defensible.
@@ -260,7 +254,6 @@ No layout `<include>`, no `@import`, no script reference anywhere in the repo:
 | `panorama/images/statlocker/statlocker.png` + `.vtex` — referenced only by `qollite_profile.js` | |
 | `panorama/images/minimap/qollite_tunnels.png` + `.vtex` — its last rule targeted Valve's `shop_tunnel` class, gone since 6711, and was dropped at the rebase | 780 KB |
 | `materials/minimap/neutral_vault.png` | 916 B |
-| `panorama/styles/ability_hud_elements/hero_testing_menu.css` — referenced by no layout since the `959f80e` import (the testing layout loads `styles/hero_testing_menu`) | 439 lines |
 | `panorama/layout/post_game/citadel_db_page_post_game.xml` — added in `4bb5c0e` at a path Valve dropped in 6711 ([`ARCHITECTURE.md`](ARCHITECTURE.md) §4) | 53 lines |
 
 The three stylesheets live under mod-invented directories, so unlike a Valve path they are not loaded
@@ -317,7 +310,7 @@ The map and notification scripts are now readable upstream source, regenerated b
 detail in [`ARCHITECTURE.md`](ARCHITECTURE.md) § Provenance.
 
 Still open: `qollite_topbar`, `qollite_quickbuy`, `qollite_recent_purchases`,
-`qollite_recent_purchase_icons`, `qollite_hero_testing`, `qollite_leaderboard`, `qollite_passive`,
+`qollite_recent_purchase_icons`, `qollite_leaderboard`, `qollite_passive`,
 `mercurial_magnum_notifier` are minified with **unknown** upstream source, and `friends_rank*.js` is
 readable but its origin is not recorded. For these:
 
@@ -382,6 +375,12 @@ Panorama's id lookup is case-insensitive is unknown; if it is not, Blood Tribute
 worked, and the failed lookup is a whole-tree search every 0.5 s. Vendored — report upstream.
 
 ### D12. Hero testing loads in every match
+
+**Status: resolved 2026-09-30 by removal.** The feature crashed the game at start-up at 6722 and was
+removed at the maintainer's request ([hero testing](systems/hero-testing.md),
+[`FIELD_NOTES.md`](FIELD_NOTES.md) §10); the pack no longer ships `hud_hero_testing.xml` or
+`qollite_hero_testing.js`, so nothing of the mod loads in a match. Valve's own layout still loads with
+every HUD, as it does without the pack. The original entry:
 
 **Severity: Medium. Inferred, unmeasured.** `hud.xml:486` instantiates
 `<CitadelHudHeroTesting id="hud_hero_testing" />` unconditionally, as Valve's own `hud.xml` does, so
@@ -448,7 +447,9 @@ maintainer saw the game crash on the post-game MVP screen and stopped it by repl
 `panorama/layout/post_game/citadel_db_post_game_team.xml` with Valve 6722's file (in `4bb5c0e`). The
 mod's version is back in the tree, so the crash may return. Which part of it crashed — if any; the
 crash was not reproduced against this file in isolation — is unknown. Valve's pure 6722 file is known
-not to crash.
+not to crash. It is **not** the missing-id abort of [`FIELD_NOTES.md`](FIELD_NOTES.md) §10, as far as
+that check can see: `rebase_overrides.py --old 245f2952f9 --new 245f2952f9 --ref 7fa81d5` (2026-09-30)
+reports no `engine-ids` for this file, which is identical there and at `1f0fe0f`.
 
 What the mod's version adds to Valve's (`citadel_db_post_game_team.xml`):
 
