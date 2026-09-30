@@ -48,6 +48,26 @@ class Paths(unittest.TestCase):
         self.assertEqual(ro.valve_path("panorama/layout/hud.xml"), "panorama/layout/hud.xml")
 
 
+class EngineIds(unittest.TestCase):
+    VALVE = '<root><Panel id="BotsSpawnBotCard"/><Panel id="Decor"/><Panel id="Kept"/></root>'
+
+    def test_flags_only_ids_the_binary_names(self):
+        ours = '<root><Panel id="Kept"/></root>'
+        names = {"BotsSpawnBotCard", "Kept", "Unrelated"}
+        self.assertEqual(ro.missing_engine_ids(self.VALVE, ours, names), ["BotsSpawnBotCard"])
+
+    def test_review_base_checks_the_file_that_ships(self):
+        # The miss that let 6722's hud_hero_testing.xml FATAL through: its
+        # review-base merge carried Valve's ids, the shipped file did not.
+        self.assertIsNone(ro.layout_that_ships({"status": "review-base", "result": "merged"}))
+        self.assertEqual(ro.layout_that_ships({"status": "modded", "result": "merged"}), "merged")
+        self.assertIsNone(ro.layout_that_ships({"status": "valve-unchanged"}))
+        self.assertIsNone(ro.layout_that_ships(None))
+
+    def test_nothing_missing(self):
+        self.assertEqual(ro.missing_engine_ids(self.VALVE, self.VALVE, {"BotsSpawnBotCard"}), [])
+
+
 class Helpers(unittest.TestCase):
     def test_eof_of_preserves_blank_line(self):
         self.assertEqual(ro.eof_of("x\n\n"), "\n\n")

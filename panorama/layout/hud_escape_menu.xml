@@ -11,7 +11,7 @@
 			<Panel id="Menu" hittest="false">
 				<Panel id="ContextualMenu">
 					<Panel class="MatchmakingOptions OptionGroup">
-						<Button id="matchmakingLeaveQueue" class="nav_menu_item primary endsession" onactivate="CitadelLeaveMatchmaking()">
+						<Button id="matchmakingLeaveQueue" class="nav_menu_item primary leavequeue" onactivate="CitadelLeaveMatchmaking()">
 							<Label text="#menu_leave_queue" class="menuButtonLabel" antialias="true" />
 						</Button>
 						<Button id="matchmakingEditRoster" class="nav_menu_item primary" onactivate="CitadelEditMatchmakingRoster()">
@@ -77,10 +77,7 @@
 			</Panel>
 		</Panel>
 		<CitadelPrivilegedFeatures id="PrivilegedFeatures" />
-		<Button id="EscapeButton" onactivate="CitadelResumePlaying()">
-			<CitadelBinding class="light" action="MenuBack" />
-			<Label text="#menu_resume" />
-		</Button>
+		<CitadelBindingButton id="EscapeButton" action="MenuBack" onactivate="CitadelResumePlaying()" text="#menu_resume" />
 		<Panel id="RightSideBlur" hittest="false" />
 		<Panel id="RightSide" hittest="false">
 			<Panel id="PartySpacer" />

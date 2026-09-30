@@ -1,123 +1,83 @@
-# Hero testing tools
+# Hero testing tools (Advanced Testing Tools) — removed
 
-> An expanded testing panel in the hideout: item spawning, world controls, and a movable window.
+> Replaced Valve's hideout testing panel with a tabbed, repositionable tool window.
 >
-> **Origin:** Advanced Testing Tools In Hideout (+ a local delta) · **Runs in:** the hideout; **loaded in every match** · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Origin:** Advanced Testing Tools In Hideout (+ a local delta) · **Status:** ❌ **removed** on
+> 2026-09-30, at the maintainer's request · **Runs in:** nowhere — the game uses Valve's own menu
+> **Last verified:** 2026-09-30 against commit `78bbf2a`.
+
+> ### This feature is no longer in the pack
+> Its four files are deleted on branch `fix/remerge-6722` (staged, not yet committed on 2026-09-30).
+> With no file at `panorama/layout/hud_hero_testing.xml` the game loads Valve's own layout and
+> stylesheet. What is left in the tree — `<CitadelHudHeroTesting id="hud_hero_testing" />` in
+> `hud.xml` and the `#hud_hero_testing` rules in `hud.css` / `base/hud.css` — is Valve's own markup and
+> stays. The page is kept so the reason, and the crash behind it, stay findable.
 
 ---
 
-## What it does
+## What it was
 
-Replaces Valve's hero-testing panel with a tabbed, repositionable tool window offering bulk item
-granting and world manipulation. It is *used* only in the hideout, but it is not *loaded* only
-there — see [Scheduling](#scheduling).
+bonclide's Advanced Testing Tools In Hideout ([`../BUNDLE.md`](../BUNDLE.md) §4), shipped as a **full
+replacement** of Valve's hero-testing layout:
 
-Build 6711 gave Valve's own panel a large native menu (tabs for general controls, map, misc and bots,
-amount entries, dummy stats, pin / free-cursor). The mod still replaces the panel wholesale, so that
-native menu is **not shown**; many of its controls duplicate the mod's.
-
----
-
-## Files
-
-| Path | Lines | Role |
+| Path (deleted) | Lines | Role |
 |---|---:|---|
 | `panorama/layout/hud_hero_testing.xml` | 1,409 | The whole panel tree |
-| `panorama/scripts/qollite_hero_testing.js` | 55 | Logic + the item catalogue |
+| `panorama/scripts/qollite_hero_testing.js` | 55 | Minified logic + a catalogue of 224 `upgrade_*` item ids |
 | `panorama/styles/hero_testing_menu.css` | 1,448 | Panel styling |
-| `panorama/styles/ability_hud_elements/hero_testing_menu.css` | 439 | Ability-element styling |
+| `panorama/styles/ability_hud_elements/hero_testing_menu.css` | 439 | Referenced by no layout since the `959f80e` import |
 
----
+It offered bulk item granting from that catalogue, world controls on a "Basic" / "Advanced" tab pair,
+and a window moved by a click-to-toggle "Click to Drag" bar. For build 6711+ its Change Team and four
+checkboxes were rebound to Valve's convars (`buddha`, `sv_infinite_ammo`,
+`citadel_ability_cooldown_max`, `citadel_rapid_stamina_regen`) — a five-line local delta, never
+checked in game. It had no UMM switch, and because `hud.xml` instantiates the panel unconditionally it
+loaded with every HUD, not only in the hideout (the former [`../TECH_DEBT.md`](../TECH_DEBT.md) D12).
 
-## How it works
+## Why it was removed
 
-### Structure
+It crashed the game at start-up:
 
 ```
-CitadelHudHeroTesting.hud_hero_testing_root
-├── #hero_testing_stub          ← collapsed state, "Press Tab" hint, lane challenge readout
-└── #hero_testing_container     ← onload="InitializeTestingToolsLayout();"
-    ├── #htpp_drag_bar          ← "Click to Drag"
-    └── #htpp_tab_group
-        └── #htpp_primary_tab_buttons_container
-            ├── #htpp_primary_tab_button_Core    → PrimaryTabSelect('Core')   "Basic"
-            └── #htpp_primary_tab_button_World   → PrimaryTabSelect('World')  "Advanced"
-                                                    (class hide_in_coop)
+FATAL ERROR: Unable to find child 'BotsSpawnBotCard' in layout file 'panorama\layout\hud_hero_testing.xml'
 ```
 
-Entry points are **global functions called from inline `onactivate` / `onload` attributes** —
-`InitializeTestingToolsLayout()`, `PrimaryTabSelect(tab)`. That is the dominant Panorama HUD pattern
-([`../PANORAMA.md`](../PANORAMA.md) §4), not a shortcut.
+Build 6711 turned Valve's layout into a large native testing menu, and the C++ behind
+`CitadelHudHeroTesting` looks children of it up by id. The mod's layout lacked 50 of the 53 ids in
+Valve's 6722 layout; 32 of them are named in `client_strings.txt`. Details and evidence:
+[`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10. Keeping the mod would have meant grafting those 32 ids
+into its tree and re-checking them at every patch; the maintainer chose to drop it instead, since
+Valve's menu now covers most of what the mod did.
 
-### The item catalogue
+## What replaces it
 
-The script opens with a single semicolon-delimited string of **224 distinct** `upgrade_*` identifiers —
-`upgrade_clip_size;upgrade_chain_lightning;upgrade_headshot_booster;…` — including tiered entries with
-a level suffix (`upgrade_magic_reach 0` … `3`). This is the catalogue the panel can grant.
+Valve's native 6722 menu, loaded from the game itself (read from tracker `245f2952f9`, not seen in
+game): tabs for hero tools, map, misc and bot control; Change Team, No Death, Unlimited Ammo, No
+Cooldown, Fast Stamina (the same convars the delta used); gold, buffs, damage / heal / set-health
+amounts; dummy stats; bot recording; Legendary Items and Infinite Money toggles; pin and free-cursor.
 
-> ⚠️ Hand-maintained. New items do not appear until the string is updated, and removed items presumably
-> fail silently.
+**Not replaced:** granting individual items from a list — Valve's layout has no `upgrade_*` entries —
+and repositioning the window.
 
-### "Click to Drag"
+## How to bring it back
 
-Not cursor dragging — that is impossible here ([`../PANORAMA.md`](../PANORAMA.md) §9). The bar is a
-`Button` whose `onactivate` toggles a repositioning mode. Any future movable panel in this mod should
-use the same approach.
+Only as an override that carries every id Valve's current layout declares and `client_strings.txt`
+names — in practice a restyle or extension of Valve's layout, not a replacement of it:
 
-### 6711 changes and the local delta
-
-6711 removed C++ panel events and console commands the mod's buttons relied on
-(`HeroTestingChangeTeam`, `HeroTestingUpdateDisableDeath`, `HeroTestingUpdateDisableCooldowns`,
-`HeroTestingUpdateEnableUnlimitedAmmo`, `HeroTestingUpdateEnableFastStamina`,
-`citadel_{enable,disable}_no_hero_death`, …). Those buttons would dispatch nothing. The layout was
-patched — five lines, recorded as an explicit delta in [`../BUNDLE.md`](../BUNDLE.md) §4 — to use
-Valve's 6722 mechanism: Change Team runs `Cmd( 'changeteam' )`, and No Death / Unlimited Ammo /
-No Cooldown / Fast Stamina became `CitadelSettingsCheckbox` bound to the convars `buddha`,
-`sv_infinite_ammo`, `citadel_ability_cooldown_max`, `citadel_rapid_stamina_regen`. Ids and classes are
-unchanged, so the script still finds them. **Unverified in game.**
-
-The automatic rebase was discarded for both files: the mod is a wholesale replacement, and merging
-against any Valve revision replays Valve's whole history into it
-([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9).
-
-### Scheduling
-
-Six loops — four at 0.2 s and two at 0.5 s — all bounded: two stop once their panels are found, one
-runs 120 ticks (60 s) after `InitializeTestingToolsLayout`.
-
-**Not hideout-only.** `hud.xml` instantiates `<CitadelHudHeroTesting id="hud_hero_testing" />`
-unconditionally (as Valve's does), so the layout and its script load with every HUD unless the C++
-defers it — which is unknown ([`../TECH_DEBT.md`](../TECH_DEBT.md) D12). This page used to say
-"hideout only"; that was never verified. Do not copy this cadence into match-time code.
-
----
-
-## Settings
-
-**None.** Not registered with UMM. Whether its cost reaches live matches is the open question in
-[`../TECH_DEBT.md`](../TECH_DEBT.md) D12.
-
----
-
-## Known issues
-
-- Item catalogue is a hand-maintained string; goes stale on item changes.
-- Six polling loops, ungated but bounded; loaded per match — D12.
-- Lost with the delta: the No Death button's `Stinger.LevelUp` sound. The script still exports
-  `UpdateNoDeathToggle`, which only sends removed commands and is no longer called.
-- Entities → Team Select buttons set a global `TeamNumber` the script never reads; `SpawnTeamEntity`
-  hard-codes team 4. Pre-existing.
-- The Lane Challenge markup and rules are dead since 6711 (the C++ no longer references them).
-- The stylesheet uses `>` combinators, which [`../PANORAMA.md`](../PANORAMA.md) §6 says Panorama does
-  not support.
-- The largest layout in the repo at 1,409 lines; there is no documentation of what the "Advanced" tab
-  exposes. **Unverified** — someone should enumerate it in the hideout and fill in this section.
-- Source is minified; upstream unknown — [`../TECH_DEBT.md`](../TECH_DEBT.md) §5. Whether the author
-  has published a 6711+ update was not checked.
+1. Start from Valve's current `hud_hero_testing.xml`, not from the old mod file (`git show
+   eb80c34:panorama/layout/hud_hero_testing.xml` has the mod's tree for reference).
+2. Add the mod's controls without removing Valve ids; hide unwanted Valve panels in CSS.
+3. Run `scripts/rebase_overrides.py` with `--old` and `--new` both at the current build: it must report
+   no `engine-ids` for the file ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9 step 3).
+4. Give it a UMM switch, default off, and make the disabled path load nothing that polls
+   ([`../../CONTRIBUTING.md`](../../CONTRIBUTING.md)); restore its `sources.json` and
+   [`../BUNDLE.md`](../BUNDLE.md) entries.
+5. Check in the hideout **and** in a normal match, with `-condebug`.
 
 ---
 
 ## See also
 
-- [`../PANORAMA.md`](../PANORAMA.md) §9 — why there is no real drag
+- [`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10 — the crash and the id check
+- [`../PANORAMA.md`](../PANORAMA.md) §9 — why the old panel used a "Click to Drag" toggle, not real dragging
+- [show rank](show-rank.md) — the other removed feature

@@ -13,8 +13,6 @@
 	
 	- Map Event Reminders
 
-    - Advanced Testing Tools In Hideout
-
     - Menu (for queuing while in Custom Servers or Hideout)
 
     - Statlocker

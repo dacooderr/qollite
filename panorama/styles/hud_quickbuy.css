@@ -6,8 +6,254 @@
 	margin-left: 17px;
 }
 
-.AspectRatio4x3 #QuickbuyShopSummary
+.AspectRatio4x3 .QuickbuyShopSummaryContainer
 {
-	margin-left: 210px;
+	margin-left: 17px;
+}
+
+#HudMini
+{
+	opacity: 0.35;
+}
+
+#QuickbuyNextSoulsNeeded,.QuickbuyUpcomingPreviewSoulsNeeded
+{
+	width: 70px;
+	height: 28px;
+	padding: 4px 6px;
+	flow-children: right;
+	border-radius: 3px;
+	background-color: #cdcdcd10;
+	border: 2px solid #ffffff10;
+	world-blur: ingameHudBlur;
+}
+
+#QuickbuyNextSoulsNeeded
+{
+	vertical-align: bottom;
+	horizontal-align: left;
+	margin-left: 394px;
+	margin-bottom: 96px;
+	visibility: visible;
+}
+
+.gShopOpen #QuickbuyNextSoulsNeeded
+{
+	visibility: collapse;
+}
+
+.Empty #QuickbuyNextSoulsNeeded
+{
+	visibility: collapse;
+}
+
+.viewing_as_player.dead #QuickbuyNextSoulsNeeded
+{
+	visibility: collapse;
+}
+
+.purchasingDisabled #QuickbuyNextSoulsNeeded
+{
+	opacity: 0.4;
+}
+
+#QuickbuyNextSoulsNeeded .QuickbuyNextSoulsNeededIcon,.QuickbuyUpcomingPreviewSoulsNeededIcon
+{
+	width: 11px;
+	height: 18px;
+	margin-right: 4px;
+	vertical-align: center;
+	wash-color: shardColor;
+}
+
+#QuickbuyNextSoulsNeeded #QuickbuyNextSoulsNeededLabel,.QuickbuyUpcomingPreviewSoulsNeeded Label
+{
+	color: shardColor;
+	font-family: sansMono;
+	font-size: 16px;
+	font-weight: bold;
+	vertical-align: center;
+	text-overflow: shrink;
+}
+
+#QuickbuyUpcomingPreviewContainer
+{
+	vertical-align: bottom;
+	horizontal-align: left;
+	margin-left: 474px;
+	margin-bottom: 20px;
+	flow-children: right;
+	visibility: visible;
+}
+
+.gShopOpen #QuickbuyUpcomingPreviewContainer
+{
+	visibility: collapse;
+}
+
+.Empty #QuickbuyUpcomingPreviewContainer
+{
+	visibility: collapse;
+}
+
+.viewing_as_player.dead #QuickbuyUpcomingPreviewContainer
+{
+	visibility: collapse;
+}
+
+.QuickbuyUpcomingPreviewSlot
+{
+	flow-children: down;
+	margin-right: 8px;
+	visibility: collapse;
+}
+
+.QuickbuyUpcomingPreviewSlot.HasPreviewItem
+{
+	visibility: visible;
+}
+
+.QuickbuyUpcomingPreviewSoulsNeeded
+{
+	margin-bottom: 6px;
+	horizontal-align: center;
+}
+
+.QuickbuyUpcomingMini
+{
+	opacity: 0.35;
+	width: 70px;
+	height: 70px;
+	vertical-align: bottom;
+	border: 3px solid offWhite&30;
+	border-radius: 5px;
+	background-color: #ffffff10;
+}
+
+.QuickbuyUpcomingPreviewSlot.CanAffordUpcoming .QuickbuyUpcomingMini
+{
+	opacity: 0.5;
+	border: 3px solid shardColor;
+	background-color: shardColor&60;
+}
+
+.purchasingDisabled .QuickbuyUpcomingMini
+{
+	opacity: 0.2;
+	border: 3px solid offWhite&20;
+	background-color: #34343444;
+}
+
+#QuickbuyShopTotalSummary
+{
+	background-color: #cdcdcd10;
+	width: 191px;
+	height: 65px;
+	padding: 6px 10px;
+	margin-left: 10px;
+	flow-children: right;
+	border-radius: 3px;
+	border: 2px solid #ffffff10;
+	world-blur: ingameHudBlur;
+	visibility: collapse;
+	pre-transform-scale2d: 1;
+}
+
+.gShopOpen #QuickbuyShopTotalSummary
+{
+	visibility: visible;
+}
+
+#QuickbuyShopTotalSummary .QuickbuyShopTotalSummaryIconFrame
+{
+	width: 48px;
+	height: 48px;
+	margin-right: 10px;
+	vertical-align: center;
+	border-radius: 3px;
+	background-color: #ffffff12;
+	border: 1px solid #ffffff10;
+}
+
+#QuickbuyShopTotalSummary .QuickbuyShopTotalSummaryIcon
+{
+	width: 24px;
+	height: 40px;
+	horizontal-align: center;
+	vertical-align: center;
+	wash-color: shardColor;
+	img-shadow: 0px 0px 4px 1.0 #00000088;
+}
+
+#QuickbuyShopTotalSummary .Labels
+{
+	vertical-align: center;
+	flow-children: down;
+}
+
+#QuickbuyShopTotalSummary .BindingLabel
+{
+	flow-children: right;
+	vertical-align: center;
+}
+
+#QuickbuyShopTotalSummary .ShopSummaryLabel
+{
+	font-weight: bold;
+	font-size: 16px;
+	text-overflow: shrink;
+	max-height: 20px;
+}
+
+#QuickbuyShopTotalSummary .QuickbuyShopTotalCostRow
+{
+	flow-children: right;
+	margin-top: 1px;
+	vertical-align: center;
+}
+
+#QuickbuyShopTotalSummary .QuickbuyShopTotalCostIcon
+{
+	width: 11px;
+	height: 18px;
+	margin-right: 4px;
+	vertical-align: center;
+	wash-color: shardColor;
+}
+
+#QuickbuyShopTotalSummary .QuickbuyShopTotalCostLabel
+{
+	color: shardColor;
+	font-family: sansMono;
+	font-size: 16px;
+	font-weight: bold;
+	max-height: 20px;
+	opacity: 0.9;
+	text-overflow: shrink;
+}
+
+.Empty #QuickbuyShopTotalSummary
+{
+	opacity: 0.2;
+}
+
+.Empty #QuickbuyShopTotalSummary .Labels
+{
+	horizontal-align: center;
+}
+
+.Empty #QuickbuyShopTotalSummary .QuickbuyShopTotalSummaryIconFrame
+{
+	visibility: collapse;
+}
+
+.gStreetBrawl #QuickbuyShopTotalSummary
+{
+	visibility: collapse;
+}
+
+#QuickbuyNextSoulsNeeded.EnhancedQuickbuyHidden,#QuickbuyUpcomingPreviewContainer.EnhancedQuickbuyHidden,#QuickbuyShopTotalSummary.EnhancedQuickbuyHidden
+{
+	visibility: collapse;
 }
 

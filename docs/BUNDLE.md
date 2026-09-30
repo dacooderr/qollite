@@ -5,7 +5,7 @@
 > **Audience:** maintainers, contributors, and anyone auditing what ships to users.
 > **Status:** partially filled — authors and licenses traced via the GameBanana API (§7); every `TBD`
 > and every *Probable* is still a question only the maintainers can close.
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against commit `78bbf2a`.
 
 QOL Lite is a **distribution**, not a single codebase. It bundles roughly a dozen features, most of
 them originally written by other people, into one pack so they can share Valve's HUD files instead of
@@ -204,10 +204,10 @@ the minified output.
 | Enhanced Quickbuy | **Aminsx** | [664041](https://gamebanana.com/mods/664041) | 1.6 | Confirmed |
 | Recent Purchases | **Unresolved** — two candidates, see below | [607703](https://gamebanana.com/mods/607703) or [679055](https://gamebanana.com/mods/679055) | — | **Unresolved** |
 | Always Show Passives & Actives | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Advanced Testing Tools In Hideout | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 + local delta (below) | Probable |
+| ~~Advanced Testing Tools In Hideout~~ — **removed** 2026-09-30 at the maintainer's request: its full replacement of `hud_hero_testing.xml` lacked ids the 6722 engine reads and crashed the game at start-up ([page](systems/hero-testing.md), [`FIELD_NOTES.md`](FIELD_NOTES.md) §10) | **bonclide** | [616749](https://gamebanana.com/mods/616749) | — | Probable |
 | Optimized McGinnis Wall | **Aminsx** (creator); dacooderr listed as redistributor | [690514](https://gamebanana.com/mods/690514) | — | Confirmed |
 | Sinner's Light Fix | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, `element_gun.xml` images) | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
+| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, images) — **not shipped since 2026-09-30, at the maintainer's request, until it has an off switch (UMM)**; the `element_gun.xml` override that loaded it is deleted, the script, stylesheet and images stay for that work | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
 | Experimental Extended FOV Slider (`#BetterFOVAspectRatio` in `popups/popup_settings.xml`) | **Maffinz**, per the message of `ac24ca8` | TBD | TBD | **Unverified** — only a commit message |
 
 **Every row above with a GameBanana entry is licensed CC BY-NC-ND 4.0** there; the last two rows have
@@ -241,30 +241,6 @@ Manager under stable ids, which are likely to match their original project names
 Show Rank, while it shipped, branded its shared state `$.__QolLiteShowRankWebMediaBridge` with
 `version: 236`. The Friends Rank scripts ([§5](#5-unattributed)) carry `version: 16` in their config.
 
-### Advanced Testing Tools — local delta
-
-Recorded 2026-09-30. Build 6711 removed the C++ panel events and console commands several of the
-mod's buttons dispatch (`HeroTestingChangeTeam`, `HeroTestingUpdateDisableDeath`,
-`HeroTestingUpdateDisableCooldowns`, `HeroTestingUpdateEnableUnlimitedAmmo`,
-`HeroTestingUpdateEnableFastStamina`, `citadel_{enable,disable}_no_hero_death`, … — gone from
-`client_strings.txt` / `commands.txt` of 6722). Valve's own 6722 menu binds the same rules to convars.
-The mod's layout was patched to do the same — **five lines** in `panorama/layout/hud_hero_testing.xml`,
-ids, classes and labels unchanged:
-
-| Control | Was | Now |
-|---|---|---|
-| Change Team | `onactivate="HeroTestingChangeTeam();"` | `onactivate="Cmd( 'changeteam' );"` |
-| `#DisableDeathCheckbox` | `ToggleButton` → `UpdateNoDeathToggle()` | `CitadelSettingsCheckbox convar="buddha"` |
-| `#EnableUnlimitedAmmoCheckbox` | `ToggleButton` → `HeroTestingUpdateEnableUnlimitedAmmo()` | `CitadelSettingsCheckbox convar="sv_infinite_ammo"` |
-| `#DisableCooldownCheckbox` | `ToggleButton` → `HeroTestingUpdateDisableCooldowns()` | `CitadelSettingsCheckbox convar="citadel_ability_cooldown_max"` |
-| `#EnableFastStaminaCheckbox` | `ToggleButton` → `HeroTestingUpdateEnableFastStamina()` | `CitadelSettingsCheckbox convar="citadel_rapid_stamina_regen"` |
-
-`hero_testing_menu.css` and `qollite_hero_testing.js` are unchanged. Side effects: the No Death
-button no longer plays its `Stinger.LevelUp` sound; the script's `UpdateNoDeathToggle` is still
-exported but no longer called (it only sends removed commands). Valve's own new testing menu is not
-shown — the mod still replaces the panel. **Unverified in game.** Offered upstream: not yet —
-whether the author has a 6711+ update was not checked.
-
 ### Third-party services
 
 Bundled code that reaches outside the game (read from the scripts' URLs, 2026-09-30). Users are not
@@ -293,7 +269,7 @@ files:
 | 4×3 option and fix | Plausibly first-party; treated as merge-layer in [§2](#2-first-party--the-merge-layer) pending confirmation |
 | Minimap texture replacements | Neutral-camp icons and the tunnels overlay. The tunnels overlay is QOL Lite-only (not in upstream BetterMap) and has been referenced by nothing since the 6722 update; the neutral icons' `dmm_custom_*` rules match nothing, here or upstream ([`TECH_DEBT.md`](TECH_DEBT.md) §4). BetterMap's own texture, `base/bm_vignette_png`, is recorded in [§3](#3-first-party--our-own-mods) |
 | Vindicta Scope Downscale | `panorama/images/hud/crosshair/scope_common_psd.png` plus its entry in `panorama/image_compiler.vdata`, re-added in `fb74e00` ("re-added Vindicta Scope Downscale"). Author not recorded |
-| **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and both post-game layouts. Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
+| **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and both post-game layouts. Its `post_game/citadel_db_post_game_team.xml` edits (the MVP-card button) carry an open crash risk, cause unknown ([`TECH_DEBT.md`](TECH_DEBT.md) D17). Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
 | `panorama/styles/hud_event_indicator.css` | Damage-number / floating-indicator restyle: `.WindowRoot` offset (`margin-left: 50px; margin-top: -100px`), `.batched` numbers at 80 px red with a 20 px yellow glow, fountain keyframes rising straight up (every `translateX` → 0), `pop` dropped from the cumulative animation. Present since the `959f80e` import; no doc, README entry or commit message names it, no script references its classes. Rebased onto 6722 edit by edit (Valve's longer lifetimes kept) |
 
 ---
@@ -311,7 +287,7 @@ distinction matters because QOL Lite is a derivative bundle distributed on GameB
 | Mod | "Use parts in another Mod, distribute on GameBanana" | "…on another site" | "Redistribute as-is elsewhere" |
 |---|---|---|---|
 | Top Bar Plus | ✅ yes | ✅ yes | ❌ no |
-| Testing Tools in Hideout | ✅ yes | ✅ yes | ❌ no |
+| Testing Tools in Hideout (removed 2026-09-30) | ✅ yes | ✅ yes | ❌ no |
 | Optimized McGinnis Wall | ⚠️ ask | ❌ no | ❌ no |
 | Show Rank, Enhanced Quickbuy, Statlocker, Recent Purchases | ⚠️ ask | ⚠️ ask | ⚠️ ask |
 | **QOL Lite itself** | ❌ no | ❌ no | ❌ no |

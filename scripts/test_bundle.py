@@ -202,10 +202,27 @@ class Common(unittest.TestCase):
             self._tree(tmp, {"p_a.js": b"a\n"})
             self.assertEqual(bc.compare({"p_a.js": "a\n"}, tmp, "p_"), [])
 
-    def test_compare_is_byte_exact(self):
+    def test_compare_ignores_crlf_checkout(self):
+        # A Windows checkout with text=auto holds CRLF while git stores LF;
+        # that must not read as a difference (it did, and --check lied).
+        with tempfile.TemporaryDirectory() as tmp:
+            self._tree(tmp, {"p_a.js": b"a\r\nb\r\n"})
+            self.assertEqual(bc.compare({"p_a.js": "a\nb\n"}, tmp, "p_"), [])
+
+    def test_compare_still_sees_content_change(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._tree(tmp, {"p_a.js": b"a\r\n"})
-            self.assertEqual(bc.compare({"p_a.js": "a\n"}, tmp, "p_"), [("DIFF", "p_a.js")])
+            self.assertEqual(bc.compare({"p_a.js": "b\n"}, tmp, "p_"), [("DIFF", "p_a.js")])
+
+    def test_write_keeps_crlf_and_skips_crlf_twin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._tree(tmp, {"p_same.js": b"s\r\n", "p_edit.js": b"old\r\n"})
+            written = bc.write({"p_same.js": "s\n", "p_edit.js": "x\ny\n", "p_new.js": "n\n"}, tmp)
+            self.assertEqual(sorted(written), ["p_edit.js", "p_new.js"])
+            with open(os.path.join(tmp, "p_edit.js"), "rb") as fh:
+                self.assertEqual(fh.read(), b"x\r\ny\r\n")
+            with open(os.path.join(tmp, "p_new.js"), "rb") as fh:
+                self.assertEqual(fh.read(), b"n\r\n")
 
     def test_compare_missing_and_extra(self):
         with tempfile.TemporaryDirectory() as tmp:

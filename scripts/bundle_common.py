@@ -76,7 +76,7 @@ def compare(out, out_dir, prefix):
         except FileNotFoundError:
             problems.append(("MISSING", name))
             continue
-        if current != text.encode("utf-8"):
+        if _lf(current) != text.encode("utf-8"):
             problems.append(("DIFF", name))
     for path in sorted(glob.glob(os.path.join(out_dir, prefix + "*.js"))):
         name = os.path.basename(path)
@@ -85,21 +85,37 @@ def compare(out, out_dir, prefix):
     return problems
 
 
+def _lf(data):
+    return data.replace(b"\r\n", b"\n")
+
+
 def write(out, out_dir):
     """Write every file whose content changed; returns the names written.
-    Bytes, so no platform newline translation: the bundle is LF on every OS."""
+
+    The bundle is built LF. On disk a file keeps the line endings it already has:
+    with `text=auto` a Windows checkout holds CRLF while git stores LF, so
+    comparing or writing raw bytes would report -- and create -- whole-file churn.
+    A new file takes the endings of the existing files in out_dir."""
     written = []
+    crlf_dir = False
+    for existing in glob.glob(os.path.join(out_dir, "*.js")):
+        with open(existing, "rb") as fh:
+            crlf_dir = b"\r\n" in fh.read()
+        break
     for name, text in out.items():
         path = os.path.join(out_dir, name)
         data = text.encode("utf-8")
+        crlf = crlf_dir
         try:
             with open(path, "rb") as fh:
-                if fh.read() == data:
-                    continue
+                current = fh.read()
+            if _lf(current) == data:
+                continue
+            crlf = b"\r\n" in current
         except FileNotFoundError:
             pass
         with open(path, "wb") as fh:
-            fh.write(data)
+            fh.write(data.replace(b"\n", b"\r\n") if crlf else data)
         written.append(name)
     return written
 

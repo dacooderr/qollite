@@ -4,7 +4,7 @@
 > provided by Friends Rank.
 >
 > **Origin:** Statlocker · **Runs in:** nowhere — its script is not loaded · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against commit `eb80c34`.
 
 > ### ⚠️ The script described here does not run
 > No layout includes `qollite_profile.js`. Its include was dropped from `citadel_db_page_profile.xml`
@@ -30,7 +30,10 @@ Each opens `https://statlocker.gg/profile/<account id>` when clicked. The icon i
 
 At the 6722 rebase the post-game team row was restructured by Valve (`#ViewProfileButton`,
 `#AddToFriendsButton`, `#ReportButton` in a hover-revealed row); the mod's 36 px Statlocker button was
-placed first in that row. **Unverified in game.**
+placed first in that row. **Unverified in game.** Valve's snippet root has `hittestChildren="false"`,
+so the button may not be clickable there (**inferred**). The maintainer saw a crash on the post-game MVP
+screen with this layout and stopped it by shipping Valve's file instead; the layout is back, the cause
+is unknown, and the bisect order if it returns is in [`../TECH_DEBT.md`](../TECH_DEBT.md) D17.
 
 ---
 

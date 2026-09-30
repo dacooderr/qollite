@@ -3,7 +3,7 @@
 > Filterable feed of what every player has bought, with icons, plus per-hero purchase badges.
 >
 > **Origin:** Recent Purchases · **Runs in:** every match (the shop layout) · **Off switch:** ✅ UMM `recent_purchases`
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against commit `eb80c34`.
 
 ---
 
@@ -24,7 +24,7 @@
 | `panorama/layout/citadel_hud_top_bar_player.xml` | Carries the mod-authored `.HeroNameHidden` label the per-hero badges walk up from — owned by the [top bar](top-bar.md) override, so keep it when rebasing that file |
 | `panorama/scripts/qollite_recent_purchases.js` | Logic + UMM manifest |
 | `panorama/scripts/qollite_recent_purchase_icons.js` | **~3,000-entry name → icon lookup table** (385 KB — the largest file in `panorama/scripts/`) |
-| `panorama/styles/citadel_hud_hero_shop.css` | Override — imports `base/citadel_hud_hero_shop.vcss_c` |
+| `panorama/styles/citadel_hud_hero_shop.css` | `@import`-only overlay of `base/citadel_hud_hero_shop.vcss_c`: the 4×3 rules, then this feature's rules (lines 21–93) |
 | `panorama/styles/base/citadel_hud_hero_shop.css` | Pristine Valve baseline |
 
 ---

@@ -3,10 +3,13 @@
 > Objective timers and urn tracking added to the match top bar, plus spent-souls rows per player.
 >
 > **Origin:** Top Bar Plus · **Runs in:** every match, and the hideout · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against commit `60b6645`.
 
 Rebased onto game build 6722 (layouts and both stylesheets); nothing on this page has been checked in
-game since.
+game since. `4bb5c0e` dropped every Top Bar Plus panel and the `topbar_rank_topbar` include from
+`citadel_hud_top_bar.xml` while keeping `qollite_topbar` and its rules, and pasted pre-patch copies
+of both sheets; the re-merge restored the `1f0fe0f` layouts and sheets (the pre-patch sheets were the
+likely reason for the drop, and also why "Voted!" came back).
 
 ---
 
@@ -87,8 +90,12 @@ into integers.
 
 **Scheduling.** `$.Schedule` loops guarded by a generation counter, so a stale callback from a
 previous match cannot write into the current one: 1 Hz in the top bar context, 2 Hz in **each** player
-row (a walk of that row's `#PlayerModsContainer`), plus a 0.5 s retry until its panels are found. A
-12-player match runs 13 copies of the script ([`../TECH_DEBT.md`](../TECH_DEBT.md) §2).
+row (a walk of that row's `#PlayerModsContainer`). A 0.5 s setup retry re-arms only when a context's
+ids were found but setup failed; a context with neither the top-bar ids (`BuffTime`, `RejuvTime`,
+`UrnTrackerLabel`) nor the row ids (`SpentSoulDisplay`, `PlayerModsContainer`) gets no loop and no
+retry. With the top-bar panels missing, the top-bar copy falls through to the row branch and may
+run the row loop on the first row it finds (**inferred**, read from the minified `da()`). A 12-player
+match runs 13 copies of the script ([`../TECH_DEBT.md`](../TECH_DEBT.md) §2).
 
 **Defensive style.** Almost every panel access goes through `IsValid()`-checked helpers wrapped in
 `try`/`catch`. That is the right instinct for a mod that must survive Valve renaming a panel, but it

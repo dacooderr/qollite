@@ -1914,6 +1914,11 @@
 	height: 400px;
 }
 
+#minimap_persp_wrapper #minimap_container
+{
+	margin-top: 0px;
+}
+
 .gDetailView #minimap_persp,.gScoreboardOpen #minimap_persp
 {
 	width: 400px;
@@ -2082,13 +2087,83 @@
 	opacity-mask-threshold: 0% 100%;
 }
 
-#hud_minimap.BmMinimalMap .newMinimapBackground.backgroundImage,#hud_minimap.BmMinimalMap .NewMinimapZiplinesContainer,#hud_minimap.BmMinimalMap .newMinimapBackground.neutralsImage,#hud_minimap.BmMinimalMap #NeturalImagesContainer,#hud_minimap.BmMinimalMap .newMinimapBackground.upperImage
-{
-	opacity: 0;
-}
-
 .map_button.mid_boss
 {
 	z-index: 30;
+}
+
+#hud_minimap.bm_player_scale_50 .map_button.player
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_player_scale_60 .map_button.player
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_player_scale_70 .map_button.player
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_player_scale_80 .map_button.player
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_player_scale_90 .map_button.player
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_player_scale_110 .map_button.player
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_player_scale_120 .map_button.player
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_player_scale_130 .map_button.player
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_player_scale_140 .map_button.player
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_player_scale_150 .map_button.player
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_player_scale_160 .map_button.player
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_player_scale_170 .map_button.player
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_player_scale_180 .map_button.player
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_player_scale_190 .map_button.player
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_player_scale_200 .map_button.player
+{
+	pre-transform-scale2d: 2;
 }
 

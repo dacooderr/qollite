@@ -53,14 +53,6 @@
       "pinned": {}
     },
     {
-      "feature": "hero-testing",
-      "tier": "vendored",
-      "gamebanana_id": 616749,
-      "upstream": null,
-      "note": "Match not byte-verified. Carries a 5-line local delta for build 6711+ (docs/BUNDLE.md section 4).",
-      "pinned": {}
-    },
-    {
       "feature": "assets/mcginnis-wall",
       "tier": "vendored",
       "gamebanana_id": 690514,
@@ -105,7 +97,7 @@
       "tier": "vendored",
       "gamebanana_id": null,
       "upstream": null,
-      "note": "mercurial_magnum_notifier.*; credited to 'Han' only by the message of 9935d0c. See docs/BUNDLE.md section 4.",
+      "note": "Not shipped since 2026-09-30 (no off switch yet). mercurial_magnum_notifier.*; credited to 'Han' only by the message of 9935d0c. See docs/BUNDLE.md section 4.",
       "pinned": {}
     }
   ]
