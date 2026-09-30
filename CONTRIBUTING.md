@@ -18,17 +18,20 @@ different rules. [`docs/BUNDLE.md`](docs/BUNDLE.md) is the authoritative list.
 | Tier | What it covers | What you may do |
 |---|---|---|
 | **Merge layer** | `hud.xml`, `citadel_hud_top_bar.xml`, the `base/` stylesheet pattern, 4×3 support, path arbitration | Ours, no upstream. Change it. |
-| **First-party mods** | `qollite_map_*`, `qollite_notifications_*` | Change **upstream**, then rebuild into this repo. Editing the bundled copy is lost on the next build. |
+| **First-party mods** | `qollite_map_*`, `qollite_notifications_*` | Change **upstream**, then re-bundle with `scripts/bundle_bettermap.py` / `scripts/bundle_mer.py`. Editing the bundled copy is lost on the next build. |
 | **Vendored** | Everything else under `panorama/scripts/` | Read-only. Report bugs to the original author. |
 
-> ### ⚠️ `panorama/scripts/*.js` is minified build output
+> ### ⚠️ `panorama/scripts/*.js` is build output, not source
 >
-> Every script in this repo is minified Closure Compiler output, and for most features the readable
-> source is not here at all. Hand-editing them produces changes nobody can review, which vanish the
-> next time the real source is compiled.
+> The first-party scripts (`qollite_map_*`, `qollite_notifications_*`) are readable, but they are
+> **generated** from upstream commits by the bundlers — a hand-edit here is overwritten by the next
+> bundle run. Most of the vendored scripts are minified Closure Compiler output whose readable source
+> is not in this repo at all; hand-editing them produces changes nobody can review, which vanish the
+> next time the real source is compiled. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §1 lists
+> which is which.
 >
-> If you want to change script behaviour, find the upstream project. If you cannot find it, say so
-> in your PR rather than patching the minified file.
+> If you want to change script behaviour, change the upstream project. If you cannot find it, say so
+> in your PR rather than patching the file.
 
 Likewise, `panorama/**/*.xml` and `*.css` are Source 2 Viewer **decompiles**, not hand-written
 source. They are readable and diffable, which is why they are committed — but treat them as a
@@ -41,7 +44,7 @@ faithful record of what ships, not as pristine authored code.
 | Risk | Work | Notes |
 |---|---|---|
 | 🟢 Low | Documentation, stylesheet additions in override files, removing dead files | Additive and easy to revert |
-| 🟡 Medium | Layout edits in the merge layer | `hud.xml` and `hud_escape_menu.xml` are **full overrides of Valve's layouts**. After a significant game patch they must be rebased onto the new markup, or newly added Valve HUD elements silently disappear for our users. |
+| 🟡 Medium | Layout edits in the merge layer | `hud.xml` and `hud_escape_menu.xml` are **full overrides of Valve's layouts** — and so is almost every other file under a Valve path. After a game patch they must be rebased onto the new markup ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §9), or newly added Valve HUD elements silently disappear for our users. |
 | 🔴 High | Anything under `panorama/scripts/` | See above |
 
 **Adding a file under a Valve path?** Check the ownership map in
@@ -81,11 +84,25 @@ identify the tier  →  smallest targeted edit  →  check the layers line up
 ### Check the layers line up
 
 After any edit, confirm that ids, classes, and script references still match across
-layout ↔ style ↔ script. A renamed `id` breaks nothing loudly — it just stops being found.
+layout ↔ style ↔ script. A renamed `id` breaks nothing loudly — it just stops being found, and a
+polling lookup for a missing id walks the whole panel tree every tick
+([`docs/FIELD_NOTES.md`](docs/FIELD_NOTES.md) §8).
 
-```
-python scripts/check_consistency.py
-```
+There is **no automated checker for this yet** — grep each id and class you touched in
+`panorama/layout`, `panorama/styles` and `panorama/scripts`. (An earlier version of this page named a
+`scripts/check_consistency.py`; it does not exist.)
+
+### Tooling in `scripts/`
+
+| Command | What it does |
+|---|---|
+| `python scripts/rebase_overrides.py --tracker <clone> --old <rev> --new <rev> --out <dir>` | Three-way rebase of every Valve-path override onto a new game build; add `--apply` to write results. Procedure: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §9 |
+| `python scripts/bundle_bettermap.py --upstream <checkout> --rev <commit> [--check]` | Regenerate `qollite_map_*.js` from a BetterMap commit |
+| `python scripts/bundle_mer.py --upstream <checkout> --rev <commit> [--check]` | Regenerate `qollite_notifications_*.js` from a Map Event Reminders commit |
+| `python scripts/test_rebase_overrides.py`, `python scripts/test_bundle.py` | Offline test suites for the above |
+
+The bundlers and the rebase tool only read their upstream (`git show`); `--check` compares without
+writing. Pass `--out` to the rebase tool explicitly: its default is inside the repo.
 
 ### Check whether a bundled mod has moved
 
@@ -173,8 +190,8 @@ is what the rest of the repo already has.
 - **A feature conflicts with another mod** → QOL Lite must be **first in load order**, and it cannot
   coexist with standalone copies of the mods it already contains. Two VPKs cannot own one file path;
   the higher-priority pack silently wins.
-- **Something broke after a game patch** → likely a full-override layout that needs rebasing. See
-  [`docs/PANORAMA.md`](docs/PANORAMA.md) §1.
+- **Something broke after a game patch** → likely a full-copy override that needs rebasing. See
+  [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §9 and [`docs/PANORAMA.md`](docs/PANORAMA.md) §1.
 
 ---
 

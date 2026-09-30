@@ -1,7 +1,233 @@
-var v=function(){function c(a){var b=$.GetContextPanel();return b?b.FindChildTraverse(a):null}function h(a,b){if(a=c(a))a.SetHasClass("TabActive",b),a.style.visibility=b?"visible":"collapse"}function g(a){h("minimap_tab_content_overlay",a==="overlay");h("minimap_tab_content_minimap",a==="minimap");var b=c("minimap_tab_overlay");b&&typeof b.SetSelected==="function"&&b.SetSelected(a==="overlay");(b=c("minimap_tab_minimap"))&&typeof b.SetSelected==="function"&&b.SetSelected(a==="minimap")}function k(){e=
-!0;var a=c("minimap_settings");a&&(a.style.visibility="visible",a.SetHasClass("SettingsOpen",!0));if(a=c("minimap_settings_toggle_label"))a.text="Close"}function f(a){e=!1;var b=c("minimap_settings");b&&(b.SetHasClass("SettingsOpen",!1),a?b.style.visibility="collapse":$.Schedule(.22,function(){!e&&b&&(b.style.visibility="collapse")}));if(a=c("minimap_settings_toggle_label"))a.text="Settings"}function l(){e?f():k()}function m(){var a=c("minimap_settings_toggle");a&&(a.SetPanelEvent("onactivate",l),
-n=!0);(a=c("minimap_tab_overlay"))&&a.SetPanelEvent("onactivate",function(){g("overlay")});(a=c("minimap_tab_minimap"))&&a.SetPanelEvent("onactivate",function(){g("minimap")});if(a=c("minimap_map_opacity_slider")){var b=a.FindChildTraverse("Slider");b&&b.SetPanelEvent("onvaluechanged",function(){var d=Math.max(.01,Math.min(1,Math.round(b.value*100)/100));QolLiteMapState.patch({mapOpacity:d});var p=c("HudMinimapContainer");p&&(p.style.opacity=String(d))})}(a=c("minimap_reset_map_button"))&&a.SetPanelEvent("onactivate",
-function(){QolLiteMapState.patch({mapOpacity:QolLiteMapState.DEFAULTS.mapOpacity});QolLiteMapSize.apply()})}function q(){var a=QolLiteMapState.get(),b=c("HudMinimapContainer");b&&(b.style.opacity=String(a.mapOpacity));if(b=c("minimap_map_opacity_slider"))if(b=b.FindChildTraverse("Slider"))b.value=a.mapOpacity}function w(){for(var a=c("minimap_persp");a;){if(a.BHasClass&&(a.BHasClass("gDetailView")||a.BHasClass("gScoreboardOpen")))return!0;if(!a.GetParent)break;a=a.GetParent()}a="minimap_persp minimap_persp_wrapper context_action_container AbilitiesContainer cast_failed_box CheaterVoteBox DamageReportGlobalClassListener".split(" ");
-for(var b=0;b<a.length;b++){var d=c(a[b]);if(d&&(d.BHasClass("gDetailView")||d.BHasClass("gScoreboardOpen")))return!0}a=$.GetContextPanel();return!(!a||!a.BHasClass("gDetailView")&&!a.BHasClass("gScoreboardOpen"))}function r(){n||m();var a=w();if(a!==t){t=a;typeof QolLiteMapLog!=="undefined"&&QolLiteMapLog.log("detailView "+(a?"OPEN -> showing actions":"CLOSED -> collapse actions"+(e?" + settings window":"")));var b=a;u&&(b=!1);var d=c("minimap_settings_actions");d&&(d.style.visibility=b?"visible":
-"collapse",d.hittest=b,!b&&e&&f(!0))}if(a){if(a=c("minimap_persp"))a.SetHasClass("DisableBigMapScaleOnTab",!0),a.style.opacity="1";typeof QolLiteMapSize!=="undefined"&&QolLiteMapSize.applyCurrentSize&&QolLiteMapSize.applyCurrentSize()}$.Schedule(.03,r)}var e=!1,n=!1,t=!1,u=!1;return{init:function(){m();g("overlay");q();var a=c("minimap_settings");a&&(a.style.visibility="collapse");if(a=c("minimap_settings_actions"))a.style.visibility="collapse",a.hittest=!1;r()},open:k,close:f,toggle:l,applyMapOpacity:q,
-setUmmActive:function(a){if(u=!!a){if(a=c("minimap_settings_actions"))a.style.visibility="collapse",a.hittest=!1;e&&f(!0)}}}}();typeof v!=="undefined"&&(this.QolLiteMapSettings=v);
+// Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
+// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_settings.js
+// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
+// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
+// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
+// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
+"use strict";
+
+var QolLiteMapSettings = (function () {
+    var _open = false;
+    var _controlsBound = false;
+    var _lastDetailVisible = false;
+    var _ummActive = false;
+
+    var _activeTab = "overlay";
+
+    function _panel(id) {
+        var ctx = $.GetContextPanel();
+        return ctx ? ctx.FindChildTraverse(id) : null;
+    }
+
+    function _setTabActive(contentId, active) {
+        var panel = _panel(contentId);
+        if (!panel) { return; }
+        panel.SetHasClass("TabActive", active);
+        panel.style.visibility = active ? "visible" : "collapse";
+    }
+
+    function _applyTab(tab) {
+        _activeTab = tab;
+        _setTabActive("minimap_tab_content_overlay", tab === "overlay");
+        _setTabActive("minimap_tab_content_minimap", tab === "minimap");
+
+        var tabOverlay = _panel("minimap_tab_overlay");
+        if (tabOverlay && typeof tabOverlay.SetSelected === "function") { tabOverlay.SetSelected(tab === "overlay"); }
+        var tabMinimap = _panel("minimap_tab_minimap");
+        if (tabMinimap && typeof tabMinimap.SetSelected === "function") { tabMinimap.SetSelected(tab === "minimap"); }
+    }
+
+    function open() {
+        _open = true;
+        var panel = _panel("minimap_settings");
+        if (panel) {
+            panel.style.visibility = "visible";
+            panel.SetHasClass("SettingsOpen", true);
+        }
+        var label = _panel("minimap_settings_toggle_label");
+        if (label) { label.text = "Close"; }
+    }
+
+    function close(immediate) {
+        _open = false;
+        var panel = _panel("minimap_settings");
+        if (panel) {
+            panel.SetHasClass("SettingsOpen", false);
+            if (immediate) {
+                // TAB release: the window must vanish NOW, not after the 0.22s
+                // fade - a still-visible hittest panel during the cursor
+                // re-capture transition can hang the mouse.
+                panel.style.visibility = "collapse";
+            } else {
+                $.Schedule(0.22, function () {
+                    if (!_open && panel) {
+                        panel.style.visibility = "collapse";
+                    }
+                });
+            }
+        }
+        var label = _panel("minimap_settings_toggle_label");
+        if (label) { label.text = "Settings"; }
+    }
+
+    function toggle() {
+        if (_open) { close(); } else { open(); }
+    }
+
+    function bindControls() {
+        var toggleBtn = _panel("minimap_settings_toggle");
+        if (toggleBtn) {
+            toggleBtn.SetPanelEvent("onactivate", toggle);
+            _controlsBound = true;
+        }
+
+        var tabOverlay = _panel("minimap_tab_overlay");
+        if (tabOverlay) { tabOverlay.SetPanelEvent("onactivate", function () { _applyTab("overlay"); }); }
+
+        var tabMinimap = _panel("minimap_tab_minimap");
+        if (tabMinimap) { tabMinimap.SetPanelEvent("onactivate", function () { _applyTab("minimap"); }); }
+
+        var mapOpacity = _panel("minimap_map_opacity_slider");
+        if (mapOpacity) {
+            var oCtrl = mapOpacity.FindChildTraverse("Slider");
+            if (oCtrl) {
+                oCtrl.SetPanelEvent("onvaluechanged", function () {
+                    var v = Math.max(0.01, Math.min(1.0, Math.round(oCtrl.value * 100) / 100));
+                    QolLiteMapState.patch({ mapOpacity: v });
+                    var hudMinimap = _panel("HudMinimapContainer");
+                    if (hudMinimap) { hudMinimap.style.opacity = String(v); }
+                });
+            }
+        }
+
+        var resetMap = _panel("minimap_reset_map_button");
+        if (resetMap) {
+            resetMap.SetPanelEvent("onactivate", function () {
+                var d = QolLiteMapState.DEFAULTS;
+                QolLiteMapState.patch({ mapOpacity: d.mapOpacity, playerIconScalePct: d.playerIconScalePct });
+                QolLiteMapSize.apply();
+                _syncMapOpacity();
+                if (typeof QolLiteMapPlayer !== "undefined") { QolLiteMapPlayer.refresh(); }
+            });
+        }
+
+    }
+
+    function _syncMapOpacity() {
+        var state = QolLiteMapState.get();
+        var hudMinimap = _panel("HudMinimapContainer");
+        if (hudMinimap) { hudMinimap.style.opacity = String(state.mapOpacity); }
+
+        var slider = _panel("minimap_map_opacity_slider");
+        if (slider) {
+            var ctrl = slider.FindChildTraverse("Slider");
+            if (ctrl) { ctrl.value = state.mapOpacity; }
+        }
+    }
+
+    function _isDetailViewVisible() {
+        var minimapPersp = _panel("minimap_persp");
+        var ancestor = minimapPersp;
+        while (ancestor) {
+            if (ancestor.BHasClass && (ancestor.BHasClass("gDetailView") || ancestor.BHasClass("gScoreboardOpen"))) {
+                return true;
+            }
+            if (!ancestor.GetParent) { break; }
+            ancestor = ancestor.GetParent();
+        }
+
+        var statePanelIds = [
+            "minimap_persp",
+            "minimap_persp_wrapper",
+            "context_action_container",
+            "AbilitiesContainer",
+            "cast_failed_box",
+            "CheaterVoteBox",
+            "DamageReportGlobalClassListener"
+        ];
+
+        for (var i = 0; i < statePanelIds.length; i++) {
+            var panel = _panel(statePanelIds[i]);
+            if (panel && (panel.BHasClass("gDetailView") || panel.BHasClass("gScoreboardOpen"))) {
+                return true;
+            }
+        }
+
+        var ctx = $.GetContextPanel();
+        return !!(ctx && (ctx.BHasClass("gDetailView") || ctx.BHasClass("gScoreboardOpen")));
+    }
+
+    // When UMM hosts our settings, the in-HUD panel steps aside entirely.
+    function setUmmActive(active) {
+        _ummActive = !!active;
+        if (_ummActive) {
+            var actions = _panel("minimap_settings_actions");
+            if (actions) { actions.style.visibility = "collapse"; actions.hittest = false; }
+            if (_open) { close(true); }
+        }
+    }
+
+    function _syncActionButtonsVisibility(visible) {
+        if (_ummActive) { visible = false; }
+        var actions = _panel("minimap_settings_actions");
+        if (!actions) { return; }
+        actions.style.visibility = visible ? "visible" : "collapse";
+        // hittest is a panel property, not CSS: the current build's style setter
+        // throws on unknown property names, which used to abort this whole init.
+        actions.hittest = visible;
+
+        if (!visible && _open) {
+            close(true);
+        }
+    }
+
+    function _keepMinimapNormalDuringDetailView(active) {
+        var minimapPersp = _panel("minimap_persp");
+        if (minimapPersp) {
+            minimapPersp.SetHasClass("DisableBigMapScaleOnTab", true);
+            minimapPersp.style.opacity = "1";
+        }
+
+        if (active && typeof QolLiteMapSize !== "undefined" && QolLiteMapSize.applyCurrentSize) {
+            QolLiteMapSize.applyCurrentSize();
+        }
+    }
+
+    function _pollDetailView() {
+        if (!_controlsBound) { bindControls(); }
+        var detailVisible = _isDetailViewVisible();
+        // Only touch our UI on an actual open/close transition. Re-setting
+        // visibility/hittest 33x/sec churned input and could interrupt a control
+        // mid-interaction (reported mouse hang in the settings).
+        if (detailVisible !== _lastDetailVisible) {
+            _lastDetailVisible = detailVisible;
+            if (typeof QolLiteMapLog !== "undefined") {
+                QolLiteMapLog.log("detailView " + (detailVisible ? "OPEN -> showing actions"
+                    : "CLOSED -> collapse actions" + (_open ? " + settings window" : "")));
+            }
+            _syncActionButtonsVisibility(detailVisible);
+        }
+        if (detailVisible) { _keepMinimapNormalDuringDetailView(true); }
+        $.Schedule(0.03, _pollDetailView);
+    }
+
+    function init() {
+        bindControls();
+        _applyTab("overlay");
+        _syncMapOpacity();
+
+        var panel = _panel("minimap_settings");
+        if (panel) { panel.style.visibility = "collapse"; }
+        var actions = _panel("minimap_settings_actions");
+        if (actions) {
+            actions.style.visibility = "collapse";
+            actions.hittest = false;
+        }
+        _pollDetailView();
+    }
+
+    return {
+        init: init, open: open, close: close, toggle: toggle,
+        applyMapOpacity: _syncMapOpacity, setUmmActive: setUmmActive
+    };
+})();

@@ -5,10 +5,14 @@
 >
 > **Audience:** anyone planning work, and anyone reviewing a change.
 > **Status:** open ledger.
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Last verified:** 2026-09-30 against commit `fa59528` — game build 6722.
 
 Severity reflects impact on the project's two design goals — *small footprint* and *low runtime
 cost* ([`README.md`](README.md) § Design goals).
+
+**Evidence labels.** *Verified by reading* means the file and line were read and say what the entry
+claims. *Unmeasured* means the cost is inferred from the call pattern — no frame-time measurement
+exists for anything in this file. Nothing here was observed in game.
 
 **Contents**
 
@@ -18,23 +22,31 @@ cost* ([`README.md`](README.md) § Design goals).
 4. [Dead files](#4-dead-files)
 5. [Source provenance](#5-source-provenance)
 6. [No attribution for bundled work](#6-no-attribution-for-bundled-work)
-7. [Smaller items](#7-smaller-items)
-8. [Recording a new entry](#8-recording-a-new-entry)
+7. [Bugs found at the 6722 update](#7-bugs-found-at-the-6722-update)
+8. [Smaller items](#8-smaller-items)
+9. [Recording a new entry](#9-recording-a-new-entry)
 
 ---
 
 ## 1. At a glance
 
-| # | Item | Severity | Goal at risk |
-|---|---|---|---|
-| [D1](#d1-loops-run-while-their-feature-is-off) | Loops run while their feature is off | **High** | Runtime cost |
-| [D2](#d2-two-loops-ignore-their-config-entirely) | Two loops never check config at all | **High** | Runtime cost |
-| [D3](#3-features-with-no-off-switch) | Three always-on features with no UMM entry | **High** | Runtime cost |
-| [D4](#4-dead-files) | ~6,700 lines of unreachable CSS | Medium | Footprint |
-| [D5](#5-source-provenance) | Readable script source is not in this repo | **High** | Maintainability |
-| [D6](#d6-debug-logging-is-on-by-default) | Debug logging on by default | Low | Runtime cost |
-| [D7](#d7-duplicate-import) | Duplicate `@import` | Low | Footprint |
-| [D9](#6-no-attribution-for-bundled-work) | No attribution for bundled third-party work | **High** | Licensing |
+| # | Item | Severity | Goal at risk | Status |
+|---|---|---|---|---|
+| [D1](#d1-loops-run-while-their-feature-is-off) | Loops run while their feature is off | **High** | Runtime cost | Open (upstream BetterMap) |
+| [D2](#d2-two-loops-ignore-their-config-entirely) | Two loops never check config at all | **High** | Runtime cost | Open (upstream Map Event Reminders) |
+| [D3](#3-features-with-no-off-switch) | Always-on features with no UMM entry | **High** | Runtime cost | Open |
+| [D4](#4-dead-files) | Files that ship but nothing loads | Medium | Footprint | Open |
+| [D5](#5-source-provenance) | Readable script source is not in this repo | **High** | Maintainability | Resolved for the two first-party mods; open for the rest |
+| [D6](#d6-debug-logging-was-on-by-default) | Debug logging on by default | Low | Runtime cost | **Resolved** 2026-09-30 |
+| [D7](#d7-duplicate-import) | Duplicate `@import` | Low | Footprint | Open |
+| [D9](#6-no-attribution-for-bundled-work) | No attribution for bundled third-party work | **High** | Licensing | Open |
+| [D10](#d10-the-passives-toggle-cannot-turn-passives-off) | Passives UMM toggle cannot turn the feature off | Medium | Opt-in model | Open |
+| [D11](#d11-ammo-notifier-looks-up-an-id-with-the-wrong-case) | Ammo notifier looks up `abilitiesContainer`, the id is `AbilitiesContainer` | Low | Correctness | Open |
+| [D12](#d12-hero-testing-loads-in-every-match) | Hero testing loads in every match, not only the hideout | Medium | Runtime cost | Open, unmeasured |
+| [D13](#d13-friends-rank-popup-watch-polls-at-frame-rate) | Friends Rank popup watch re-arms every 0.016 s | Medium | Runtime cost | Open, unmeasured |
+| [D14](#d14-blur-on-always-present-hud-panels) | `world-blur` on HUD panels that are always present | Low | Runtime cost | Open, unmeasured |
+| [D15](#d15-damage-number-glow-times-longer-lifetimes) | Damage-number glow × Valve's longer indicator lifetimes | Low | Runtime cost | Open, unmeasured |
+| [D16](#d16-calls-and-textures-the-game-no-longer-has) | Calls and textures the game no longer has | Low | Correctness | Open |
 
 ---
 
@@ -42,53 +54,112 @@ cost* ([`README.md`](README.md) § Design goals).
 
 `$.Schedule` self-recursion is the only timer Panorama offers
 ([`PANORAMA.md`](PANORAMA.md) §4), so it is also the only way this mod can waste frames. This table is
-the standing cost **with every optional feature at its default**.
+the standing cost **with every optional feature at its default**. Rebuilt 2026-09-30 from the scripts
+in the working tree; *work per tick* is read from the code, **none of it is measured**.
 
 Keep it current: **any change that adds, removes, or re-times a loop updates this table in the same
 commit.**
 
-### `hud.xml` — runs in every match
+A lookup that runs from the **root** (`$.GetContextPanel()` walked to the top, or the HUD root)
+searches the whole tree; when its target does not exist it visits every panel before returning
+([`FIELD_NOTES.md`](FIELD_NOTES.md) §8).
 
-| Loop | Interval | Rate | Work per tick | Gated by a setting? |
+### `hud.xml` — every match
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_map_settings.js` → `r()` | 0.03 s | ~33 Hz | Walks ancestors and a 7-name panel list checking `gDetailView`/`gScoreboardOpen`; calls `QolLiteMapSize.applyCurrentSize()` while open | **No** |
-| `qollite_map_size.js` → `l()` | 0.06 s | ~17 Hz | Walks ancestors of `#map_render` looking for `.map_targeting` | Reads the flag inside; **the loop itself always runs** |
-| `qollite_map_urn.js` → `O()` | 0.15 s | ~7 Hz | Parses `#GameTime`, class-searches for `idol_*` markers, updates marker geometry | Reads the flag inside; **the loop itself always runs** |
-| `qollite_map_poi.js` → `v()` | 0.25 s | 4 Hz | Ancestor walk for `.is_underground`; regex-parses `#GameTime` | **No** |
+| `qollite_map_settings.js` → `_pollDetailView` | 0.03 s | ~33 Hz | 8 `FindChildTraverse` (the `#minimap_persp` ancestor walk plus 7 ids) to decide whether the detail view is open; while TAB is held, also `applyCurrentSize` (6 lookups, 10 style writes) | **No** — keeps running after UMM retires the in-HUD panel |
+| `qollite_map_size.js` → `_pollMapTargeting` | 0.06 s | ~17 Hz | One anchor lookup plus an ancestor walk for `.map_targeting`, only if `ultLargeMapEnabled` — which **defaults to on** | Loop always runs; lookup gated |
+| `qollite_map_urn.js` → `_poll` | 0.15 s | ~7 Hz | `#GameTime`, then up to 6 `FindChildrenWithClassTraverse` **from the root** (`idol_spawn` + 5 live classes) | **No** — runs with the tracker off (it keeps observing the urn side) |
+| `qollite_map_poi.js` → `_pollLevel` | 0.25 s | 4 Hz | 3 anchor lookups (underground, tunnels, inverted) + `#GameTime` | **No** — runs with every POI layer off |
+| `qollite_map_preview.js` → `_poll` | 0.25 s | 4 Hz | `JSON.stringify` of the state + 1 lookup + ancestor walk (new in BetterMap 2.1) | **No** |
+| `qollite_map_player.js` → `_pollZoom` | 0.5 s | 2 Hz | 1 lookup; anchor walk only when the icon scale is not 100 % (new in BetterMap 2.1) | **No** |
+| `qollite_map_minimap.js` → `_probeClasses` | 0.5 s | — | DEBUG-only diagnostics | ✅ Never scheduled while `DEBUG = false` (as bundled) |
+| `qollite_map_bootstrap.js` → `tryInit` | 0.05 s | — | `typeof` checks | ✅ Stops after init or 20 tries |
+| `qollite_passive.js` | — | — | no loop | ✅ |
 
-### `base_hud_and_db_overlay.xml`
+Compared with the previous bundle (BetterMap `60fa437`, DEBUG on) the map scripts no longer walk the
+whole tree looking for the deleted `#map_render` (17×/s in `size`, 4×/s in `poi`), and the urn
+tracker's DEBUG-only scans are gone. On an offline mock of the HUD tree that took total tree searches
+from ~385/s to ~352/s — a relative figure, not an engine measurement. What did **not** change is D1:
+six loops that run with their feature off (two of them new in 2.1), all upstream design.
 
-| Loop | Interval | Rate | Work per tick | Gated? |
+### `ability_hud_elements/element_gun.xml` — every match
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_notifications_bootstrap.js` → `k()` | 0.25 s | 4 Hz | Reads cached clock, calls `Scheduler.tick()` | Loop unconditional; `tick()` returns early when disabled |
-| `qollite_notifications_manager.js` → `z()` | 0.25 s | 4 Hz | Expires visible notices | ✅ **Self-limiting** — only re-arms while a notice is on screen. *This is the pattern to copy — annotated source in [`PANORAMA.md`](PANORAMA.md) §4.* |
+| `mercurial_magnum_notifier.js` | 0.05 s while a tracked item is owned or Split Shot / Blood Tribute is active, else 0.5 s | 20 Hz / 2 Hz | Every 0.5 s (throttled): `FindChildTraverse` **from the top-most UI root** for `upgrade_split_shot`, `upgrade_ethereal_bullets` and `abilitiesContainer` — the last never matches (D11), and the first two fail whenever the items are not owned | **No setting at all** — no UMM entry, no page in `docs/systems/` |
 
-### `citadel_hud_top_bar.xml`
+### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 
-| Loop | Interval | Rate | Work per tick | Gated? |
+| Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_notifications_clock_bridge.js` → `g()` | 0.25 s | 4 Hz | Hideout check, `#GameTime` parse, **broadcasts on the bus** — every listener in every context wakes | **No — the file never references config** |
-| `qollite_notifications_urn_detector.js` → `h()` | 0.2 s | 5 Hz | `FindChildrenWithClassTraverse` across the HUD root for **5 class names** | **No — the file never references config** |
-| `qollite_topbar.js` | variable | — | Generation-guarded re-checks | Partially |
-| `qollite_showrank.js` | variable, 0.15 s → 1 s → 20 s | — | Retry/backoff after events | ✅ Event-driven with backoff |
+| `qollite_quickbuy.js` → `C()` | 0.1 s | 10 Hz | ~12–15 `FindChildTraverse`, a recursive walk of `#QuickbuyQueue` + `#QuickbuySellQueue`, and a `FindChildTraverse("CurrentGoldAmount")` **at every ancestor level** until one contains it | **No** — re-arms unconditionally; UMM `enabled` only affects display |
+| `qollite_recent_purchases.js` → `ja()` | 0.1 s | 10 Hz | Class searches over the recent-purchases container; in one of its internal states (minified, not decoded further) also `FindChildrenWithClassTraverse("HeroNameHidden")` over the **whole UI** | ✅ Stops when UMM `enabled` is false (default **true**) |
+| `qollite_recent_purchases.js` → `na()` | 1 s | 1 Hz | `FindChildTraverse("Hud")` from the root | ✅ Same gate |
 
-### `hud_hero_testing.xml` — hideout only
+### `base_hud_and_db_overlay.xml` — match and dashboard
 
-Four loops at 0.2 s and two at 0.5 s. Bounded to the hideout, so not a match-time cost.
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `qollite_notifications_bootstrap.js` → `tick()` | 0.25 s | 4 Hz | `getMatchTime()`; `Scheduler.tick` runs only on a fresh clock and returns at once when `enabled` is false | **No** — loop unconditional, also in the dashboard |
+| `qollite_notifications_bootstrap.js` → `step()` | 0.25 s | — | urn landing countdown | ✅ Only while a descent runs (12 s game time, 30 s wall cap) |
+| `qollite_notifications_manager.js` → `sweep()` | 0.25 s | 4 Hz | Expires visible notices | ✅ **Self-limiting** — re-arms only while a notice is on screen. *The pattern to copy — [`PANORAMA.md`](PANORAMA.md) §4.* |
+| `qollite_notifications_bootstrap.js` → `wait()` | 0.1 s | — | dependency wait | ✅ Max 200 tries |
+
+### `citadel_hud_top_bar.xml` — every match, and the hideout
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `qollite_notifications_clock_bridge.js` → `loop()` | 0.25 s | 4 Hz | Two ancestor walks and two root walks with `FindChildTraverse("Hud")` (hideout and Street Brawl checks), `#GameTime` parse, **a bus broadcast** that wakes every listener in every context | **No — the file never reads config** (D2) |
+| `qollite_notifications_clock_bridge.js` → `announceLang()` | 1 s | — | language broadcast | ✅ 5 times, then stops |
+| `qollite_notifications_urn_detector.js` → `poll()` | 0.2 s | 5 Hz | Up to **6** `FindChildrenWithClassTraverse` over the whole HUD (`idol_spawn`, then the 5 live classes, short-circuiting on the first hit) — up to 30 whole-tree class searches a second while no urn is on the map | **No — the file never reads config** (D2) |
+| `qollite_topbar.js` → `ba()` | 1 s | 1 Hz | Clock read: its 0.8 s cache always expires between 1 s ticks, so every tick searches the whole UI for `HudGameTime` — an id that exists nowhere — before falling back to `#GameTime` | Generation-guarded; no setting |
+| `qollite_topbar.js` → `da()` | 0.5 s | — | Retries 3 lookups until `BuffTime` / `RejuvTime` / `UrnTrackerLabel` are found | Unbounded retry, but the ids exist in the 6722 layouts |
+
+### `citadel_hud_top_bar_player.xml` — **once per player row**
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `qollite_topbar.js` → `fa()` | 0.5 s | 2 Hz **× 12 rows** | JS walk of the row's whole `#PlayerModsContainer` subtree, `BHasClass` + `GetAttributeString("class")` per node | Generation-guarded; no setting |
+
+The same script is included by the top bar and by each row, so a 12-player match runs 13 copies
+([`FIELD_NOTES.md`](FIELD_NOTES.md) §5).
+
+### Menus and popups
+
+| Loop | Interval | Rate | Work per tick | Stops? |
+|---|---:|---:|---|---|
+| `friends_rank.js` active watch, **popup** (`profile_card.xml`, per instance) | 0.016 s for the first 8 s, then 0.1 s | ~62 Hz, then 10 Hz | `snapshot()` — account, name and presence reads from the card | **Only when the card becomes invalid or its token changes** — no time limit after the first 8 s (D13) |
+| `friends_rank.js` active watch, **profile page** | 0.2 s for 2.5 s, then 0.5 s | 5 Hz → 2 Hz | same | ✅ Stops after 8 s |
+| `friends_rank_scoreboard.js` | 0.15 s | — | binds the post-game buttons | ✅ 8 tries |
+| `qollite_leaderboard.js` | — | — | on keystroke | ✅ |
+
+### `hud_hero_testing.xml` — loaded in every match (D12)
+
+Four loops at 0.2 s and two at 0.5 s. All bounded: `q()` and `Da()` stop once
+`#hero_testing_container` / `#htpp_drag_bar` are found (they would poll forever at 5 Hz if those
+panels disappeared); `ma()` runs 120 ticks (60 s) from `InitializeTestingToolsLayout`.
+
+### Not running
+
+`qollite_profile.js` has a loop (1 s, 0.35 s while the profile page shows), but no layout includes the
+script, so it never starts (§4).
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Files:** `qollite_map_size.js`, `qollite_map_urn.js`, `qollite_map_poi.js`,
-`qollite_map_settings.js`.
+**Severity: High. Status: open — upstream BetterMap. Files:** `qollite_map_settings.js`,
+`qollite_map_size.js`, `qollite_map_urn.js`, `qollite_map_poi.js`, `qollite_map_preview.js`,
+`qollite_map_player.js`.
 
-The POI overlay and urn tracker both default to **off** (`qollite_map_state.js`:
-`poiCratesEnabled: false`, `poiStatuesEnabled: false`, `urnTrackerEnabled: false`). Their loops run
-anyway — the flag is checked *inside* the tick, after the wakeup and often after the DOM walk.
+The POI overlay and urn tracker default to **off** (`qollite_map_state.js`: `poiCratesEnabled`,
+`poiStatuesEnabled`, `poiToughEnabled`, `urnTrackerEnabled` all `false`). Their loops run anyway — the
+flag is checked *inside* the tick, after the wakeup and often after the tree walk. BetterMap 2.1 added
+two more always-on loops (`preview`, `player`), cheap but unconditional. Six loops in total run with
+every optional feature off.
 
-A user who enables nothing still pays roughly **60 wakeups per second** in the HUD context, several of
-them doing ancestor walks and regex work.
-
-**Fix:** check the flag before re-arming, and re-start the loop from the setting's change handler.
+**Fix (upstream, then re-bundle — the bundle is regenerated, [`BUNDLE.md`](BUNDLE.md) §3):** check the
+flag before re-arming, and restart the loop from the setting's change handler.
 
 ```js
 function tick() {
@@ -102,25 +173,47 @@ function setEnabled(on) {
 }
 ```
 
+Proposals recorded at the re-bundle, in order of expected win:
+
+1. `settings._pollDetailView` (33 Hz, 8 searches a tick, forever) — cache the panels once
+   (`IsValid()`-checked) and/or react to the existing `GlobalClassListener` classes; stop while UMM
+   is active, since the panel is retired then.
+2. `urn._poll` — do not schedule while `urnTrackerEnabled` is false (re-seed on enable), or search from
+   `#hud_minimap` instead of the context root.
+3. `poi._pollLevel` — stop with all POI layers off; `QolLiteMapMinimap.anchor()` re-searches the tree
+   three times per poi tick and once per size and player tick — cache the anchor.
+4. `ultLargeMapEnabled` defaults on, so the 17 Hz targeting poll does real work for everyone.
+
 ### D2. Two loops ignore their config entirely
 
-**Severity: High. Files:** `qollite_notifications_clock_bridge.js`,
-`qollite_notifications_urn_detector.js`.
+**Severity: High. Status: open — not fixed upstream as of Map Event Reminders `12e6b3b`. Files:**
+`qollite_notifications_clock_bridge.js`, `qollite_notifications_urn_detector.js`.
 
-Neither file contains a single reference to `QolLiteNotificationsConfig`. Both start unconditionally
-at load (`e.start()` at the end of the file) and never stop:
+Neither file references `QolLiteNotificationsConfig`. Both start unconditionally at load and never
+stop (verified by reading the bundled `12e6b3b` source):
 
 - The bridge **broadcasts on `ClientUI_FireOutput` four times a second**, which wakes every listener
-  in every Panorama context — including the UMM cores and any other mod on the bus.
-- The urn detector runs `FindChildrenWithClassTraverse` over the entire HUD root for five class names,
-  five times a second.
+  in every Panorama context — including the UMM cores and any other mod on the bus. Since upstream
+  `4a5aa89` it also walks to the root twice a tick for its hideout and Street Brawl checks.
+- The urn detector runs up to six `FindChildrenWithClassTraverse` over the whole HUD, five times a
+  second.
 
 A user who has disabled Map Event Reminders in UMM pays the full cost of both, forever.
 
-**Fix:** gate both on `QolLiteNotificationsConfig.enabled` (and the urn detector additionally on
-`events.soul_urn`), stopping the loop rather than skipping the body. The bridge is the harder case
-because it lives in a different context from the config — it needs the enabled state pushed to it over
-the bus, or a local mirror updated by the UMM adapter.
+**Fix (upstream, then re-bundle):**
+
+1. **Gate both bridges.** The overlay pushes `{notif:1,type:"cfg",enabled,urn}` on UMM
+   `set`/`register`; the bridges stop re-arming when disabled and restart on enable. They live in a
+   different context from the config, so the state has to travel over the bus. Largest win.
+2. `notif_urn.js`: `idol_spawn` is searched twice per tick (`spawnActive` and the first entry of
+   `LIVE_CLASSES`) — reuse the result (6 → 5 searches); search from a cached `#hud_minimap` instead of
+   the root.
+3. `notif_clock.js` → `onMessage` `JSON.parse`s every bus message with no substring guard — add
+   `indexOf('"clock"')` ([`UMM.md`](UMM.md) § The receive idiom).
+4. `notif_clock_bridge.js`: cache the `#Hud` panel instead of two root walks per tick.
+
+(The previous bundle's one-time `#map_render` lookup in the urn detector was a first-tick diagnostic,
+not a per-tick cost; upstream `12e6b3b` removed it.)
 
 ---
 
@@ -128,61 +221,99 @@ the bus, or a local mirror updated by the UMM adapter.
 
 **Severity: High.** See [`UMM.md`](UMM.md) §4 for the full table.
 
-[show-rank](systems/show-rank.md), the [top bar](systems/top-bar.md) additions, and the
-[Statlocker button](systems/statlocker.md) have **no UMM registration and no setting anywhere**. They
-run in every match and the user cannot decline them.
+These run in every match with **no UMM registration and no setting anywhere** (verified by reading
+each script for a `"umm"` register):
 
-show-rank is the most significant: it is the mod's largest body of logic (87 KB of minified
-JavaScript in 170 lines), it is loaded into **six** separate layout contexts, and it issues **HTTP
-image requests to `api.deadlock-api.com`** — a third-party service — for every player in the match. There is no way to turn that off, and no in-repo documentation of the privacy or
-availability implications.
+| Feature | Script(s) | Standing cost (§2) |
+|---|---|---|
+| [Top bar](systems/top-bar.md) | `qollite_topbar.js` | 1 Hz + 13 copies of a 2 Hz loop |
+| Ammo-buff notifier (no page yet) | `mercurial_magnum_notifier.js` | 20 Hz / 2 Hz, root-level searches |
+| Friends Rank (no page yet) | `friends_rank*.js` | Profile page and per profile card; calls `api.deadlock-api.com` — [`BUNDLE.md`](BUNDLE.md) § Third-party services |
+| [Hero testing](systems/hero-testing.md) | `qollite_hero_testing.js` | bounded loops, but loaded per match (D12) |
 
-**Fix:** register all three with UMM. Whether they default on or off is a product decision; *having
-the switch* is not optional if opt-in is what keeps the runtime cost defensible.
+[Show Rank](systems/show-rank.md), previously the largest item here, was removed in `ecdacbb`.
+
+**Fix:** register each with UMM. Whether they default on or off is a product decision; *having the
+switch* is not optional if opt-in is what keeps the runtime cost defensible.
 
 ---
 
 ## 4. Dead files
 
-**Severity: Medium (footprint).** Three stylesheets are referenced by **nothing** — no layout `<include>`,
-no `@import`, anywhere in the repo:
+**Severity: Medium (footprint).** Measured 2026-09-30.
 
-| File | Lines |
+### Loaded by nothing
+
+No layout `<include>`, no `@import`, no script reference anywhere in the repo:
+
+| File | Size |
 |---|---:|
-| `panorama/styles/topbar_rank_base/citadel_hud_top_bar.css` | 3,707 |
-| `panorama/styles/base/citadel_hud_top_bar.css` | 2,702 |
-| `panorama/styles/base/citadel_hud_top_bar_chat.css` | 313 |
-| **Total** | **6,722** |
+| `panorama/styles/base/citadel_hud_top_bar.css` | 3,135 lines |
+| `panorama/styles/topbar_rank_base/citadel_hud_top_bar.css` | 3,135 lines |
+| `panorama/styles/base/citadel_hud_top_bar_chat.css` | 561 lines |
+| `panorama/scripts/qollite_profile.js` — include dropped from `citadel_db_page_profile.xml` in `9935d0c` | 4.2 KB |
+| `panorama/images/statlocker/statlocker.png` + `.vtex` — referenced only by `qollite_profile.js` | |
+| `panorama/images/minimap/qollite_tunnels.png` + `.vtex` — its last rule targeted Valve's `shop_tunnel` class, gone since 6711, and was dropped at the rebase | 780 KB |
+| `materials/minimap/neutral_vault.png` | 916 B |
 
-These live under mod-invented directories (`base/`, `topbar_rank_base/`), so unlike a Valve path they
-are not loaded implicitly — nothing can reach them. They are almost certainly leftovers from an
-earlier merge of the top-bar mods, when the override still `@import`ed its baseline.
+The three stylesheets live under mod-invented directories, so unlike a Valve path they are not loaded
+implicitly — nothing can reach them. They are almost certainly leftovers from an earlier merge of the
+top-bar mods, when the override still `@import`ed its baseline. They were nevertheless refreshed to
+6722 by the rebase (the tool treats every `base/` copy the same).
+
+`qollite_profile.js` would not work if it were included: the class it injects its button next to,
+`coreRating`, exists in no layout, stylesheet or script of build 6701 or 6722 (verified by grep and
+against `client_strings.txt`). Its Statlocker button is superseded by Friends Rank's — see
+[Statlocker](systems/statlocker.md).
 
 **Before deleting:** confirm against the compiled VPK that no `.vcss_c` references them, since this
 repo holds decompiled output and an import could in principle have been flattened away
-([`ARCHITECTURE.md`](ARCHITECTURE.md) § The `base/` pattern). If confirmed, deleting them removes
-~6,700 lines of shipped weight for zero behaviour change.
+([`ARCHITECTURE.md`](ARCHITECTURE.md) § The `base/` pattern).
+
+### Referenced, but inert
+
+`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*` are referenced only by
+`.dmm_custom_neutral_*_icon` rules in `hud.css`. No script or layout, here or in upstream BetterMap,
+ever sets a `dmm_custom_*` class, so the rules never match.
+
+### Overrides with no mod change
+
+These ship at a Valve path but are byte-for-byte Valve content (the rebase report's `valve-copy`: mod
+delta 0 against a Valve revision). Shipping them only overrides Valve with Valve — and goes stale on
+every patch ([`FIELD_NOTES.md`](FIELD_NOTES.md) §6):
+
+| File | Lines | Added in |
+|---|---:|---|
+| `panorama/styles/hud_damage_report.css` | 1,142 | `959f80e` (import) — no doc or commit explains it |
+| `panorama/styles/profile_card.css` | 774 | re-added in `27087ae` after `ecdacbb` removed it |
+| `panorama/styles/dashboard.css` | 1,654 | `cb1ea87` "fixed safe to abandon pop-up" |
+| `panorama/styles/citadel_hud_koth.css` | 951 | `5adefb4` "potential fix for lingering rift pop-up" |
+
+The first two are candidates for deletion. The last two were added deliberately as fixes; whether
+shipping a newer Valve copy was the fix, and whether it is still needed on 6722, is a question for
+their author — do not remove them without asking.
 
 ---
 
 ## 5. Source provenance
 
-**Severity: High (maintainability).** Every file in `panorama/scripts/` is **minified Closure Compiler
-output**, and the readable source is not in this repository. Layouts and stylesheets are Source 2
-Viewer decompiles. Full detail in [`ARCHITECTURE.md`](ARCHITECTURE.md) § Provenance.
+**Severity: High (maintainability). Status: resolved for the two first-party mods on 2026-09-30.**
 
-Practical consequences:
+The map and notification scripts are now readable upstream source, regenerated by
+`scripts/bundle_bettermap.py` and `scripts/bundle_mer.py` from recorded commits
+([`BUNDLE.md`](BUNDLE.md) §3). Layouts and stylesheets are still Source 2 Viewer decompiles. Full
+detail in [`ARCHITECTURE.md`](ARCHITECTURE.md) § Provenance.
+
+Still open: `qollite_topbar`, `qollite_quickbuy`, `qollite_recent_purchases`,
+`qollite_recent_purchase_icons`, `qollite_hero_testing`, `qollite_leaderboard`, `qollite_passive`,
+`mercurial_magnum_notifier` are minified with **unknown** upstream source, and `friends_rank*.js` is
+readable but its origin is not recorded. For these:
 
 - Script changes cannot be reviewed meaningfully, and any hand-edit is silently discarded the next
   time real source is compiled.
 - There is no way to tell, from this repo alone, whether a given file is current with its upstream.
 
-**Fix:** document where each script's source lives and what regenerates it. For the minimap and
-event-reminder modules the upstream is known (the standalone BetterMap and Map Event Reminders
-projects, whose module structure maps one-to-one onto `qollite_map_*` and `qollite_notifications_*`).
-For the rest — `qollite_showrank`, `qollite_topbar`, `qollite_quickbuy`,
-`qollite_recent_purchase_icons`, `qollite_hero_testing` — it is **unknown**, and that is the single
-biggest obstacle to working on this codebase.
+**Fix:** record where each script's source lives and what regenerates it.
 
 ---
 
@@ -211,32 +342,124 @@ do not know who they are.
 
 ---
 
-## 7. Smaller items
+## 7. Bugs found at the 6722 update
 
-### D6. Debug logging is on by default
+None of these was caused by the patch; each was found while checking the overrides against it. The
+patch-caused breakage was fixed in the rebase itself.
 
-- `qollite_notifications_log.js` declares `DEBUG: true`, and its `log()` writes to `$.Msg`
-  **unconditionally** — the flag is decorative.
-- `qollite_map_log.js` defaults its debug flag to `true`, so `QolLiteMapLog.log()` also prints.
+### D10. The passives toggle cannot turn passives off
 
-Every tick of several loops therefore writes console lines in a shipped build. Low impact, trivially
-fixed, and it makes the log unusable for actually diagnosing anything.
+**Severity: Medium. Verified by reading.** `panorama/styles/hud_abilities.css:14-17` — a second
+`@import` after the rules, then an **unconditional**
+`.items .ability_container.item_passive.Hidden { visibility: visible; }`. The same unconditional rule
+is in `panorama/styles/hud_ability_icon_passive.css:15-18`, next to an unconditional
+`.ability_container { … opacity: 0.6; }` at `:4-13`. Both arrived with `9935d0c` ("Added new mod from
+Han"). They make the `.ASAPOn` / `UMM_ShowPassives` gating in the same files meaningless: passives are
+always shown and the UMM `always_show_passives` → `enabled` toggle cannot turn the feature off.
+
+**Fix:** ask the author whether this was intentional; if not, delete the unconditional rules and the
+second `@import`, leaving the gated ones.
+
+### D11. Ammo notifier looks up an id with the wrong case
+
+**Severity: Low. Verified by reading; effect unknown.** `mercurial_magnum_notifier.js` calls
+`FindChildTraverse("abilitiesContainer")`. In `hud.xml` the id is `AbilitiesContainer` and
+`abilitiesContainer` is its **class** (`hud.xml:558`), the same before and after the patch. Whether
+Panorama's id lookup is case-insensitive is unknown; if it is not, Blood Tribute detection never
+worked, and the failed lookup is a whole-tree search every 0.5 s. Vendored — report upstream.
+
+### D12. Hero testing loads in every match
+
+**Severity: Medium. Inferred, unmeasured.** `hud.xml:486` instantiates
+`<CitadelHudHeroTesting id="hud_hero_testing" />` unconditionally, as Valve's own `hud.xml` does, so
+`hud_hero_testing.xml` (1,409 lines) and `qollite_hero_testing.js` load with every HUD unless the C++
+defers loading — which is unknown. On load the script runs a one-time walk of the whole tool tree,
+two 0.2 s lookups and a 60-second 0.5 s poll. All bounded — but it contradicts "hideout only", which
+the docs used to state as fact. Measure (or read the console for the script's first log line in a
+normal match) before deciding whether it matters.
+
+### D13. Friends Rank popup watch polls at frame rate
+
+**Severity: Medium. Verified by reading `friends_rank.js:807-822`; unmeasured.** For a profile card
+(`profile_card.xml`, instantiated per card), `startActiveWatch` re-arms every
+`popupGuardIntervalSeconds` = **0.016 s** for the first 8 s, then every `popupPollSeconds` = 0.1 s with
+no time limit — it stops only when the card is no longer valid or a newer request replaces its token.
+Whether hidden cards stay valid (and keep polling) is unknown. The main profile page's watch stops
+after 8 s.
+
+**Fix:** end the popup watch after the settle window, as the main-profile branch does. Origin of the
+feature is unrecorded, so there is no upstream to send this to yet.
+
+### D14. Blur on always-present HUD panels
+
+**Severity: Low. Unmeasured.** Top Bar Plus sets `world-blur: ingameHudBlur` on `#Buff`, `#Rejuv`,
+`#BuffHUD`, `#RejuvHUD` and on `#RejuvBuff`, which is always present at opacity 0 — in
+`citadel_hud_top_bar.css:3260-3441` and again in `topbar_rank_topbar.css:3356-3537` (five rules in
+each; the top bar layout loads both sheets). Enhanced Quickbuy blurs `#QuickbuyNextSoulsNeeded`
+and every visible `.QuickbuyUpcomingPreviewSoulsNeeded` (`hud_quickbuy.css:203`) — three blurred
+panels in normal play at the default preview count, where Valve blurs its summary only inside the
+shop. Whether Panorama pays for blur on an opacity-0 panel is unknown.
+
+### D15. Damage-number glow times longer lifetimes
+
+**Severity: Low. Unmeasured.** `hud_event_indicator.css:556-558` styles `.batched .HudIndicatorText`
+at 80 px with `text-shadow: 0px 0px 20px` (Valve's own shadows use 3 px) on a panel spawned under
+fire. Build 6711 lengthened Valve's indicator lifetimes (fountain 0.4 s → 2 s, emphasised → 3 s), so
+roughly 3–5× more of those panels are alive at once. Whether 6722 still applies `batched` to any panel
+is unknown — it is set from C++. The override's origin is unrecorded ([`BUNDLE.md`](BUNDLE.md) §5).
+
+### D16. Calls and textures the game no longer has
+
+**Severity: Low. Verified against GameTracking `client_strings.txt` and `pak01_dir.txt` for 6701 and
+6722.** Each of these fails silently:
+
+- `panorama/layout/citadel_db_page_news.xml:38` — `#Library` calls `CitadelShowBookLibraryPage()`,
+  removed in 6711. (The same card in `citadel_db_page_training.xml` was removed at the rebase.)
+- `panorama/layout/citadel_db_page_training.xml:90` — `#RankedInfo` calls `CitadelShowRankedInfo()`,
+  which is in neither build's strings nor any Valve layout ([`FIELD_NOTES.md`](FIELD_NOTES.md) §4).
+- `panorama/styles/citadel_db_page_training.css` — background textures removed from the game in 6711:
+  `main_menu/dl_v1_png` (`:144`), `seasonal/2026/vote_apollo_sm_png` (`:212`),
+  `main_menu/background_nyc_cityscape_bw_psd` (`:222`), `main_menu/background_gothic_jpg` (`:231`);
+  plus `book_images/geist/geist_book_cover_vertical_png` (`:240`, and `citadel_db_page_shared.css:164`),
+  already missing in 6701. Those cards render without that art; replacements are a design choice.
+- `panorama/scripts/qollite_recent_purchase_icons.js` — `images/heroes/tokamak_sm_psd`, removed in
+  6711; that hero's purchases show no portrait.
+- `panorama/layout/citadel_hud_top_bar.xml:68,72,80,84` — Top Bar Plus's `<Image>`s use
+  `icon_powerup.svg` / `icon_rejuvenator.svg`, not the `.vsvg` form Valve uses. **Unverified** whether
+  they resolve.
+
+---
+
+## 8. Smaller items
+
+### D6. Debug logging was on by default
+
+**Status: resolved 2026-09-30** by the re-bundle ([`BUNDLE.md`](BUNDLE.md) §3).
+
+Both first-party bundles had shipped with DEBUG on. `qollite_notifications_log.js` logged
+unconditionally — not a decorative flag, but Closure constant-folding upstream's `DEBUG = true` into
+the code ([`FIELD_NOTES.md`](FIELD_NOTES.md) §9). `qollite_map_log.js` had it on as well, which in
+BetterMap also enabled the urn tracker's extra tree scans. Both now ship `var DEBUG = false;` —
+for Map Event Reminders that is a recorded QOL Lite delta (upstream ships `true`), for BetterMap it is
+upstream's own value.
 
 ### D7. Duplicate import
 
-`panorama/styles/citadel_db_page_profile.css` imports
-`base/citadel_db_page_profile.vcss_c` **twice** (lines 3 and 48). Harmless but a sign that the file
-has been merged more than once without review.
+`@import` of the same `base/` copy twice, a sign of files merged more than once without review:
+`citadel_db_page_profile.css` (lines 3 and 48), `hud_abilities.css` (3 and 14),
+`hud_ability_icon_passive.css` (3 and 118). Harmless on its own; in the last two the second copy
+arrived with the rules in D10.
 
 ### D8. Upstream naming leaked into shipped identifiers
 
 `qollite_map_*.js` logs with a `[BetterMap]` prefix, and the urn marker uses `bm_urn*` classes and a
 `BmMinimalMap` state class. This is not dead code and must not be "cleaned up" casually — the CSS in
-`hud_minimap.css` matches those exact names. Recorded so nobody mistakes it for a leftover.
+`hud_minimap.css` matches those exact names, and the bundler keeps them on purpose. Recorded so nobody
+mistakes it for a leftover.
 
 ---
 
-## 8. Recording a new entry
+## 9. Recording a new entry
 
 Add an entry when you find a real problem in shipped code. Each one states:
 

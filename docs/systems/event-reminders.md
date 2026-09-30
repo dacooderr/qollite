@@ -2,11 +2,16 @@
 
 > Timed on-screen notices before and when map objectives spawn.
 >
-> **Origin:** Map Event Reminders · **Runs in:** every match · **Off switch:** UMM `eventnotifier` (partial)
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Origin:** Map Event Reminders (`12e6b3b`) · **Runs in:** every match · **Off switch:** UMM `eventnotifier` (partial)
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 The most architecturally interesting feature in the mod: it spans **three Panorama contexts** and is
 the only one that had to build its own message protocol to do so.
+
+The scripts are **generated** from upstream Map Event Reminders by `scripts/bundle_mer.py` — readable
+source since 2026-09-30; change upstream and re-bundle, never the bundled copy
+([`../BUNDLE.md`](../BUNDLE.md) §3). Nothing on this page has been checked in game since the 6722
+update.
 
 ---
 
@@ -97,8 +102,15 @@ The bridge parses `#GameTime`, tolerating `h:mm:ss` and `mm:ss` and stripping HT
 every 0.25 s. `Clock.getMatchTime()` returns `null` if the last message is **older than 3 seconds** —
 so a broken bridge degrades to "no notifications" rather than to a stuck clock.
 
-The bridge also suppresses itself in the hideout, checking `connectedToHideout` in three casings
-because the class name is inconsistent across builds.
+The bridge stops broadcasting — so the overlay's clock goes stale and nothing fires — in two places:
+
+- **the hideout**, by `connectedToHideout` (checked in three casings, as an ancestor class and on
+  `#Hud`);
+- **Street Brawl**, by `gamemode_streetbrawl`, the same two ways (upstream `4a5aa89`, new in this
+  bundle).
+
+It logs the reason once per change as `[NOTIF][bridge] suppress=none|hideout|streetbrawl` (the old
+bundle logged `hideout=…`).
 
 ### Scheduler
 
@@ -145,19 +157,28 @@ bridged clock, falling back to wall time if the clock is unavailable.
 | `durationSecs` | `6` | not exposed |
 | `graceSecs` | `5` | not exposed |
 | `debugSchedule` | `false` | not exposed — compresses the schedule for testing |
-| `events.*` | all `true` | 7 toggles under an `Events` group |
+| `events.<id>` | all `true` | 7 toggles under an `Events` group (UMM `ev_group`), UMM ids `ev_<id>`: `ev_weak_camps`, `ev_breakables`, `ev_medium_camps`, `ev_bridge_buffs`, `ev_strong_camps`, `ev_sinners_sacrifice`, `ev_soul_urn` |
+
+UMM ids are the same as in the previous bundle (`b8907bc`), so saved values keep applying. Upstream's
+README calls Sound "off by default"; the code's default is `true`, and the bundle follows the code.
 
 ---
 
 ## Known issues
 
-- **The two bridge scripts never check `enabled`** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D2. A user
-  who disables this feature still pays a 4 Hz bus broadcast and a 5 Hz full-tree class search, every
-  match, forever. This is the clearest violation of the "off means free" rule in the codebase, and it
+- **The two bridge scripts never check `enabled`** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D2, still
+  open upstream at `12e6b3b`. A user who disables this feature still pays a 4 Hz bus broadcast (plus,
+  since the Street Brawl check, two root walks a tick) and a 5 Hz loop of up to six whole-tree class
+  searches, every match, forever. This is the clearest violation of the "off means free" rule in the codebase, and it
   is awkward to fix because the bridges live in a different context from the config — the enabled
   state has to be pushed to them over the bus.
-- `qollite_notifications_log.js` logs unconditionally despite its `DEBUG` flag —
-  [`../TECH_DEBT.md`](../TECH_DEBT.md) D6.
+- The overlay's master `tick()` (4 Hz) re-arms unconditionally, also in the dashboard; it returns
+  early when disabled. Cheap, but not "off means not running".
+- `qollite_notifications_clock.js` parses every bus message as JSON without a substring guard
+  ([`../TECH_DEBT.md`](../TECH_DEBT.md) D2, proposal 3).
+- Resolved 2026-09-30: logging no longer runs unconditionally — the old bundle had DEBUG
+  constant-folded on; the new one ships `DEBUG = false` as a recorded delta
+  ([`../TECH_DEBT.md`](../TECH_DEBT.md) D6).
 - Timings are hard-coded and will drift when Valve changes map pacing. There is no extraction
   pipeline; re-verify against patch notes.
 - Only English and Russian exist. Any other client language falls back to English.

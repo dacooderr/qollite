@@ -3,8 +3,8 @@
 > The settings and persistence protocol QOL Lite speaks, and how to add a feature to it.
 >
 > **Audience:** anyone adding or changing a user-facing setting.
-> **Status:** protocol v1, five features integrated, seven not.
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Status:** protocol v1, five features integrated, the rest not (§4).
+> **Last verified:** 2026-09-30 against commit `fa59528`.
 
 **Contents**
 
@@ -109,11 +109,36 @@ new widget type co-designed with the UMM author.
 
 | Mod `id` | Display `name` | Adapter | Settings |
 |---|---|---|---|
-| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 5 toggles, 5 sliders — POI crates/statues/small/from-3:00/auto-level, marker size & opacity, minimap size, map opacity, minimal-map opacity |
-| `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group of 7 per-event toggles |
+| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 2 groups ("Crates & Statues", "Minimap"), 9 toggles, 8 sliders, 1 select — 18 widgets, one of them a QOL Lite local delta |
+| `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
 | `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabled`) |
+
+### `bettermap` in detail
+
+Read from `_buildSchema()` in `qollite_map_umm_adapter.js` (BetterMap `ca29290`):
+
+| Group | Widget ids |
+|---|---|
+| Crates & Statues | toggles `poiCratesEnabled`, `poiStatuesEnabled`, `poiToughEnabled`, `poiFrom3Min`, `poiLevelAuto`, `urnTrackerEnabled`; sliders `poiMarkerSizePx` (1–8 px), `poiOpacityPct` (10–100 %) |
+| Minimap | sliders `minimapSizePx` (200–800 px, step 20), `playerIconScalePct` (50–200 %, step 10), `mapOpacityPct` (10–100 %), `minimapOffsetXPct` / `minimapOffsetYPct` (**−100..100 %**), `minimalMapOpacityPct` (0–100 %); select `minimapCorner` (4 corners); toggles `hudFullWidth`, `minimalMap`, `ultLargeMapEnabled` |
+
+Changed at the 2026-09-30 re-bundle (id `bettermap` unchanged, so saved values keep applying):
+
+- **Added:** `poiToughEnabled` (default off), `playerIconScalePct` (default 100), the two groups.
+- **Removed:** `poiShowSmall`. A saved value for it is ignored without error.
+- **Widened:** the offset sliders, from 0..100 to −100..100 — old saved values are a subset, still
+  valid.
+- **Relabelled, same key:** `poiFrom3Min` → "Hide Objects Until Spawned" (per-POI spawn time),
+  `ultLargeMapEnabled` → "Larger Map for Traveler (Mirage)".
+- **Local delta, not upstream:** `minimalMapOpacityPct` ([`BUNDLE.md`](BUNDLE.md) §3).
+- Upstream also fixed `register` to send each widget's factory `default`, so UMM's reset buttons
+  restore the default rather than the last value.
+
+Every `bettermap` setting is in this schema. (An earlier version of this file and of the minimap page
+said five settings were reachable only through the in-HUD panel; that was not true of the schema
+either before or after the re-bundle.)
 
 ### Not integrated
 
@@ -121,16 +146,23 @@ These features have **no UMM presence and no user-facing switch at all** — the
 
 | Feature | Consequence |
 |---|---|
-| [show-rank](systems/show-rank.md) | Cannot be turned off. Makes third-party network requests regardless. |
 | [top bar](systems/top-bar.md) | Cannot be turned off. |
-| [Statlocker button](systems/statlocker.md) | Cannot be turned off. |
-| [hero testing](systems/hero-testing.md) | Hideout-only, so the cost is bounded. |
+| Friends Rank (no page yet) | Cannot be turned off. Makes third-party image requests to `api.deadlock-api.com`. |
+| Ammo-buff notifier (no page yet) | Cannot be turned off; polls at up to 20 Hz. |
+| [hero testing](systems/hero-testing.md) | Loops are bounded, but the script loads in every match ([`TECH_DEBT.md`](TECH_DEBT.md) D12). |
+| [Statlocker button](systems/statlocker.md) | Its script is not loaded at all. |
 | [leaderboard search](systems/leaderboard-search.md) | Only runs on the leaderboard popup. |
 | [4×3 support](systems/aspect-ratio-4x3.md) | Pure CSS; effectively free. |
 | [asset optimizations](systems/assets.md) | Not settings — they are replacements. |
 
-The first three are the ones that matter: they run in every match, cost frame time, and the user has
-no way to decline. Tracked in [`TECH_DEBT.md`](TECH_DEBT.md).
+The first three are the ones that matter: they run in every match or menu, cost frame time, and the
+user has no way to decline. Tracked in [`TECH_DEBT.md`](TECH_DEBT.md) §3.
+
+[Show Rank](systems/show-rank.md), which used to head this table, was removed in `ecdacbb`.
+
+Two integrated features have a switch that does not fully work: `always_show_passives` → `enabled`
+is defeated by unconditional CSS ([`TECH_DEBT.md`](TECH_DEBT.md) D10), and `enhanced_quickbuy` →
+`enabled` hides the feature while its 10 Hz loop keeps running.
 
 ---
 
@@ -179,8 +211,9 @@ Finally, add a row to the table in §4 and to the feature's page under [`systems
   schedule no timers and create no panels — "off" means *not running*, not merely invisible.
 - **A `set` can arrive before your feature has initialised.** Ordering across contexts is undefined.
   Patch state unconditionally; make `apply` safe to call when the panels do not exist yet.
-- **Sliders want integers.** Both existing adapters expose percentages as `0–100` integers and
-  convert to `0.0–1.0` in `set`, rather than sliding a fraction directly.
+- **Sliders want integers.** Both existing adapters expose percentages as integers and convert in
+  `set` — `0–100` → `0.0–1.0` for opacities, `−100..100` → `−1..1` for BetterMap's offsets — rather
+  than sliding a fraction directly.
 - **Keep the substring guard.** `indexOf('"umm"')` before `JSON.parse` — this channel carries three
   protocols and every listener sees all of them.
 - **Detect the core, do not assume it.** The idiom here is a latch set on the first `hello` or `set`;

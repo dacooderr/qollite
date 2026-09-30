@@ -13,7 +13,7 @@
 		<include src="s2r://panorama/scripts/qollite_notifications_urn_detector.vjs_c" />
 	</scripts>
 	<CitadelHudTopBar hittest="false">
-		<GlobalClassListener classes="gDetailView gScoreboardOpen" />
+		<GlobalClassListener classes="gDetailView gShopOpen gScoreboardOpen gStreetBrawl gPVE" />
 		<Panel id="GradientBacker" />
 		<Panel class="GameClock">
 			<Label class="GameTime" id="GameTime" text="{s:game_clock}" />
@@ -96,6 +96,7 @@
 					<Image id="StatusEffectImage" />
 					<Panel class="statusEffectImage" />
 				</Panel>
+				<Label id="MidbossTimerLabel" class="midbossTimerLabel" text="{s:midboss_timer}" />
 			</Panel>
 			<Panel id="RejuvenatorEnemy">
 				<Panel class="rejuvIcon" />
