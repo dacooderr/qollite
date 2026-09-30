@@ -79,7 +79,7 @@ UMM id `always_show_passives`:
 ## Known issues
 
 - **The UMM toggle cannot turn the feature off** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D10.
-  `hud_abilities.css:14-17` and `hud_ability_icon_passive.css:15-18` show hidden passives
+  `hud_abilities.css:15-18` and `hud_ability_icon_passive.css:15-18` show hidden passives
   unconditionally, and `hud_ability_icon_passive.css:4-13` dims every `.ability_container`
   unconditionally, so the `.ASAPOn` gating is bypassed. Arrived with `9935d0c`; whether intended is
   a question for its author.

@@ -3,7 +3,7 @@
 > Every feature QOL Lite currently ships, what it owns, and whether the user can turn it off.
 >
 > **Audience:** anyone looking for "which files do I touch to change X".
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
 
 QOL Lite is a **collection**. Most features arrived as independent mods and were merged into one pack
 so they could share Valve's HUD files rather than fight over them
@@ -23,15 +23,15 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 | [Top bar](top-bar.md) | Top Bar Plus | Match, hideout | ❌ none | 1 Hz + a 2 Hz loop per player row |
 | [Statlocker button](statlocker.md) | Statlocker | — | — | **not loaded** — its script is included by no layout; the live Statlocker buttons are Friends Rank's |
 | [Enhanced quickbuy](quickbuy.md) | Enhanced Quickbuy | Match | ⚠️ UMM `enhanced_quickbuy` hides it; the loop keeps running | 10 Hz, never stops |
-| [Recent purchases](recent-purchases.md) | Recent Purchases | Shop | ✅ UMM `recent_purchases` | 10 Hz + 1 Hz, stop when off |
+| [Recent purchases](recent-purchases.md) | Recent Purchases | — | — | **not loaded since `4bb5c0e`**, pending confirmation |
 | [Always-show passives](passives.md) | Always Show Passives | Match | ⚠️ UMM `always_show_passives`, but unconditional rules defeat it | none — CSS only |
-| [Hero testing tools](hero-testing.md) | Advanced Testing Tools | Hideout; **loads in every match** | ❌ none | 6 bounded loops |
+| [Hero testing tools](hero-testing.md) | Advanced Testing Tools | — | — | **not loaded since `4bb5c0e`**, pending confirmation; Valve's native 6722 menu ships instead |
 | [Leaderboard search](leaderboard-search.md) | — | Leaderboard popup | ❌ none | on keystroke |
 | [Escape menu](escape-menu.md) | — | Match | ❌ none | none — layout only |
 | [4×3 aspect ratio](aspect-ratio-4x3.md) | — | Everywhere | ❌ none | none — CSS only |
 | [Asset optimizations](assets.md) | Several | Everywhere | ❌ n/a | negative — saves cost |
-| Friends Rank — *no page yet* | unrecorded ([`../BUNDLE.md`](../BUNDLE.md) §5) | Profile page, profile cards, post-game | ❌ none | per-card watch, up to ~62 Hz ([`../TECH_DEBT.md`](../TECH_DEBT.md) D13); network |
-| Ammo-buff notifier — *no page yet* | "Han" (commit message only) | Match | ❌ none | 20 Hz / 2 Hz |
+| Friends Rank — *no page yet* | unrecorded ([`../BUNDLE.md`](../BUNDLE.md) §5) | Profile page, profile cards, post-game scoreboard | ❌ none | per-card watch, up to ~62 Hz ([`../TECH_DEBT.md`](../TECH_DEBT.md) D13); network |
+| Ammo-buff notifier — *no page* | "Han" (commit message only) | — | — | **not loaded since `4bb5c0e`**, pending confirmation |
 | ~~[Rank badges](show-rank.md)~~ | Show Rank | — | — | **removed** in `ecdacbb` |
 
 **Off-switch legend:** ✅ registered with Universal Mod Manager · ⚠️ partially · ❌ always on, user
@@ -39,8 +39,14 @@ cannot decline. The ❌ rows in the *match* column are the open problem — see
 [`../TECH_DEBT.md`](../TECH_DEBT.md) §3. Costs are the standing loops at default settings, from
 [`../TECH_DEBT.md`](../TECH_DEBT.md) §2.
 
-Two features in the pack have **no page** — Friends Rank (added in `27087ae`) and the ammo-buff
-notifier (added in `9935d0c`). Both predate the 6722 update; writing their pages is open work.
+Friends Rank (added in `27087ae`) has **no page**; writing it is open work. The ammo-buff notifier
+(added in `9935d0c`) never had one.
+
+**Removed pending confirmation.** `4bb5c0e` reset the layouts of recent purchases, the ammo-buff
+notifier and the mod's hero-testing panel to Valve 6722, script includes included, and took Friends
+Rank's Statlocker button off the post-game MVP cards. The scripts and styles still ship but nothing
+loads them ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4). The maintainer has not confirmed the removals;
+the rows stay until then ([`../BUNDLE.md`](../BUNDLE.md) §4).
 
 ---
 
@@ -54,24 +60,22 @@ table** — two features cannot both ship the same path.
 | `layout/hud.xml` | [Minimap](minimap.md) (+ [passives](passives.md) script include; Valve's `CitadelHudHeroTesting` instance) |
 | `layout/base_hud_and_db_overlay.xml` | [Event reminders](event-reminders.md) |
 | `layout/citadel_hud_top_bar.xml` | [Top bar](top-bar.md), [event reminders](event-reminders.md) bridges |
-| `layout/citadel_hud_top_bar_player.xml` | [Top bar](top-bar.md) (per-player row: script, `SpentSoulDisplay`, `.HeroNameHidden` label used by [recent purchases](recent-purchases.md)) |
-| `layout/ability_hud_elements/element_gun.xml` | Ammo-buff notifier |
-| `layout/citadel_db_page_profile.xml`, `profile_card.xml`, `post_game/citadel_db_post_game_scoreboard_new.xml`, `post_game/citadel_db_post_game_team.xml` | Friends Rank |
+| `layout/citadel_hud_top_bar_player.xml` | [Top bar](top-bar.md) (per-player row: script, `SpentSoulDisplay`, and the `.HeroNameHidden` label, whose only reader is [recent purchases](recent-purchases.md) — not loaded since `4bb5c0e`) |
+| `layout/citadel_db_page_profile.xml`, `profile_card.xml`, `post_game/citadel_db_post_game_scoreboard_new.xml` | Friends Rank |
 | `layout/citadel_ui_context_menu_player.xml`, `players_list_entry.xml` | none — restored to Valve's markup when [Show Rank](show-rank.md) was removed; still overridden |
 | `layout/hud_escape_menu.xml` | [Escape menu](escape-menu.md) |
-| `layout/citadel_hud_hero_shop.xml` | [Recent purchases](recent-purchases.md) |
 | `layout/hud_quickbuy.xml`, `hud_quickbuy_entry.xml` | [Quickbuy](quickbuy.md) |
-| `layout/hud_hero_testing.xml` | [Hero testing](hero-testing.md) |
 | `layout/citadel_db_page_training.xml` | unattributed — the Resources-page grid |
 | `layout/citadel_hud_koth.xml` | added in `5adefb4` ("potential fix for lingering rift pop-up"); no feature page |
 | `layout/popups/citadel_popup_global_leaderboard.xml` | [Leaderboard search](leaderboard-search.md) |
-| `layout/popups/popup_settings.xml` | [4×3](aspect-ratio-4x3.md) + the Experimental Extended FOV slider (Maffinz, [`../BUNDLE.md`](../BUNDLE.md) §4) |
+| `layout/popups/popup_settings.xml` | [4×3](aspect-ratio-4x3.md) + the Experimental Extended FOV slider (Maffinz, [`../BUNDLE.md`](../BUNDLE.md) §4; restored at the re-merge after `4bb5c0e` dropped it without its other parts) |
 | `styles/hud_minimap.css` | [Minimap](minimap.md) |
 | `styles/notif.css` | [Event reminders](event-reminders.md) |
 | `styles/citadel_hud_top_bar.css`, `styles/topbar_rank_topbar.css` | [Top bar](top-bar.md). `topbar_rank_topbar.css` is a full fork of Valve's `citadel_hud_top_bar.css` plus Top Bar Plus's rules, and **the only top-bar sheet the player rows load** ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §2, §7) |
 | `styles/hud_abilities.css`, `hud_ability_icon.css`, `hud_ability_icon_passive.css` | [Passives](passives.md), including the unconditional rules `9935d0c` added ([`../TECH_DEBT.md`](../TECH_DEBT.md) D10) |
 | `styles/hud_event_indicator.css` | **unattributed** — damage-number restyle ([`../BUNDLE.md`](../BUNDLE.md) §5) |
-| `styles/dashboard.css`, `styles/citadel_hud_koth.css`, `styles/hud_damage_report.css`, `styles/profile_card.css` | nobody — unmodified Valve copies ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4) |
+| `styles/dashboard.css`, `styles/citadel_hud_koth.css`, `styles/hud_damage_report.css`, `styles/profile_card.css`, `styles/base.css`, `styles/citadel_base_styles.css`, `styles/hero_testing_menu.css`, `layout/hud_ability_icon.xml`, and the layouts of the removed features: `ability_hud_elements/element_gun.xml`, `citadel_hud_hero_shop.xml`, `hud_hero_testing.xml`, `post_game/citadel_db_post_game_team.xml` | nobody — unmodified Valve 6722 copies ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4 lists all 20) |
+| `layout/post_game/citadel_db_page_post_game.xml` | nobody — an old Valve page at a path the game no longer loads ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §4) |
 | `models/`, `materials/`, `particles/` | [Asset optimizations](assets.md) |
 
 ---

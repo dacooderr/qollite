@@ -2,8 +2,18 @@
 
 > Filterable feed of what every player has bought, with icons, plus per-hero purchase badges.
 >
-> **Origin:** Recent Purchases · **Runs in:** every match (the shop layout) · **Off switch:** ✅ UMM `recent_purchases`
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Origin:** Recent Purchases · **Runs in:** nowhere since `4bb5c0e` — not loaded, pending confirmation · **Off switch:** ✅ UMM `recent_purchases` (while loaded)
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+
+> ### ⚠️ Not loaded since `4bb5c0e` — pending the maintainer's confirmation
+> `4bb5c0e` replaced `citadel_hud_hero_shop.xml` with Valve's 6722 file verbatim: both script
+> includes, the `RecentPurchaseHeroImage` class and the `.recentModPurchaserHero` label are gone, and
+> no other layout includes the scripts. `citadel_hud_hero_shop.css` was cut to an `@import` plus its
+> 4×3 rules, dropping this feature's rules (lines 2385–2457 of the `1f0fe0f` copy). The removal is
+> consistent across files, so the re-merge kept it, but it has not been confirmed. The scripts still
+> ship and cost only weight ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4). To restore: take the layout's
+> includes and snippet additions and those stylesheet rules back from `1f0fe0f`. The rest of this
+> page describes the feature as it shipped until then.
 
 ---
 
@@ -20,11 +30,11 @@
 
 | Path | Role |
 |---|---|
-| `panorama/layout/citadel_hud_hero_shop.xml` | Loads both scripts; adds `class="RecentPurchaseHeroImage"` and a `.recentModPurchaserHero` label (`{s:recent_hero_name}`) to Valve's `RecentPurchase` snippet |
-| `panorama/layout/citadel_hud_top_bar_player.xml` | Carries the mod-authored `.HeroNameHidden` label the per-hero badges walk up from — owned by the [top bar](top-bar.md) override, so keep it when rebasing that file |
-| `panorama/scripts/qollite_recent_purchases.js` | Logic + UMM manifest |
-| `panorama/scripts/qollite_recent_purchase_icons.js` | **~3,000-entry name → icon lookup table** (385 KB — the largest file in `panorama/scripts/`) |
-| `panorama/styles/citadel_hud_hero_shop.css` | Override — imports `base/citadel_hud_hero_shop.vcss_c` |
+| `panorama/layout/citadel_hud_hero_shop.xml` | Until `1f0fe0f`: loaded both scripts; added `class="RecentPurchaseHeroImage"` and a `.recentModPurchaserHero` label (`{s:recent_hero_name}`) to Valve's `RecentPurchase` snippet. **Now Valve 6722 verbatim** |
+| `panorama/layout/citadel_hud_top_bar_player.xml` | Carries the mod-authored `.HeroNameHidden` label the per-hero badges walk up from — owned by the [top bar](top-bar.md) override; kept at the re-merge so the feature can come back |
+| `panorama/scripts/qollite_recent_purchases.js` | Logic + UMM manifest — **included by no layout** |
+| `panorama/scripts/qollite_recent_purchase_icons.js` | **~3,000-entry name → icon lookup table** (385 KB — the largest file in `panorama/scripts/`) — **included by no layout** |
+| `panorama/styles/citadel_hud_hero_shop.css` | Override — imports `base/citadel_hud_hero_shop.vcss_c`; since `4bb5c0e` holds only the 4×3 rules, none of this feature's |
 | `panorama/styles/base/citadel_hud_hero_shop.css` | Pristine Valve baseline |
 
 ---
@@ -74,8 +84,8 @@ guards against a rebuild landing after the tree has changed.
 
 ### Scheduling
 
-Two loops, both stopped when UMM `enabled` is false (default **true**): 0.1 s (10 Hz) for the feed and
-badges, and 1 s for a `FindChildTraverse("Hud")` from the root. In one of its states the 10 Hz loop
+While loaded: two loops, both stopped when UMM `enabled` is false (default **true**): 0.1 s (10 Hz)
+for the feed and badges, and 1 s for a `FindChildTraverse("Hud")` from the root. In one of its states the 10 Hz loop
 also searches the **whole UI** for `.HeroNameHidden` ([`../TECH_DEBT.md`](../TECH_DEBT.md) §2).
 
 ### Hideout suppression
@@ -97,6 +107,8 @@ UMM id `recent_purchases`:
 
 ## Known issues
 
+- **Not loaded since `4bb5c0e`**, pending confirmation (banner above). The rest of this list applies
+  if it comes back.
 - **The 3,018-entry icon table is unmaintainable by hand** and will rot with every patch. At 385 KB
   it is also the single heaviest script in the pack.
 - Only reacts to what Valve paints into the shop panel; a class rename breaks it silently.

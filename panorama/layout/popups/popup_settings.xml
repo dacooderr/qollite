@@ -1,9 +1,9 @@
 <!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
 <root>
 	<styles>
-		<include src="s2r://panorama/styles/citadel_base_styles.vcss" />
-		<include src="s2r://panorama/styles/popups/popups_shared.vcss" />
-		<include src="s2r://panorama/styles/popups/popup_settings.vcss" />
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
+		<include src="s2r://panorama/styles/popups/popups_shared.vcss_c" />
+		<include src="s2r://panorama/styles/popups/popup_settings.vcss_c" />
 	</styles>
 	<snippets>
 		<snippet name="SettingsSectionNavigationButton">
@@ -1124,6 +1124,9 @@
 						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_camera_hero_fov_tooltip, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
 							<CitadelSettingsSlider id="CameraFOV" class="VideoPreview" convar="citadel_camera_hero_fov" min="75" max="90" snap="1" percentage="false" displayprecision="1" text="#citadel_camera_hero_fov" postfix="#citadel_settings_degrees_postfix" textentry="true" search-alias="#citadel_settings_camera_fov_search" new-setting-index="1" />
 						</PopupSettingsSettingsRow>
+						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( &apos;Widens the horizontal view without replacing Camera FOV. 1.78 is standard 16:9, 2.40 is about 107 FOV, and 3.00 is about 119 FOV when Camera FOV is 90.&apos;, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
+							<CitadelSettingsSlider id="BetterFOVAspectRatio" convar="r_aspectratio" min="1.78" max="3.0" percentage="false" displayprecision="2" text="Extended FOV Scale" textentry="true" />
+						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_camera_pitch_inverted_tooltip, SettingsMenuTooltip)" onmouseout="UIHideTextTooltip()">
 							<CitadelSettingsToggle text="#citadel_camera_pitch_inverted" convar="citadel_camera_pitch_inverted" search-alias="#citadel_camera_pitch_inverted_search" />
 						</PopupSettingsSettingsRow>
@@ -1138,7 +1141,7 @@
 				<PopupSettingsSettingsSection id="citadel_settings_mouse">
 					<PopupSettingsSettingsSubsection id="citadel_settings_mouse_options" new-setting-index="9">
 						<PopupSettingsSettingsRow onmouseover="UIShowTextTooltipStyled( #citadel_settings_mousecursorscale_tooltip, SettingsMenuTooltip )" onmouseout="UIHideTextTooltip()">
-							<CitadelSettingsSlider id="MouseCursorSize" text="#citadel_settings_mousecursorscale" convar="citadel_mouse_cursor_scale" min="0.5" max="4.0" snap="0.1" percentage="false" displayprecision="1" postfix="#citadel_settings_multiplier_postfix" textentry="true" new-setting-index="9" />
+							<CitadelSettingsSlider id="MouseCursorSize" text="#citadel_settings_mousecursorscale" convar="citadel_mouse_cursor_scale" min="0.4" max="3.0" snap="0.1" percentage="false" displayprecision="1" postfix="#citadel_settings_multiplier_postfix" textentry="true" new-setting-index="9" />
 						</PopupSettingsSettingsRow>
 					</PopupSettingsSettingsSubsection>
 					<PopupSettingsSettingsSubsection id="citadel_settings_mouse_sensitivity">

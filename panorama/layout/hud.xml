@@ -2,6 +2,7 @@
 <root>
 	<styles>
 		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
+		<include src="s2r://panorama/styles/ability_property_icons.vcss_c" />
 		<include src="s2r://panorama/styles/hud_common.vcss_c" />
 		<include src="s2r://panorama/styles/npc_icons.vcss_c" />
 		<include src="s2r://panorama/styles/hud.vcss_c" />
@@ -16,12 +17,15 @@
 		<include src="s2r://panorama/scripts/qollite_map_poi_data.js" />
 		<include src="s2r://panorama/scripts/qollite_map_urn_data.js" />
 		<include src="s2r://panorama/scripts/qollite_map_state.js" />
+		<include src="s2r://panorama/scripts/qollite_map_minimap.js" />
 		<include src="s2r://panorama/scripts/qollite_map_settings.js" />
 		<include src="s2r://panorama/scripts/qollite_map_size.js" />
 		<include src="s2r://panorama/scripts/qollite_map_position.js" />
 		<include src="s2r://panorama/scripts/qollite_map_poi.js" />
 		<include src="s2r://panorama/scripts/qollite_map_umm_adapter.js" />
 		<include src="s2r://panorama/scripts/qollite_map_minimal.js" />
+		<include src="s2r://panorama/scripts/qollite_map_player.js" />
+		<include src="s2r://panorama/scripts/qollite_map_preview.js" />
 		<include src="s2r://panorama/scripts/qollite_map_urn.js" />
 		<include src="s2r://panorama/scripts/qollite_map_bootstrap.js" />
 		<include src="s2r://panorama/scripts/qollite_passive.vjs_c" />
@@ -221,28 +225,251 @@
 						<Label class="damage_meter_stat_value" text="#Citadel_Hud_DamageMeter_DurationValue" />
 					</Panel>
 				</Panel>
-				<Panel class="clamp_width" hittest="false">
+				<Panel id="minimap_ui_clamp_container" class="clamp_width" hittest="false" hittestchildren="true">
 					<CitadelHudDamageSummary id="hud_damage_summary" />
-					<GlobalClassListener id="minimap_persp" hittest="false" classes="gDetailView gScoreboardOpen">
-						<Panel id="minimap_hints">
-							<Label html="true" text="#Minimap_HintControls" />
+					<Panel id="minimap_persp_wrapper" hittest="false" hittestchildren="true">
+						<GlobalClassListener classes="gDetailView gScoreboardOpen" />
+						<Panel id="minimap_settings_actions" hittest="true" hittestchildren="true">
+							<Button id="minimap_settings_toggle" class="InputButton Fill Small" acceptsfocus="false" hittest="true">
+								<Panel class="Bottom" />
+								<Panel class="Top" />
+								<Panel class="Content">
+									<Label id="minimap_settings_toggle_label" text="Settings" />
+								</Panel>
+							</Button>
 						</Panel>
-						<Panel id="minimap_container" hittest="false">
-							<Panel id="minimap_blur" hittest="false" />
-							<Panel id="minimap_frame" hittest="false" />
-							<Panel id="HudMinimapContainer">
-								<HudMinimap id="hud_minimap" acceptsinput="false" acceptsfocus="false" />
+						<GlobalClassListener id="minimap_persp" class="DisableBigMapScaleOnTab" hittest="false" hittestchildren="true" classes="gDetailView gScoreboardOpen">
+							<Panel id="minimap_hints">
+								<Label html="true" text="#Minimap_HintControls" />
+							</Panel>
+							<Panel id="minimap_container" hittest="false">
+								<Panel id="minimap_blur" class="minimap_map_layer minimap_map_layer_blur" hittest="false" />
+								<Panel id="minimap_frame" class="minimap_map_layer minimap_map_layer_frame" hittest="false" />
+								<Panel id="HudMinimapContainer" class="minimap_map_layer minimap_map_layer_base">
+									<HudMinimap id="hud_minimap" acceptsinput="false" acceptsfocus="false" />
+								</Panel>
+								<Panel id="minimap_overlay_root" hittest="false" hittestchildren="false">
+									<Panel id="minimap_markers" hittest="false" hittestchildren="false" />
+									<Panel id="minimap_urn_host" hittest="false" hittestchildren="false" />
+								</Panel>
+							</Panel>
+							<Panel id="minimap_location">
+								<Label class="location_district" text="{s:district_name}" />
+								<Label class="location_building" text="{s:building_name}" />
+							</Panel>
+							<Panel id="MinimapRevealNotif">
+								<Label text="revealed!" />
+							</Panel>
+						</GlobalClassListener>
+					</Panel>
+					<CitadelHudModifiers id="hud_aura_modifiers" display_location="left" />
+				</Panel>
+			</Panel>
+			<Panel id="minimap_settings">
+				<Panel id="minimap_settings_backing" />
+				<Panel id="SettingsBody">
+					<Panel id="minimap_tab_strip">
+						<RadioButton id="minimap_tab_overlay" class="minimap_tab_button" group="minimap_tabs" acceptsfocus="false" selected="true">
+							<Label class="minimap_tab_button_label" text="Overlay" />
+						</RadioButton>
+						<RadioButton id="minimap_tab_minimap" class="minimap_tab_button" group="minimap_tabs" acceptsfocus="false">
+							<Label class="minimap_tab_button_label" text="Minimap" />
+						</RadioButton>
+					</Panel>
+					<Panel id="minimap_tab_content_overlay" class="minimap_tab_content SettingsSectionContainer TabActive">
+						<Panel class="SettingsSubsectionContainer ActiveSection">
+							<Panel class="SubsectionBackground" />
+							<Panel class="SettingsSubsectionTitleContainer LeftRightFlow">
+								<Label class="SettingsSectionSubtitle" text="Crates &amp; Statues" />
+								<Panel class="ResetButtonContainer">
+									<Button id="minimap_reset_crates_button" class="InputButton Fill Small ResetButton" acceptsfocus="false">
+										<Panel class="Bottom" />
+										<Panel class="Top" />
+										<Panel class="Content">
+											<Image class="IconLeft" texturewidth="20px" textureheight="20px" scaling="stretch-to-fit-preserve-aspect" src="s2r://panorama/images/icons/reset.vsvg" />
+											<Label text="#citadel_settings_reset" />
+										</Panel>
+									</Button>
+								</Panel>
+							</Panel>
+							<Panel class="SettingsSectionColumnContainer">
+								<Panel class="SettingsSectionColumn">
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_crates_toggle" text="Show Crates" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_statues_toggle" text="Show Golden Statues" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_tough_toggle" text="Show Tough Crates" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_poi_level_toggle" text="Auto Level (Underground)" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_poi_spawn_toggle" text="Hide Objects Until Spawned" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_urn_tracker_toggle" text="Urn Spawn Tracker" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_crates_size_slider" text="Marker Size" min="1" max="8" percentage="false" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_crates_opacity_slider" text="Marker Opacity" min="0.01" max="1.0" percentage="true" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+								</Panel>
 							</Panel>
 						</Panel>
-						<Panel id="minimap_location">
-							<Label class="location_district" text="{s:district_name}" />
-							<Label class="location_building" text="{s:building_name}" />
+					</Panel>
+					<Panel id="minimap_tab_content_minimap" class="minimap_tab_content SettingsSectionContainer">
+						<Panel class="SettingsSubsectionContainer ActiveSection">
+							<Panel class="SubsectionBackground" />
+							<Panel class="SettingsSubsectionTitleContainer LeftRightFlow">
+								<Label class="SettingsSectionSubtitle" text="Minimap" />
+								<Panel class="ResetButtonContainer">
+									<Button id="minimap_reset_map_button" class="InputButton Fill Small ResetButton" acceptsfocus="false">
+										<Panel class="Bottom" />
+										<Panel class="Top" />
+										<Panel class="Content">
+											<Image class="IconLeft" texturewidth="20px" textureheight="20px" scaling="stretch-to-fit-preserve-aspect" src="s2r://panorama/images/icons/reset.vsvg" />
+											<Label text="#citadel_settings_reset" />
+										</Panel>
+									</Button>
+								</Panel>
+							</Panel>
+							<Panel class="SettingsSectionColumnContainer">
+								<Panel class="SettingsSectionColumn">
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_size_slider" text="Minimap Size" min="200" max="800" percentage="false" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_player_size_slider" text="Player Icon Size" min="50" max="200" percentage="false" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<Label text="Minimap Corner" />
+											<DropDown id="minimap_corner_dropdown">
+												<Label id="minimap_corner_br" value="bottom-right" text="Bottom-Right" />
+												<Label id="minimap_corner_bl" value="bottom-left" text="Bottom-Left" />
+												<Label id="minimap_corner_tr" value="top-right" text="Top-Right" />
+												<Label id="minimap_corner_tl" value="top-left" text="Top-Left" />
+											</DropDown>
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_full_width_toggle" text="Full-Width HUD" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_offset_x_slider" text="Minimap Offset X" min="-1.0" max="1.0" percentage="true" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_offset_y_slider" text="Minimap Offset Y" min="-1.0" max="1.0" percentage="true" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_map_opacity_slider" text="Map Opacity" min="0.01" max="1.0" percentage="true" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_minimal_toggle" text="Minimalist Minimap" selected="false" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsSlider id="minimap_minimal_opacity_slider" text="Minimalist Map Opacity" min="0" max="1.0" percentage="true" displayprecision="0" textentry="true" />
+										</Panel>
+									</Panel>
+									<Panel class="SettingsRow">
+										<Panel class="HR1px" />
+										<Panel class="SettingsRowBackground Shadow" />
+										<Panel class="SettingsRowBackground" />
+										<Panel class="SettingContent">
+											<CitadelSettingsToggle id="minimap_ult_map_toggle" text="Larger Map for Traveler (Mirage)" selected="false" />
+										</Panel>
+									</Panel>
+								</Panel>
+							</Panel>
 						</Panel>
-						<Panel id="MinimapRevealNotif">
-							<Label text="revealed!" />
-						</Panel>
-					</GlobalClassListener>
-					<CitadelHudModifiers id="hud_aura_modifiers" display_location="left" />
+					</Panel>
 				</Panel>
 			</Panel>
 			<CitadelHudMatchEnd id="MatchEnd" />

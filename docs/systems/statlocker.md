@@ -4,7 +4,7 @@
 > provided by Friends Rank.
 >
 > **Origin:** Statlocker · **Runs in:** nowhere — its script is not loaded · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
 
 > ### ⚠️ The script described here does not run
 > No layout includes `qollite_profile.js`. Its include was dropped from `citadel_db_page_profile.xml`
@@ -23,14 +23,19 @@ Friends Rank (added in `27087ae`; no page of its own yet, origin unrecorded —
 |---|---|---|
 | Profile page | `#FriendsRankStatlockerProfileButton` | `citadel_db_page_profile.xml` |
 | Profile card popup | `#FriendsRankStatlockerPopupButton` | `profile_card.xml` |
-| Post-game scoreboard | `.FriendsRankStatlockerSlot` / `#FriendsRankScoreboardStatlockerButton` | `post_game/citadel_db_post_game_scoreboard_new.xml`, `post_game/citadel_db_post_game_team.xml` |
+| Post-game scoreboard | `.FriendsRankStatlockerSlot` / `#FriendsRankScoreboardStatlockerButton` | `post_game/citadel_db_post_game_scoreboard_new.xml` |
 
 Each opens `https://statlocker.gg/profile/<account id>` when clicked. The icon is
 `panorama/images/friends_rank/statlocker_logo_green.*`.
 
-At the 6722 rebase the post-game team row was restructured by Valve (`#ViewProfileButton`,
-`#AddToFriendsButton`, `#ReportButton` in a hover-revealed row); the mod's 36 px Statlocker button was
-placed first in that row. **Unverified in game.**
+**Post-game MVP cards: removed in `4bb5c0e`, pending the maintainer's confirmation.** That commit
+reset `post_game/citadel_db_post_game_team.xml` to Valve 6722 verbatim: the `friends_rank_scoreboard`
+style and script includes, the four `FriendsRankScoreboardAccountID` labels, the
+`FriendsRankPostGameTeam` root class the script activates on, and the button all went. It is the
+screen the maintainer fixed a crash on, so the re-merge kept the removal. Valve's snippet root has
+`hittestChildren="false"`, so a button there may never have been clickable (**inferred**). To
+restore: take the layout back from `1f0fe0f`, where the button was placed first in Valve's 6722
+hover row (`#ViewProfileButton`, `#AddToFriendsButton`, `#ReportButton`).
 
 ---
 
@@ -40,16 +45,18 @@ placed first in that row. **Unverified in game.**
 |---|---|
 | `panorama/scripts/qollite_profile.js` | The original button script — **included by no layout** |
 | `panorama/images/statlocker/statlocker.png` / `.vtex` | Its icon — referenced only by that script |
-| `panorama/styles/citadel_db_page_profile.css` | Overlay — `@import`s `base/citadel_db_page_profile.vcss_c`, adds the Statlocker button rules, `#AllStats` / `#CoreRating`, `#AccountID` and 4×3 fixes |
+| `panorama/styles/citadel_db_page_profile.css` | Overlay — `@import`s `base/citadel_db_page_profile.vcss_c` and adds 4×3 fixes. Until `4bb5c0e` it also carried `.StatlockerButton` / `.StatlockerImage` rules (used only by `qollite_profile.js`), `#AllStats` / `#CoreRating` and `#AccountID { visibility: visible }`; `4bb5c0e` dropped them |
 | `panorama/styles/base/citadel_db_page_profile.css` | Pristine Valve baseline (6722) |
 
 `profile_card.css` is **not** part of this feature and not a `base/` override: it is an unmodified
 copy of Valve's file ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4). The `base/profile_card.css` this page
 used to list was deleted in `ecdacbb`.
 
-Several selectors in the overlay match nothing in the 6722 profile layout — `#AllStats`,
-`#CoreRating`, `#TabsContainer`, `#ViewLeaderboardContainer`; `#AccountID` exists only in
-`profile_card.xml`. The same was true at 6701. Zero runtime cost when unmatched.
+Two 4×3 selectors in the overlay match nothing in the 6722 profile layout — `#TabsContainer`,
+`#ViewLeaderboardContainer` (the dropped `#AllStats` / `#CoreRating` matched nothing either). Zero
+runtime cost when unmatched. `#AccountID` exists only in `profile_card.xml`, where Valve collapses
+it and Friends Rank reads a label inside it by text; whether the dropped `visible` rule ever reached
+the card is unknown, so its removal is low-risk but **unverified**.
 
 ---
 

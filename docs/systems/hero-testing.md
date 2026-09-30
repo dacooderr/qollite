@@ -2,20 +2,29 @@
 
 > An expanded testing panel in the hideout: item spawning, world controls, and a movable window.
 >
-> **Origin:** Advanced Testing Tools In Hideout (+ a local delta) · **Runs in:** the hideout; **loaded in every match** · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Origin:** Advanced Testing Tools In Hideout · **Runs in:** nowhere since `4bb5c0e` — Valve's native menu ships instead, pending confirmation · **Off switch:** ❌ none (n/a while not loaded)
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+
+> ### ⚠️ The mod's panel is not shipped since `4bb5c0e` — pending the maintainer's confirmation
+> `4bb5c0e` replaced `hud_hero_testing.xml` with Valve's 6722 file verbatim (748 lines, no script
+> include; tabs General / Bot / Map / Misc driven by `HeroTestingSelectTab(...)`), and
+> `hero_testing_menu.css` is Valve 6722's file too. The `qollite_hero_testing.vjs_c` include went with
+> the markup, so the removal reads as deliberate and the re-merge kept it; it has not been confirmed.
+> The five-line convar delta that ported the mod's buttons to 6711+ ([`../BUNDLE.md`](../BUNDLE.md) §4)
+> no longer exists. The rest of this page, from [How it works](#how-it-works) on, records the mod's
+> panel as it shipped until `1f0fe0f`.
 
 ---
 
 ## What it does
 
-Replaces Valve's hero-testing panel with a tabbed, repositionable tool window offering bulk item
-granting and world manipulation. It is *used* only in the hideout, but it is not *loaded* only
-there — see [Scheduling](#scheduling).
+**Today:** nothing of the mod runs. The hideout shows Valve's own 6722 testing menu (general controls,
+bots, map, misc, amount entries, dummy stats, pin / free-cursor). Both override files are unmodified
+Valve copies, so they add weight and go stale at the next patch without changing behaviour
+([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
 
-Build 6711 gave Valve's own panel a large native menu (tabs for general controls, map, misc and bots,
-amount entries, dummy stats, pin / free-cursor). The mod still replaces the panel wholesale, so that
-native menu is **not shown**; many of its controls duplicate the mod's.
+**Until `1f0fe0f`:** the mod replaced Valve's panel with a tabbed, repositionable tool window offering
+bulk item granting and world manipulation, and Valve's native menu was not shown.
 
 ---
 
@@ -23,10 +32,13 @@ native menu is **not shown**; many of its controls duplicate the mod's.
 
 | Path | Lines | Role |
 |---|---:|---|
-| `panorama/layout/hud_hero_testing.xml` | 1,409 | The whole panel tree |
-| `panorama/scripts/qollite_hero_testing.js` | 55 | Logic + the item catalogue |
-| `panorama/styles/hero_testing_menu.css` | 1,448 | Panel styling |
-| `panorama/styles/ability_hud_elements/hero_testing_menu.css` | 439 | Ability-element styling |
+| `panorama/layout/hud_hero_testing.xml` | 748 | Valve 6722's native menu, verbatim (the mod's tree was 1,409 lines) |
+| `panorama/styles/hero_testing_menu.css` | 1,100 | Valve 6722's file, verbatim (the mod's was 1,448 lines) |
+| `panorama/scripts/qollite_hero_testing.js` | 55 | The mod's logic + item catalogue — **included by no layout** |
+| `panorama/styles/ability_hud_elements/hero_testing_menu.css` | 439 | Ability-element styling — **referenced by no layout** since the `959f80e` import |
+
+To restore the mod's panel: take `hud_hero_testing.xml` and `hero_testing_menu.css` back from
+`1f0fe0f` (that copy already carries the convar delta).
 
 ---
 
@@ -83,25 +95,26 @@ against any Valve revision replays Valve's whole history into it
 
 ### Scheduling
 
-Six loops — four at 0.2 s and two at 0.5 s — all bounded: two stop once their panels are found, one
+While it shipped: six loops — four at 0.2 s and two at 0.5 s — all bounded: two stop once their panels are found, one
 runs 120 ticks (60 s) after `InitializeTestingToolsLayout`.
 
 **Not hideout-only.** `hud.xml` instantiates `<CitadelHudHeroTesting id="hud_hero_testing" />`
-unconditionally (as Valve's does), so the layout and its script load with every HUD unless the C++
-defers it — which is unknown ([`../TECH_DEBT.md`](../TECH_DEBT.md) D12). This page used to say
-"hideout only"; that was never verified. Do not copy this cadence into match-time code.
+unconditionally (as Valve's does), so the layout and its script loaded with every HUD unless the C++
+defers it — which is unknown ([`../TECH_DEBT.md`](../TECH_DEBT.md) D12, resolved by removal). Do not
+copy this cadence into match-time code.
 
 ---
 
 ## Settings
 
-**None.** Not registered with UMM. Whether its cost reaches live matches is the open question in
-[`../TECH_DEBT.md`](../TECH_DEBT.md) D12.
+**None.** The mod's panel was never registered with UMM. Valve's native menu has its own controls.
 
 ---
 
 ## Known issues
 
+- **Not shipped since `4bb5c0e`**, pending confirmation (banner above); the two override files are now
+  pure Valve copies. The items below describe the mod's panel.
 - Item catalogue is a hand-maintained string; goes stale on item changes.
 - Six polling loops, ungated but bounded; loaded per match — D12.
 - Lost with the delta: the No Death button's `Stinger.LevelUp` sound. The script still exports

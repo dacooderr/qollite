@@ -3,7 +3,7 @@
 > Adds 4:3 to the video settings and fixes the UI that breaks at that ratio.
 >
 > **Runs in:** everywhere · **Off switch:** ❌ none (it *is* a setting)
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
 
 Pure CSS plus one radio button. No script, no timers, no runtime cost.
 
@@ -60,8 +60,9 @@ option the engine supports but the UI does not surface. Mode `3` makes the clien
 
 ## How it works
 
-Each of those stylesheets is the `base/` pattern in its purest form — import the pristine Valve
-baseline, then append the 4×3 corrections. `citadel_ui_ability_order.css` is six lines in total:
+Each of those stylesheets except `hud.css` is the `base/` pattern in its purest form — import the
+pristine Valve baseline, then append the 4×3 corrections. `citadel_ui_ability_order.css` is one
+`@import` and one rule:
 
 ```css
 @import url("s2r://panorama/styles/base/citadel_ui_ability_order.vcss_c");
@@ -71,8 +72,9 @@ baseline, then append the 4×3 corrections. `citadel_ui_ability_order.css` is si
 `ui-scale` is Panorama's subtree scaler — the right tool here, since it shrinks a whole panel and its
 children proportionally rather than fighting individual dimensions.
 
-> Reading these files in the repo is confusing because the decompiler reproduces both the `@import`
-> and its flattened result. See [`../ARCHITECTURE.md`](../ARCHITECTURE.md) § The `base/` pattern.
+> Until `4bb5c0e` (and, for `hud_quickbuy.css`, the re-merge after it) most of these files also
+> held the decompiler's flattened copy of their base, which made them confusing to read; only
+> `hud.css` still does. See [`../ARCHITECTURE.md`](../ARCHITECTURE.md) § The `base/` pattern.
 
 ---
 

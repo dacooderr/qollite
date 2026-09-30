@@ -1,10 +1,10 @@
 <!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
 <root>
 	<styles>
-		<include src="s2r://panorama/styles/base.vcss" />
-		<include src="s2r://panorama/styles/citadel_base_styles.vcss" />
-		<include src="s2r://panorama/styles/settings_keybinder.vcss" />
-		<include src="s2r://panorama/styles/hero_testing_menu.vcss" />
+		<include src="s2r://panorama/styles/base.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
+		<include src="s2r://panorama/styles/settings_keybinder.vcss_c" />
+		<include src="s2r://panorama/styles/hero_testing_menu.vcss_c" />
 	</styles>
 	<CitadelHudHeroTesting class="hud_hero_testing_root">
 		<GlobalClassListener classes="gScoreboardOpen gShopOpen" />

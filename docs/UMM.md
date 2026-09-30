@@ -3,8 +3,8 @@
 > The settings and persistence protocol QOL Lite speaks, and how to add a feature to it.
 >
 > **Audience:** anyone adding or changing a user-facing setting.
-> **Status:** protocol v1, five features integrated, the rest not (§4).
-> **Last verified:** 2026-09-30 against commit `fa59528`.
+> **Status:** protocol v1, four loaded features integrated (a fifth ships but is not loaded), the rest not (§4).
+> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
 
 **Contents**
 
@@ -113,7 +113,7 @@ new widget type co-designed with the UMM author.
 | `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
-| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabled`) |
+| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabled`) — **not registered today**: no layout includes the script since `4bb5c0e`, pending confirmation ([recent purchases](systems/recent-purchases.md)) |
 
 ### `bettermap` in detail
 
@@ -148,15 +148,15 @@ These features have **no UMM presence and no user-facing switch at all** — the
 |---|---|
 | [top bar](systems/top-bar.md) | Cannot be turned off. |
 | Friends Rank (no page yet) | Cannot be turned off. Makes third-party image requests to `api.deadlock-api.com`. |
-| Ammo-buff notifier (no page yet) | Cannot be turned off; polls at up to 20 Hz. |
-| [hero testing](systems/hero-testing.md) | Loops are bounded, but the script loads in every match ([`TECH_DEBT.md`](TECH_DEBT.md) D12). |
 | [Statlocker button](systems/statlocker.md) | Its script is not loaded at all. |
 | [leaderboard search](systems/leaderboard-search.md) | Only runs on the leaderboard popup. |
 | [4×3 support](systems/aspect-ratio-4x3.md) | Pure CSS; effectively free. |
 | [asset optimizations](systems/assets.md) | Not settings — they are replacements. |
 
-The first three are the ones that matter: they run in every match or menu, cost frame time, and the
-user has no way to decline. Tracked in [`TECH_DEBT.md`](TECH_DEBT.md) §3.
+The first two are the ones that matter: they run in every match or menu, cost frame time, and the
+user has no way to decline. Tracked in [`TECH_DEBT.md`](TECH_DEBT.md) §3. The ammo-buff notifier and
+the mod's [hero testing](systems/hero-testing.md) panel were on this list until `4bb5c0e` stopped
+loading them (pending confirmation).
 
 [Show Rank](systems/show-rank.md), which used to head this table, was removed in `ecdacbb`.
 
