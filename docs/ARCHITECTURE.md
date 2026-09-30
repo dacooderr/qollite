@@ -78,8 +78,8 @@ particles/         replacement particle systems (McGinnis wall)
 scripts/           repo tooling (Python) — not shipped; see §8 and §9
 ```
 
-226 tracked files in total, docs and tooling included (measured 2026-09-30 on branch
-`fix/remerge-6722`, uncommitted): the 231 of `eb80c34` minus the four files of the removed
+226 tracked files in total, docs and tooling included (measured 2026-09-30 at
+commit `78bbf2a`): the 231 of `eb80c34` minus the four files of the removed
 [hero testing](systems/hero-testing.md) feature and the `ability_hud_elements/element_gun.xml`
 override that loaded the ammo-buff notifier. `eb80c34` had the same file set as `4bb5c0e`, which
 added eight: three Valve 6722 copies and one old Valve layout, listed in §4, and four textures under
