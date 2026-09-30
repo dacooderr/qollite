@@ -3,7 +3,7 @@
 > An expanded testing panel in the hideout: item spawning, world controls, and a movable window.
 >
 > **Origin:** Advanced Testing Tools In Hideout (+ a local delta) · **Runs in:** the hideout; **loaded in every match** · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `eb80c34`.
 
 ---
 

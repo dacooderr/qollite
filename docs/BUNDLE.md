@@ -5,7 +5,7 @@
 > **Audience:** maintainers, contributors, and anyone auditing what ships to users.
 > **Status:** partially filled — authors and licenses traced via the GameBanana API (§7); every `TBD`
 > and every *Probable* is still a question only the maintainers can close.
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `eb80c34`.
 
 QOL Lite is a **distribution**, not a single codebase. It bundles roughly a dozen features, most of
 them originally written by other people, into one pack so they can share Valve's HUD files instead of

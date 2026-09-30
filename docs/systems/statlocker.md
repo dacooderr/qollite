@@ -4,7 +4,7 @@
 > provided by Friends Rank.
 >
 > **Origin:** Statlocker · **Runs in:** nowhere — its script is not loaded · **Off switch:** ❌ none
-> **Last verified:** 2026-09-30 against branch `fix/remerge-6722` (uncommitted).
+> **Last verified:** 2026-09-30 against commit `eb80c34`.
 
 > ### ⚠️ The script described here does not run
 > No layout includes `qollite_profile.js`. Its include was dropped from `citadel_db_page_profile.xml`
