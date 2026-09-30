@@ -1,6 +1,175 @@
-var x=function(){function g(a){var b=$.GetContextPanel();return b?b.FindChildTraverse(a):null}function n(a){a=Number(a);return isNaN(a)||a<0?0:a>1?1:a}function h(){var a,b=g("minimap_persp_wrapper");if(b){var c=QolLiteMapState.get(),k=String(QolLiteMapState.get().minimapCorner||"bottom-right");var e=k.indexOf("left")>=0;var l=k.indexOf("top")>=0;var m=(a=b&&b.GetParent?b.GetParent():null)&&a.actuallayoutwidth?a.actuallayoutwidth:0;a=a&&a.actuallayoutheight?a.actuallayoutheight:0;m=m>0?m:1920;a=a>
-0?a:1080;var d=QolLiteMapState.get();d=Math.max(d.minimapSizeMinPx||200,Math.min(d.minimapSizeMaxPx||800,Number(d.minimapSizePx)||400));var p=n(c.minimapOffsetX),q=n(c.minimapOffsetY),r=Math.round(Math.min(15+p*Math.max(0,m-d-15),Math.max(0,m-d))),t=Math.round(Math.min(15+q*Math.max(0,a-d-15),Math.max(0,a-d)));b.style.horizontalAlign=e?"left":"right";b.style.verticalAlign=l?"top":"bottom";b.style.marginLeft="0px";b.style.marginRight="0px";b.style.marginTop="0px";b.style.marginBottom="0px";b.style[e?
-"marginLeft":"marginRight"]=r+"px";b.style[l?"marginTop":"marginBottom"]=t+"px";p===Number(c.minimapOffsetX)&&q===Number(c.minimapOffsetY)||QolLiteMapState.patch({minimapOffsetX:p,minimapOffsetY:q});e="apply: corner="+k+" bounds="+Math.round(m)+"x"+Math.round(a)+" map="+d+" wrap="+Math.round(b.actuallayoutwidth||0)+"x"+Math.round(b.actuallayoutheight||0)+" frac="+p.toFixed(2)+","+q.toFixed(2)+" margin="+r+","+t;typeof QolLiteMapLog!=="undefined"&&QolLiteMapLog.log("pos: "+e);e=QolLiteMapState.get();
-if((l=g("minimap_corner_dropdown"))&&typeof l.SetSelected==="function")try{var y=l.SetSelected;a:{for(b=0;b<f.length;b++)if(f[b].value===e.minimapCorner){var u=f[b].id;break a}u=f[0].id}y.call(l,u)}catch(A){}v("minimap_offset_x_slider",e.minimapOffsetX);v("minimap_offset_y_slider",e.minimapOffsetY)}}function v(a,b){(a=g(a))&&a.FindChildTraverse&&(a=a.FindChildTraverse("Slider"))&&(a.value=n(b))}function z(){if(g("minimap_corner_dropdown"))for(var a=0;a<f.length;a++)(function(b){var c=g(f[a].id);c&&
-c.SetPanelEvent&&c.SetPanelEvent("onactivate",function(){QolLiteMapState.patch({minimapCorner:b});h()})})(f[a].value)}function w(a,b){if((a=g(a))&&a.FindChildTraverse){var c=a.FindChildTraverse("Slider");c&&c.SetPanelEvent("onvaluechanged",function(){var k={};k[b]=n(c.value);QolLiteMapState.patch(k);h()})}}var f=[{id:"minimap_corner_br",value:"bottom-right"},{id:"minimap_corner_bl",value:"bottom-left"},{id:"minimap_corner_tr",value:"top-right"},{id:"minimap_corner_tl",value:"top-left"}];return{init:function(){z();
-w("minimap_offset_x_slider","minimapOffsetX");w("minimap_offset_y_slider","minimapOffsetY");h();$.Schedule(.5,h)},apply:h,refresh:function(){h()}}}();typeof x!=="undefined"&&(this.QolLiteMapPosition=x);
+// Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
+// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_position.js
+// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
+// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
+// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
+// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
+"use strict";
+
+// Minimap position. Moves the whole minimap by setting align + margin on
+// #minimap_persp_wrapper - the positioning hook that already mirrors the vanilla
+// #minimap_persp anchor (bottom-right). A corner dropdown picks the anchor
+// (bottom/top x right/left); two offset sliders nudge it as a FRACTION of the
+// free travel: margin = offset * (container - mapSize). 0 = at the anchored
+// edge, 1 = flush against the opposite edge; negative pushes the map PAST the
+// anchored edge, -1 = its centre on the screen edge (owner, 2026-09-30: at most
+// half off-screen). Percentages keep the placement resolution-independent and,
+// since offset is bounded to [-1,1], at least half the map stays on screen by
+// construction (and auto-tightens when the map is enlarged). Overlay
+// markers live inside #minimap_container, so they move with the map.
+//
+// No drag: the cursor is captured during play (the HUD context has no cursor
+// API), which is why the old drag module was removed - placement is settings-
+// driven only. Mirrors qollite_map_size.js (same wrapper family, apply-from-state).
+var QolLiteMapPosition = (function () {
+    var FALLBACK_W = 1920, FALLBACK_H = 1080;   // used until the HUD has laid out (actuallayout* = 0)
+    var EDGE_GAP = 15;                            // min edge margin (vanilla ~15px) so the map never sits flush
+
+    // Corner enum <-> the dropdown option ids in the layout.
+    var CORNERS = [
+        { id: "minimap_corner_br", value: "bottom-right" },
+        { id: "minimap_corner_bl", value: "bottom-left" },
+        { id: "minimap_corner_tr", value: "top-right" },
+        { id: "minimap_corner_tl", value: "top-left" }
+    ];
+
+    function _ctx() { return $.GetContextPanel(); }
+    function _panel(id) { var c = _ctx(); return c ? c.FindChildTraverse(id) : null; }
+    function _log(m) { if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("pos: " + m); } }
+
+    function _corner() {
+        var v = String(QolLiteMapState.get().minimapCorner || "bottom-right");
+        return { left: v.indexOf("left") >= 0, top: v.indexOf("top") >= 0, value: v };
+    }
+    function _optionIdFor(value) {
+        for (var i = 0; i < CORNERS.length; i++) { if (CORNERS[i].value === value) { return CORNERS[i].id; } }
+        return CORNERS[0].id;
+    }
+    function _frac(v) { v = Number(v); if (isNaN(v)) { return 0; } return Math.max(-1, Math.min(1, v)); }
+
+    // margin from the anchored edge: a fixed EDGE_GAP plus `frac` of the travel
+    // beyond it, never pushing the far edge past the opposite side. Negative
+    // frac walks from EDGE_GAP down to -M/2 (map centre on the edge).
+    function _margin(frac, span, M) {
+        if (frac < 0) { return Math.round(EDGE_GAP + frac * (EDGE_GAP + M / 2)); }
+        var free = Math.max(0, span - M - EDGE_GAP);
+        return Math.round(Math.min(EDGE_GAP + frac * free, Math.max(0, span - M)));
+    }
+
+    // The wrapper's margins are relative to its PARENT (#minimap_ui_clamp_container),
+    // so that container's laid-out box is the free-travel space.
+    function _bounds(wrap) {
+        var p = wrap && wrap.GetParent ? wrap.GetParent() : null;
+        var w = p && p.actuallayoutwidth ? p.actuallayoutwidth : 0;
+        var h = p && p.actuallayoutheight ? p.actuallayoutheight : 0;
+        return { w: w > 0 ? w : FALLBACK_W, h: h > 0 ? h : FALLBACK_H };
+    }
+
+    function _mapSize() {
+        var s = QolLiteMapState.get();
+        var px = Number(s.minimapSizePx) || 400;
+        var min = s.minimapSizeMinPx || 200, max = s.minimapSizeMaxPx || 800;
+        return Math.max(min, Math.min(max, px));
+    }
+
+    function apply() {
+        var wrap = _panel("minimap_persp_wrapper");
+        if (!wrap) { return; }
+        var s = QolLiteMapState.get();
+        var c = _corner();
+        var b = _bounds(wrap), M = _mapSize();
+        var fx = _frac(s.minimapOffsetX), fy = _frac(s.minimapOffsetY);
+        var mH = _margin(fx, b.w, M);
+        var mV = _margin(fy, b.h, M);
+
+        wrap.style.horizontalAlign = c.left ? "left" : "right";
+        wrap.style.verticalAlign = c.top ? "top" : "bottom";
+        wrap.style.marginLeft = "0px"; wrap.style.marginRight = "0px";
+        wrap.style.marginTop = "0px"; wrap.style.marginBottom = "0px";
+        wrap.style[c.left ? "marginLeft" : "marginRight"] = mH + "px";
+        wrap.style[c.top ? "marginTop" : "marginBottom"] = mV + "px";
+
+        // Persist the sanitised fractions (defensive - clamps any out-of-range
+        // saved value from UMM back into [-1,1]).
+        if (fx !== Number(s.minimapOffsetX) || fy !== Number(s.minimapOffsetY)) {
+            QolLiteMapState.patch({ minimapOffsetX: fx, minimapOffsetY: fy });
+        }
+        // Diagnostic (DEBUG): confirms the container bounds and that the wrapper
+        // actually grows with the map.
+        _log("apply: corner=" + c.value + " bounds=" + Math.round(b.w) + "x" + Math.round(b.h) +
+            " map=" + M + " wrap=" + Math.round(wrap.actuallayoutwidth || 0) + "x" +
+            Math.round(wrap.actuallayoutheight || 0) + " frac=" + fx.toFixed(2) + "," + fy.toFixed(2) +
+            " margin=" + mH + "," + mV);
+        _syncControls();
+    }
+
+    function _syncControls() {
+        var s = QolLiteMapState.get();
+        var dd = _panel("minimap_corner_dropdown");
+        if (dd && typeof dd.SetSelected === "function") {
+            try { dd.SetSelected(_optionIdFor(s.minimapCorner)); } catch (e) {}
+        }
+        _syncSlider("minimap_offset_x_slider", s.minimapOffsetX);
+        _syncSlider("minimap_offset_y_slider", s.minimapOffsetY);
+    }
+
+    // The sliders are percentage widgets (value -1..1), so we just set the value;
+    // the widget renders the "%" text itself.
+    function _syncSlider(id, value) {
+        var row = _panel(id);
+        if (!row || !row.FindChildTraverse) { return; }
+        var ctrl = row.FindChildTraverse("Slider");
+        if (ctrl) { ctrl.value = _frac(value); }
+    }
+
+    function _valueForOptionId(id) {
+        for (var i = 0; i < CORNERS.length; i++) { if (CORNERS[i].id === id) { return CORNERS[i].value; } }
+        return null;
+    }
+
+    // A DropDown reports its choice via `oninputsubmit` on the DropDown itself, read
+    // back with GetSelected() - the pattern the shipped QOL Lock settings use
+    // (ql_settings.js commitDropdownSelection). `onactivate` on the option Labels
+    // (the pre-2.1 binding) never fired - the options live in a popup menu while
+    // open - which is why "Minimap Corner does nothing" was reported. SetSelected()
+    // from _syncControls may submit too, so an unchanged value is a no-op (no loop).
+    function _bindCorner() {
+        var dd = _panel("minimap_corner_dropdown");
+        if (!dd || !dd.SetPanelEvent) { return; }
+        dd.SetPanelEvent("oninputsubmit", function () {
+            var sel = null;
+            try { sel = dd.GetSelected ? dd.GetSelected() : null; } catch (e) { sel = null; }
+            var value = sel ? _valueForOptionId(String(sel.id || "")) : null;
+            if (!value || value === QolLiteMapState.get().minimapCorner) { return; }
+            QolLiteMapState.patch({ minimapCorner: value });
+            _log("corner -> " + value);
+            apply();
+        });
+    }
+
+    function _bindSlider(id, key) {
+        var row = _panel(id);
+        if (!row || !row.FindChildTraverse) { return; }
+        var ctrl = row.FindChildTraverse("Slider");
+        if (!ctrl) { return; }
+        ctrl.SetPanelEvent("onvaluechanged", function () {
+            var patch = {}; patch[key] = _frac(ctrl.value);
+            QolLiteMapState.patch(patch);
+            apply();
+        });
+    }
+
+    function init() {
+        _bindCorner();
+        _bindSlider("minimap_offset_x_slider", "minimapOffsetX");
+        _bindSlider("minimap_offset_y_slider", "minimapOffsetY");
+        apply();
+        // Re-apply once the HUD has certainly laid out, so the travel uses real
+        // container bounds (actuallayout* can be 0 on the first frame).
+        $.Schedule(0.5, apply);
+    }
+
+    function refresh() { apply(); }
+
+    return { init: init, apply: apply, refresh: refresh };
+})();

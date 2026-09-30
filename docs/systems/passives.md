@@ -2,11 +2,12 @@
 
 > Keeps passive and active item icons visible instead of hiding them during play.
 >
-> **Origin:** Always Show Passives & Actives · **Runs in:** every match · **Off switch:** ✅ UMM `always_show_passives`
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Origin:** Always Show Passives & Actives · **Runs in:** every match · **Off switch:** ⚠️ UMM `always_show_passives` — defeated by unconditional rules
+> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
 
-**The cheapest feature in the mod, and the model the others should follow.** It costs one class
-toggle and zero timers: all behaviour is CSS.
+**The cheapest feature in the mod, and the model the others should follow** — in its design. It costs
+one class toggle and zero timers: all behaviour is CSS. In its current files the off switch does not
+work (see [Known issues](#known-issues)).
 
 ---
 
@@ -22,13 +23,19 @@ toggle and zero timers: all behaviour is CSS.
 | Path | Role |
 |---|---|
 | `panorama/scripts/qollite_passive.js` | 2 lines minified — UMM manifest and two class toggles |
-| `panorama/styles/hud_ability_icon_passive.css` | **116 lines** — imports the baseline, adds our rules |
+| `panorama/styles/hud_ability_icon_passive.css` | **231 lines** — imports the baseline, adds our rules; since `9935d0c` a second, ungated copy of the rules sits at the top of the file |
 | `panorama/styles/base/hud_ability_icon_passive.css` | 1,322 lines, pristine Valve baseline |
-| `panorama/styles/hud_abilities.css` / `base/hud_abilities.css` | Same pattern |
+| `panorama/styles/hud_abilities.css` / `base/hud_abilities.css` | Same pattern — the override is only the `@import` plus rules (17 lines), so Valve's changes arrive through `base/` |
 | `panorama/styles/hud_ability_icon.css` / `base/hud_ability_icon.css` | Same pattern |
 
-> This is the cleanest example of the `base/` pattern in the repo: a 116-line override over a
-> 1,322-line baseline. See [`../ARCHITECTURE.md`](../ARCHITECTURE.md) § The `base/` pattern.
+> `hud_abilities.css` is the cleanest example of the `base/` pattern in the repo: 17 lines over a
+> full Valve baseline. See [`../ARCHITECTURE.md`](../ARCHITECTURE.md) § The `base/` pattern.
+> At the 6722 rebase the tool's automatic merge wrongly grafted a whole Valve sheet into it; it was
+> kept unchanged instead ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9).
+
+`hud_ability_icon.css` is a full copy of Valve's sheet; it was rebased onto 6722, which also brought in
+Valve's rules hiding the new "+0" (`#AbilityLevelContainer`) and "Undo" (`#KeyboardHint`) panels on
+every ability icon. Its only mod rule is the `UMM_ShowPassives` one (`hud_ability_icon.css:583`).
 
 ---
 
@@ -71,7 +78,14 @@ UMM id `always_show_passives`:
 
 ## Known issues
 
-None known. Defaults to on, which is a deliberate exception justified by the zero runtime cost.
+- **The UMM toggle cannot turn the feature off** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D10.
+  `hud_abilities.css:14-17` and `hud_ability_icon_passive.css:15-18` show hidden passives
+  unconditionally, and `hud_ability_icon_passive.css:4-13` dims every `.ability_container`
+  unconditionally, so the `.ASAPOn` gating is bypassed. Arrived with `9935d0c`; whether intended is
+  a question for its author.
+- Defaults to on, which is a deliberate exception justified by the zero runtime cost.
+- `hud_abilities.css` and `hud_ability_icon_passive.css` each `@import` their baseline twice
+  ([`../TECH_DEBT.md`](../TECH_DEBT.md) D7).
 
 ---
 

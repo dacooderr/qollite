@@ -22,13 +22,14 @@ vendored — read it before editing anything under `panorama/scripts/`.
 | Add or change a setting exposed through Universal Mod Manager | [`UMM.md`](UMM.md) |
 | Know what is already broken, dead, or expensive | [`TECH_DEBT.md`](TECH_DEBT.md) |
 | Avoid a trap someone already fell into | [`FIELD_NOTES.md`](FIELD_NOTES.md) |
+| Update the pack after a Deadlock patch | [`ARCHITECTURE.md`](ARCHITECTURE.md) §9 |
 
 ## Document map
 
 ```
 docs/
 ├── README.md          you are here
-├── ARCHITECTURE.md    repo layout, provenance, load model, override rules
+├── ARCHITECTURE.md    repo layout, provenance, load model, override rules, after-patch procedure
 ├── BUNDLE.md          manifest: what is bundled, whose it is, what we may change
 ├── PANORAMA.md        the UI engine: what it can do, how it fails, how to debug it
 ├── UMM.md             the Universal Mod Manager settings protocol as this mod implements it

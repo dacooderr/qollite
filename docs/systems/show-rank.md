@@ -1,115 +1,58 @@
-# Rank badges
+# Rank badges (Show Rank) — removed
 
-> Shows each player's predicted rank badge across the HUD, scoreboard, and menus.
+> Showed each player's predicted rank badge across the HUD, scoreboard, and menus.
 >
-> **Origin:** Show Rank · **Runs in:** 6 contexts · **Off switch:** ❌ none
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Origin:** Show Rank · **Status:** ❌ **removed** in `ecdacbb` (2026-08-06) · **Runs in:** nowhere
+> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
 
-> ### ⚠️ Read before changing anything here
-> This feature makes **outbound HTTP requests to a third-party service** for every player in the
-> match, and the user has **no way to disable it**. That combination is the most significant open
-> issue in the mod — see [Known issues](#known-issues).
-
----
-
-## What it does
-
-Renders a rank badge image next to player names in:
-
-| Context | Layout |
-|---|---|
-| Top bar | `citadel_hud_top_bar.xml` |
-| Top bar player rows | `citadel_hud_top_bar_player.xml` |
-| Player context menu | `citadel_ui_context_menu_player.xml` |
-| Escape menu player list | `hud_escape_menu.xml` |
-| Player list entries | `players_list_entry.xml` |
-| Profile card | `profile_card.xml` |
-
-Plus a **team average** badge pair in the top bar (`#ShowRankAverageFriendlyImage`,
-`#ShowRankAverageEnemyImage`), and a **"Retry ranks"** button in the escape menu
-(`#ShowRankRetryMissingRanks`) that re-runs the lookup for players whose badge failed to load.
+> ### This feature is no longer in the pack
+> `qollite_showrank.js` and its stylesheets were deleted and its includes removed from all six
+> layouts in `ecdacbb`, "remove Show Ranks to address performance reports". A grep of the working
+> tree on 2026-09-30 finds no `qollite_showrank` file or include and no `ShowRank` id or class outside
+> Valve's own `ShowRanked*` names ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §4). The page is kept so
+> the reasons, and the traps hit while removing it, stay findable.
 
 ---
 
-## Files
+## What it was
 
-| Path | Notes |
-|---|---|
-| `panorama/scripts/qollite_showrank.js` | **The largest logic script in the mod** — 87 KB in 170 minified lines, extremely dense. (`qollite_recent_purchase_icons.js` is larger at 385 KB, but it is a data table.) |
-| `panorama/styles/topbar_rank_topbar.css` | 5,377 lines — badge styling for the top bar |
-| `panorama/styles/topbar_rank_player_list.css` | Player list |
-| `panorama/styles/topbar_rank_escape_menu.css` | Escape menu |
-| `panorama/styles/topbar_rank_base/objectives_map.css` | Baseline, imported by `objectives_map.css` |
-| `panorama/styles/topbar_rank_base/citadel_hud_top_bar.css` | ⚠️ **Dead** — [`../TECH_DEBT.md`](../TECH_DEBT.md) §4 |
+A rank-badge image next to player names in six layouts — `citadel_hud_top_bar.xml`,
+`citadel_hud_top_bar_player.xml`, `citadel_ui_context_menu_player.xml`, `hud_escape_menu.xml`,
+`players_list_entry.xml`, `profile_card.xml` — plus a team-average badge pair in the top bar and a
+"Retry ranks" button in the escape menu. Badges were images loaded from `api.deadlock-api.com`
+(`/v1/players/{account_id}/rank-predict/image`, and a batched six-id form for the team average), for
+every player in every match, with no setting to turn it off.
 
----
+## Why it was removed
 
-## How it works
+The script was 87 KB of minified logic (277 functions, 118 `try` blocks) and was included by
+**per-instance** layouts, so a full lobby loaded and ran roughly a dozen isolated copies of it
+([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §5). A UMM toggle could not have fixed that — hiding the
+badges would have left every copy loading and running. Performance complaints had risen after it was
+added; no frame-time measurement was taken.
 
-### Rank source
+## What the removal did
 
-Badges come from **`api.deadlock-api.com`**, a community service, loaded as images:
+- Deleted `qollite_showrank.js`, `topbar_rank_player_list.css`, `topbar_rank_escape_menu.css`, and the
+  then `profile_card.css` with its `base/` copy.
+- Restored the six layouts' Show Rank panels, classes and handlers to Valve's markup.
+  `citadel_ui_context_menu_player.xml` and `players_list_entry.xml` still ship as overrides with no
+  known mod change.
+- Cut Show Rank's rules out of `topbar_rank_topbar.css` but **kept the file** — it is Top Bar Plus's
+  stylesheet and a fork of Valve's top bar sheet ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §2).
+- Removed the "StatLocker Profile" / "Deadlock Profile" context-menu and profile-card entries, which
+  had come from Show Rank.
 
-```
-https://api.deadlock-api.com/v1/players/{account_id}/rank-predict/image?format=webp
-https://api.deadlock-api.com/v1/players/rank-predict/image?account_ids={id×6}&format=webp
-```
+## What came after
 
-The second, batched form is used for the team average and requires exactly six deduplicated ids.
-Panorama's `Image` accepts remote `https://` URLs ([`../PANORAMA.md`](../PANORAMA.md) §3), so this is
-`SetImage(url)` — no JSON parsing, no visible request layer, and no error surface if the service is
-slow or down.
-
-### Finding account ids
-
-There is no clean API. The script derives ids by, in order: reading an `AccountID`-classed label,
-reading `accountid` / `account_id` / `accountID` panel properties and attributes, walking the panel
-tree, and finally probing `Game.GetLocalPlayerInfo()` / `Players.*` — all wrapped in `try`/`catch`
-because none of them is guaranteed to exist. It also converts to `[U:1:…]` Steam3 and 64-bit forms.
-
-### Working across six contexts
-
-The script is loaded into six separate layouts, which share no globals
-([`../PANORAMA.md`](../PANORAMA.md) §3). Its instances coordinate through a versioned object parked on
-`$`:
-
-```js
-$.__QolLiteShowRankWebMediaBridge = { version: 236, state: { … } }
-```
-
-The `version: 236` guard means an older or newer copy of the script will not corrupt the shared state.
-Note this shares state **within** a context, not across them.
-
-### Matching players to rows
-
-The hard part. The script maintains candidate rows, matches by normalised player name, requires all
-twelve slots and both team sides to be known before committing a team-average lookup, and retries with
-backoff (0.15 s → 1 s, and a 20 s long retry). `$.Schedule` intervals adapt to how the lookup was
-triggered — a mouse activation gets 1.25 s, other paths 6.25 s.
-
----
-
-## Settings
-
-**None.** Not registered with UMM.
-
----
-
-## Known issues
-
-- **No off switch** — [`../TECH_DEBT.md`](../TECH_DEBT.md) §3. This is the priority fix for the
-  feature.
-- **Third-party network dependency, undisclosed.** Every match sends player account ids to
-  `api.deadlock-api.com`. Users are not told, cannot opt out, and there is no documented behaviour for
-  the service being unavailable. At minimum this needs a UMM toggle and a line in the README.
-- **Loaded into six contexts**, so its cost multiplies by context count rather than being paid once.
-- **Effectively unmaintainable in its current form.** The densest logic in the repo — 87 KB of
-  minified JavaScript — with no upstream source here ([`../TECH_DEBT.md`](../TECH_DEBT.md) D5).
-- One of its baseline stylesheets is dead — [`../TECH_DEBT.md`](../TECH_DEBT.md) §4.
+A separate feature, **Friends Rank** ("Show Player/Friends Ranks", `27087ae`), later added rank badges
+to the profile page and profile cards, also from `api.deadlock-api.com`, plus Statlocker buttons on
+the post-game scoreboard. It too loads a script into `profile_card.xml` per instance. It has no page
+yet and its origin is not recorded — [`../BUNDLE.md`](../BUNDLE.md) §5, [`../TECH_DEBT.md`](../TECH_DEBT.md) D13.
 
 ---
 
 ## See also
 
-- [top bar](top-bar.md) — shares `citadel_hud_top_bar.xml`
-- [Statlocker](statlocker.md) — the other feature that links out to a third-party service
+- [`../FIELD_NOTES.md`](../FIELD_NOTES.md) §2–§5 — the traps found while removing it
+- [top bar](top-bar.md) — owns `topbar_rank_topbar.css` despite the name

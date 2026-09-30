@@ -1,4 +1,89 @@
-(function(){function d(a,b){try{b()}catch(e){$.Msg("[NOTIF] ERROR: init "+a+" threw: "+e)}}function l(a){var b="urn_live_"+a,e=QolLiteNotificationsClock.getMatchTime(),f=Date.now();(function m(){if(QolLiteNotificationsConfig.enabled){var g=QolLiteNotificationsStrings.name("soul_urn"),c=QolLiteNotificationsClock.getMatchTime();c=c!==null&&e!==null?c-e:(Date.now()-f)/1E3;c=Math.ceil(12-c);c>0&&Date.now()-f<3E4?(QolLiteNotificationsManager.descent(b,g,c),$.Schedule(.25,m)):QolLiteNotificationsManager.spawn(b,
-g)}})()}function n(){try{$.RegisterForUnhandledEvent("ClientUI_FireOutput",function(a){if(typeof a==="string"&&a.indexOf('"urn"')!==-1){try{var b=JSON.parse(a)}catch(e){return}b&&b.notif===1&&b.type==="urn"&&QolLiteNotificationsConfig.enabled&&QolLiteNotificationsConfig.showSpawn&&(!QolLiteNotificationsConfig.events||QolLiteNotificationsConfig.events.soul_urn!==!1)&&(h++,l(h))}})}catch(a){QolLiteNotificationsLog.error("urn receiver register failed: "+a)}}function p(){QolLiteNotificationsLog.info("bootstrap: all modules present, initializing");
-d("strings",function(){QolLiteNotificationsStrings.init()});d("manager",function(){QolLiteNotificationsManager.init()});d("scheduler",function(){QolLiteNotificationsScheduler.init()});d("clock",function(){QolLiteNotificationsClock.init()});d("urn",function(){n()});typeof QolLiteNotificationsUmmAdapter!=="undefined"&&d("umm",function(){QolLiteNotificationsUmmAdapter.init()});k()}function k(){try{var a=QolLiteNotificationsClock.getMatchTime();a!==null&&QolLiteNotificationsScheduler.tick(a)}catch(b){QolLiteNotificationsLog.error("tick threw: "+
-b)}$.Schedule(.25,k)}var h=0,q=0;(function b(){typeof QolLiteNotificationsLog!=="undefined"&&typeof QolLiteNotificationsConfig!=="undefined"&&typeof QolLiteNotificationsStrings!=="undefined"&&typeof QolLiteNotificationsEventSchedule!=="undefined"&&typeof QolLiteNotificationsClock!=="undefined"&&typeof QolLiteNotificationsScheduler!=="undefined"&&typeof QolLiteNotificationsManager!=="undefined"?p():q++<200?$.Schedule(.1,b):$.Msg("[NOTIF] ERROR: modules never became ready")})()})();
+// Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif.js.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
+// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
+// below refer to the upstream repo.
+"use strict";
+// Bootstrap (overlay context). Polls until all overlay modules are present, inits each in
+// isolation (one throw never aborts the rest), then drives the tick loop off the bus clock.
+// The clock BRIDGE runs in a separate context (HUD top bar) and is not awaited here.
+(function () {
+    function ready() {
+        return typeof QolLiteNotificationsLog !== "undefined"
+            && typeof QolLiteNotificationsConfig !== "undefined"
+            && typeof QolLiteNotificationsStrings !== "undefined"
+            && typeof QolLiteNotificationsEventSchedule !== "undefined"
+            && typeof QolLiteNotificationsClock !== "undefined"
+            && typeof QolLiteNotificationsScheduler !== "undefined"
+            && typeof QolLiteNotificationsManager !== "undefined";
+    }
+
+    function safe(name, fn) {
+        try { fn(); } catch (e) { $.Msg("[NOTIF] ERROR: init " + name + " threw: " + e); }
+    }
+
+    // Live urn: the HUD detector broadcasts once per fresh urn spawn (visible to all -> fair).
+    // The urn then falls from the sky for ~12s before it can be picked up, so we run a
+    // "Landing in Ns" descent countdown, then flip to "Available now" when it lands.
+    var _urnN = 0;
+    var DESCENT_SEC = 12;
+
+    function startUrnDescent(n) {
+        var key = "urn_live_" + n;
+        var t0g = QolLiteNotificationsClock.getMatchTime();   // game seconds at spawn (pauses with the game)
+        var t0w = Date.now();                  // wall-time fallback + a hard cap
+        (function step() {
+            if (!QolLiteNotificationsConfig.enabled) { return; }
+            var name = QolLiteNotificationsStrings.name("soul_urn");
+            var gt = QolLiteNotificationsClock.getMatchTime();
+            // count off the game clock when we have it (freezes on pause); else wall-time
+            var elapsed = (gt !== null && t0g !== null) ? (gt - t0g) : ((Date.now() - t0w) / 1000);
+            var remaining = Math.ceil(DESCENT_SEC - elapsed);
+            if (remaining > 0 && (Date.now() - t0w) < 30000) {
+                QolLiteNotificationsManager.descent(key, name, remaining);
+                $.Schedule(0.25, step);
+            } else {
+                QolLiteNotificationsManager.spawn(key, name);   // landed -> Available now (this plays the sound)
+            }
+        })();
+    }
+
+    function initUrnReceiver() {
+        try {
+            $.RegisterForUnhandledEvent("ClientUI_FireOutput", function (payload) {
+                if (typeof payload !== "string" || payload.indexOf("\"urn\"") === -1) { return; }
+                var d; try { d = JSON.parse(payload); } catch (e) { return; }
+                if (!d || d.notif !== 1 || d.type !== "urn") { return; }
+                if (!QolLiteNotificationsConfig.enabled || !QolLiteNotificationsConfig.showSpawn) { return; }
+                if (QolLiteNotificationsConfig.events && QolLiteNotificationsConfig.events.soul_urn === false) { return; }
+                _urnN++;
+                startUrnDescent(_urnN);
+            });
+        } catch (e) { QolLiteNotificationsLog.error("urn receiver register failed: " + e); }
+    }
+
+    function init() {
+        QolLiteNotificationsLog.info("bootstrap: all modules present, initializing");
+        safe("strings", function () { QolLiteNotificationsStrings.init(); });
+        safe("manager", function () { QolLiteNotificationsManager.init(); });
+        safe("scheduler", function () { QolLiteNotificationsScheduler.init(); });
+        safe("clock", function () { QolLiteNotificationsClock.init(); });
+        safe("urn", function () { initUrnReceiver(); });
+        if (typeof QolLiteNotificationsUmmAdapter !== "undefined") { safe("umm", function () { QolLiteNotificationsUmmAdapter.init(); }); }
+        tick();
+    }
+
+    function tick() {
+        try {
+            var t = QolLiteNotificationsClock.getMatchTime();      // seconds, or null if inactive/stale
+            if (t !== null) { QolLiteNotificationsScheduler.tick(t); }
+        } catch (e) { QolLiteNotificationsLog.error("tick threw: " + e); }
+        $.Schedule(0.25, tick);
+    }
+
+    var tries = 0;
+    (function wait() {
+        if (ready()) { init(); return; }
+        if (tries++ < 200) { $.Schedule(0.1, wait); }
+        else { $.Msg("[NOTIF] ERROR: modules never became ready"); }
+    })();
+})();

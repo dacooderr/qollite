@@ -5,7 +5,7 @@
 > **Audience:** maintainers, contributors, and anyone auditing what ships to users.
 > **Status:** partially filled — authors and licenses traced via the GameBanana API (§7); every `TBD`
 > and every *Probable* is still a question only the maintainers can close.
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
 
 QOL Lite is a **distribution**, not a single codebase. It bundles roughly a dozen features, most of
 them originally written by other people, into one pack so they can share Valve's HUD files instead of
@@ -57,10 +57,11 @@ that combines them exists only here and has no upstream:
 | What | Files |
 |---|---|
 | The merged HUD | `panorama/layout/hud.xml` — carries Valve's tree plus panels from several features at once |
-| The merged top bar | `panorama/layout/citadel_hud_top_bar.xml` — hosts three features' scripts |
+| The merged top bar | `panorama/layout/citadel_hud_top_bar.xml` — hosts Top Bar Plus and the two Map Event Reminders bridges |
 | The `base/` pattern | `panorama/styles/base/**`, `topbar_rank_base/**` and the overrides that import them ([`ARCHITECTURE.md`](ARCHITECTURE.md) § The `base/` pattern) |
 | Path arbitration | Deciding which feature owns which Valve path ([`systems/README.md`](systems/README.md) § Ownership map) |
-| 4×3 support | [`systems/aspect-ratio-4x3.md`](systems/aspect-ratio-4x3.md) — spans ten stylesheets |
+| 4×3 support | [`systems/aspect-ratio-4x3.md`](systems/aspect-ratio-4x3.md) — spans nine stylesheets and `popup_settings.xml` |
+| Game-patch rebases | Carrying every Valve-path override onto a new build ([`ARCHITECTURE.md`](ARCHITECTURE.md) §9) — the resolutions are ours, whoever owns the file |
 
 - **Author:** QOL Lite maintainers
 - **Upstream:** this repository
@@ -76,36 +77,117 @@ the part of the repo where changes are unambiguously ours to make.
 
 ## 3. First-party — our own mods
 
-Developed separately, bundled here. These are the only script files we can meaningfully rebuild.
+Developed separately, bundled here. Their scripts are **regenerated** from an upstream commit by a
+bundler under `scripts/`; the bundled copies are never edited by hand. Each bundled file opens with a
+provenance header naming the upstream repo, commit and original file.
+
+**Re-bundling, in general:**
+
+```
+python scripts/bundle_bettermap.py --upstream <BetterMap checkout> --rev <commit>
+python scripts/bundle_mer.py       --upstream <MapEventReminders checkout> --rev <commit>
+# add --check to compare without writing (exit 1 = differs)
+```
+
+The bundlers read the commit through `git show`, never the upstream working tree. They regenerate
+**scripts only**; the merge-layer files each mod also needs (listed per mod below) are brought in line
+with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
 
 ### Minimap (BetterMap)
 
 - **Author:** gfkm
-- **GameBanana:** [664456 — Better Map / Customize](https://gamebanana.com/mods/664456), v1.01
-- **Upstream repo:** `github.com/gfkm-gpt/deadlockmapmod` *(the working copy has no live `origin`;
-  confirm the canonical remote before relying on this)*
-- **Bundled version:** TBD — nothing in the pack records which build is in it
+- **GameBanana:** [664456 — Better Map / Customize](https://gamebanana.com/mods/664456), v1.01 (not
+  re-checked on 2026-09-30)
+- **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
+  `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
+- **Bundled version:** BetterMap **2.1** (upstream CHANGELOG, 2026-09-30) at commit **`ca29290`**
+  (`ca29290306cbadb0b6bce7ba7bd789c26a95599f`, 2026-09-30, "minimap: fix Minimap Corner dropdown in
+  the in-HUD panel"). Bundled 2026-09-30.
+  - Previously bundled: closest upstream commit **`60fa437`** (2026-07-26) — **inferred** by comparing
+    the old minified bundle's string literals against every upstream commit; the residual differences
+    were all explained as minifier artifacts. That build had DEBUG on
+    ([`FIELD_NOTES.md`](FIELD_NOTES.md) §9).
+  - `ca29290` is newer than the release build of BetterMap its author had checked in game (that build
+    differs only in DEBUG on, and in how the corner dropdown is bound).
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
-- **Rebuildable:** yes, from the upstream project
-- **Files:** `panorama/scripts/qollite_map_*.js` (12), `panorama/layout/hud.xml` (shared),
-  `panorama/styles/hud_minimap.css`, `panorama/images/minimap/**`, `materials/minimap/**`
+- **Rebuildable:** yes — `scripts/bundle_bettermap.py`
+- **Files:** `panorama/scripts/qollite_map_*.js` (15, readable source), `panorama/layout/hud.xml`
+  (shared), `panorama/styles/hud_minimap.css`, BetterMap's rules in `panorama/styles/hud.css`,
+  `panorama/images/minimap/base/bm_vignette_png.*`
+- **Merge-layer files, compared by hand at `ca29290`:** `hud.xml` differs from BetterMap's own only by
+  the bundled script names, the `qollite_passive` include, and the local-delta slider row below;
+  `hud_minimap.css`'s appendix equals BetterMap's; `hud.css` carries BetterMap's rules plus QOL Lite's
+  own (4×3, passives, `#objectives_health_friendly`).
 - **Docs:** [`systems/minimap.md`](systems/minimap.md)
 
-> Upstream module names map one-to-one onto the bundled files (`bettermap_*` → `qollite_map_*`). The
-> `[BetterMap]` log prefix and `bm_`/`Bm` class names in the shipped build are upstream names that
-> survived the rename — they are load-bearing, not leftovers.
+**Transformation** (the bundler's `FILES` table is the rule): `bettermap_<x>.js` →
+`qollite_map_<x>.js`, except `bettermap.js` → `qollite_map_bootstrap.js`, `bettermap_umm.js` →
+`qollite_map_umm_adapter.js`, `poi_data.js` / `urn_data.js` → `qollite_map_poi_data.js` /
+`qollite_map_urn_data.js`. Globals `Bettermap<X>` → `QolLiteMap<X>`, `BettermapUmm` →
+`QolLiteMapUmmAdapter`, `POI_DATA` / `URN_DATA` → `QolLiteMapPoiData` / `QolLiteMapUrnData`. Kept
+verbatim, because CSS and saved settings match them: the `[BetterMap]` log prefix, UMM id `bettermap`
+and name `BetterMap`, `bm_*` / `Bm*` classes. Not minified.
+
+**QOL Lite local delta — "Minimalist Map Opacity".** Not in any upstream commit on any branch, and
+not recorded here until 2026-09-30, although the previous bundle already carried it. Pieces: state key
+`minimalMapOpacity` (default `0.9`), UMM slider `minimalMapOpacityPct` (0–100 %), in-HUD slider
+`#minimap_minimal_opacity_slider`. Kept so users' saved values keep applying; the bundler applies it
+as labelled patches ("QOL Lite local delta (not in upstream BetterMap)") in
+`qollite_map_state.js`, `qollite_map_umm_adapter.js` and `qollite_map_minimal.js`, and the slider row
+is in `hud.xml`.
+It had to be **ported, not copied**: the old code set an inline opacity on `#canvas` and every
+`.backgroundImage`, but 6722 draws the map as `backgroundImage1..3`, whose opacity Valve's CSS
+switches per level — an inline opacity there would show all levels at once. The port fades their
+common parent `#MinimapBackgroundTest` instead and clears it when off. **Unverified in game** — in
+particular whether any C++ marker lives under `#MinimapBackgroundTest` and would fade too. Offered
+upstream: not yet. Options: upstream it into BetterMap, or drop it.
+
+> Upstream module names map one-to-one onto the bundled files. The `[BetterMap]` log prefix and
+> `bm_`/`Bm` class names in the shipped build are upstream names kept by the bundler — they are
+> load-bearing, not leftovers.
 
 ### Event reminders (Map Event Reminders)
 
 - **Author:** gfkm
 - **GameBanana:** [697050 — Map Event Reminders](https://gamebanana.com/mods/697050)
 - **Upstream repo:** `github.com/gfkm/MapEventReminders`
-- **Bundled version:** TBD
+- **Bundled version:** commit **`12e6b3b`** (2026-09-30, "rebase top bar onto game build 6722").
+  Bundled 2026-09-30.
+  - Previously bundled: **`b8907bc`** — inferred from the old minified bundle (string literals and
+    globals match it; it lacks the Street Brawl code of `4a5aa89` and still has the `map_render`
+    diagnostic removed in `12e6b3b`).
+  - Functional changes since then, all upstream: Street Brawl suppression (`4a5aa89` — the top-bar
+    bridge stops broadcasting the clock in Street Brawl) and removal of the `map_render` diagnostic
+    (`12e6b3b`). Module set unchanged (11 files).
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
-- **Rebuildable:** yes, from the upstream project
-- **Files:** `panorama/scripts/qollite_notifications_*.js` (11),
-  `panorama/layout/base_hud_and_db_overlay.xml`, `panorama/styles/notif.css`
+- **Rebuildable:** yes — `scripts/bundle_mer.py`
+- **Files:** `panorama/scripts/qollite_notifications_*.js` (11, readable source),
+  `panorama/layout/base_hud_and_db_overlay.xml`, `panorama/styles/notif.css`, and two includes in
+  `panorama/layout/citadel_hud_top_bar.xml`
+- **Merge-layer files, compared by hand at `12e6b3b`:** the overlay layout's include list equals
+  upstream's, in the same order; `notif.css` is rule-for-rule upstream's `notif.vcss`; upstream's two
+  top-bar hunks for 6722 are present in `citadel_hud_top_bar.xml`.
 - **Docs:** [`systems/event-reminders.md`](systems/event-reminders.md)
+
+**Transformation** (the bundler's `FILES` / `GLOBALS` tables are the rule): `notif_<x>.js` /
+`event_schedule.js` / `notif.js` → `qollite_notifications_<y>.js` (`notif_umm.js` → `_umm_adapter`,
+`notif_urn.js` → `_urn_detector`, `notif.js` → `_bootstrap`); globals `NotifLog`, `NOTIF_CONFIG`,
+`NOTIF_STRINGS`, `EVENT_SCHEDULE`, `NotifClock`, `NotifScheduler`, `NotifManager`, `NotifUmm`,
+`NotifClockBridge`, `NotifUrn` → `QolLiteNotifications*`. Kept verbatim: log prefixes `[NOTIF]`,
+`[NOTIF][bridge]`, `[NOTIF][urn]`; bus payloads `{notif:1,…}`; UMM id `eventnotifier` and every
+setting key; `NotifVisible` / `NotifExpired` classes; `#NotificationRoot`.
+
+**QOL Lite local deltas:**
+
+1. `qollite_notifications_log.js`: `var DEBUG = false;` — upstream ships `true` on purpose (upstream
+   `35d60a3`, "keep DEBUG on, console-only"). Upstream `log()` is event-driven (a few lines a match
+   minute), so the cost either way is small; off was chosen for a performance-first pack, and
+   `info` / `error` plus the bridges' own `$.Msg` lines still print. One line to flip.
+2. Non-ASCII in string literals is written as `\uXXXX` escapes (the Russian strings in
+   `qollite_notifications_strings.js`), and in comments as ASCII punctuation. The previous bundle was
+   pure ASCII and is known to render Russian; whether Panorama decodes raw UTF-8 in JS is not verified.
+   Cost: the Russian strings are not human-readable in this repo (they are upstream).
+3. The provenance header. No logic change of our own.
 
 ---
 
@@ -118,15 +200,18 @@ the minified output.
 | Feature | Credited author(s) | GameBanana | Version | Confidence |
 |---|---|---|---|---|
 | Top Bar Plus | **bonclide** (tweaks, objective HUD) + Waltee (objective damage + base) + NA-45 (team-fight HUD) + bytenode (recent purchases); timers by BreadRollius (icons) + Hanturaya (base) | [623518](https://gamebanana.com/mods/623518) | 4.0d | Probable |
-| Show Rank | **Hanturaya**; image logic by bytenode; rank API by deadlock.api (manuelhexe) | [681028](https://gamebanana.com/mods/681028) | — | Probable |
+| ~~Show Rank~~ — **removed** in `ecdacbb` ([page](systems/show-rank.md)) | **Hanturaya**; image logic by bytenode; rank API by deadlock.api (manuelhexe) | [681028](https://gamebanana.com/mods/681028) | — | Probable |
 | Enhanced Quickbuy | **Aminsx** | [664041](https://gamebanana.com/mods/664041) | 1.6 | Confirmed |
 | Recent Purchases | **Unresolved** — two candidates, see below | [607703](https://gamebanana.com/mods/607703) or [679055](https://gamebanana.com/mods/679055) | — | **Unresolved** |
 | Always Show Passives & Actives | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
-| Advanced Testing Tools In Hideout | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 | Probable |
+| Advanced Testing Tools In Hideout | **bonclide** | [616749](https://gamebanana.com/mods/616749) | 3.0 + local delta (below) | Probable |
 | Optimized McGinnis Wall | **Aminsx** (creator); dacooderr listed as redistributor | [690514](https://gamebanana.com/mods/690514) | — | Confirmed |
 | Sinner's Light Fix | TBD — no GameBanana match under this name | TBD | TBD | **Not found** |
+| Ammo Buff Notifier (`mercurial_magnum_notifier.*`, `element_gun.xml` images) | "Han", per the message of `9935d0c`, which calls it part of "his updated Always Show Passive Items & Actives Icons Mod" | TBD | TBD | **Unverified** — only a commit message |
+| Experimental Extended FOV Slider (`#BetterFOVAspectRatio` in `popups/popup_settings.xml`) | **Maffinz**, per the message of `ac24ca8` | TBD | TBD | **Unverified** — only a commit message |
 
-**All of the above are licensed CC BY-NC-ND 4.0** on GameBanana. See [§6](#6-licensing) — the terms
+**Every row above with a GameBanana entry is licensed CC BY-NC-ND 4.0** there; the last two rows have
+no traced source or license yet. See [§6](#6-licensing) — the terms
 matter, and they are not what the repository's `LICENSE` file says.
 
 **Confidence levels.** *Confirmed* means a single unambiguous match whose credits name one author.
@@ -153,20 +238,45 @@ Manager under stable ids, which are likely to match their original project names
 | Recent Purchases | `recent_purchases` | Recent Purchases |
 | Always Show Passives & Actives | `always_show_passives` | Always Show Passives & Actives |
 
-Show Rank additionally brands its shared state as `$.__QolLiteShowRankWebMediaBridge` with
-`version: 236` — that `236` is the closest thing to a version stamp anywhere in the pack, though what
-it refers to is unknown.
+Show Rank, while it shipped, branded its shared state `$.__QolLiteShowRankWebMediaBridge` with
+`version: 236`. The Friends Rank scripts ([§5](#5-unattributed)) carry `version: 16` in their config.
+
+### Advanced Testing Tools — local delta
+
+Recorded 2026-09-30. Build 6711 removed the C++ panel events and console commands several of the
+mod's buttons dispatch (`HeroTestingChangeTeam`, `HeroTestingUpdateDisableDeath`,
+`HeroTestingUpdateDisableCooldowns`, `HeroTestingUpdateEnableUnlimitedAmmo`,
+`HeroTestingUpdateEnableFastStamina`, `citadel_{enable,disable}_no_hero_death`, … — gone from
+`client_strings.txt` / `commands.txt` of 6722). Valve's own 6722 menu binds the same rules to convars.
+The mod's layout was patched to do the same — **five lines** in `panorama/layout/hud_hero_testing.xml`,
+ids, classes and labels unchanged:
+
+| Control | Was | Now |
+|---|---|---|
+| Change Team | `onactivate="HeroTestingChangeTeam();"` | `onactivate="Cmd( 'changeteam' );"` |
+| `#DisableDeathCheckbox` | `ToggleButton` → `UpdateNoDeathToggle()` | `CitadelSettingsCheckbox convar="buddha"` |
+| `#EnableUnlimitedAmmoCheckbox` | `ToggleButton` → `HeroTestingUpdateEnableUnlimitedAmmo()` | `CitadelSettingsCheckbox convar="sv_infinite_ammo"` |
+| `#DisableCooldownCheckbox` | `ToggleButton` → `HeroTestingUpdateDisableCooldowns()` | `CitadelSettingsCheckbox convar="citadel_ability_cooldown_max"` |
+| `#EnableFastStaminaCheckbox` | `ToggleButton` → `HeroTestingUpdateEnableFastStamina()` | `CitadelSettingsCheckbox convar="citadel_rapid_stamina_regen"` |
+
+`hero_testing_menu.css` and `qollite_hero_testing.js` are unchanged. Side effects: the No Death
+button no longer plays its `Stinger.LevelUp` sound; the script's `UpdateNoDeathToggle` is still
+exported but no longer called (it only sends removed commands). Valve's own new testing menu is not
+shown — the mod still replaces the panel. **Unverified in game.** Offered upstream: not yet —
+whether the author has a 6711+ update was not checked.
 
 ### Third-party services
 
-Two bundled features reach outside the game. Users are not currently told about either:
+Bundled code that reaches outside the game (read from the scripts' URLs, 2026-09-30). Users are not
+currently told about any of it:
 
 | Feature | Service | When | Data sent |
 |---|---|---|---|
-| [Show Rank](systems/show-rank.md) | `api.deadlock-api.com` | **Automatically, every match** | Player account ids, for every player in the match |
-| [Statlocker](systems/statlocker.md) | `statlocker.gg` | Only when the user clicks the button | The profile's account id |
+| Friends Rank ([§5](#5-unattributed)) | `api.deadlock-api.com/v1/players` | Automatically, as rank-badge image requests when the profile page or a profile card resolves a player (`friends_rank.js`; the post-game scripts only link to Statlocker) — the exact triggers were not audited | The resolved account id |
+| Friends Rank's Statlocker buttons ([Statlocker](systems/statlocker.md)) | `statlocker.gg/profile` | Only when the user clicks | The profile's account id |
 
-The first one needs a disclosure in the README and an opt-out — see
+Show Rank, which requested badges for every player in every match, was removed in `ecdacbb`. The
+Friends Rank requests need the same disclosure in the README and an opt-out — see
 [`TECH_DEBT.md`](TECH_DEBT.md) §3.
 
 ---
@@ -181,8 +291,10 @@ files:
 | [Leaderboard search](systems/leaderboard-search.md) | Not listed in the README either |
 | [Escape menu queuing](systems/escape-menu.md) | README: "Menu (for queuing while in Custom Servers or Hideout)" |
 | 4×3 option and fix | Plausibly first-party; treated as merge-layer in [§2](#2-first-party--the-merge-layer) pending confirmation |
-| Minimap texture replacements | Compact minimap, neutral vault, tunnels — possibly part of BetterMap upstream |
-| **Vindicta Scope Downscale** | **Listed in the README but not found in the repo at all.** Either it ships elsewhere, was removed without a README update, or is implemented somewhere not yet identified — see [`systems/assets.md`](systems/assets.md) |
+| Minimap texture replacements | Neutral-camp icons and the tunnels overlay. The tunnels overlay is QOL Lite-only (not in upstream BetterMap) and has been referenced by nothing since the 6722 update; the neutral icons' `dmm_custom_*` rules match nothing, here or upstream ([`TECH_DEBT.md`](TECH_DEBT.md) §4). BetterMap's own texture, `base/bm_vignette_png`, is recorded in [§3](#3-first-party--our-own-mods) |
+| Vindicta Scope Downscale | `panorama/images/hud/crosshair/scope_common_psd.png` plus its entry in `panorama/image_compiler.vdata`, re-added in `fb74e00` ("re-added Vindicta Scope Downscale"). Author not recorded |
+| **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and both post-game layouts. Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
+| `panorama/styles/hud_event_indicator.css` | Damage-number / floating-indicator restyle: `.WindowRoot` offset (`margin-left: 50px; margin-top: -100px`), `.batched` numbers at 80 px red with a 20 px yellow glow, fountain keyframes rising straight up (every `translateX` → 0), `pop` dropped from the cumulative animation. Present since the `959f80e` import; no doc, README entry or commit message names it, no script references its classes. Rebased onto 6722 edit by edit (Valve's longer lifetimes kept) |
 
 ---
 
@@ -289,6 +401,13 @@ exactly the false "we are up to date" the tool exists to prevent. Pin only what 
 Entries with no `gamebanana_id` cannot be tracked at all — that is why the unresolved rows in
 [§4](#4-vendored--third-party-mods) matter beyond bookkeeping.
 
+**First-party entries also carry a `bundled` block** — the upstream repo commit the scripts were
+generated from (`commit`, `date`, `version`). It is separate from `pinned` on purpose:
+`pinned` holds GameBanana fields and is overwritten wholesale by `--update`, while `bundled` is a git
+fact the checker does not read. Update it in the same commit as a re-bundle. The GameBanana `pinned`
+blocks for the two first-party mods stay empty until the bundle has been checked in game, since
+pinning is a claim about what ships.
+
 **Courtesy:** this is someone else's free service. The script throttles to two requests a second;
 keep it that way, and do not poll it on a schedule tighter than daily.
 
@@ -301,7 +420,8 @@ version, and license filled in, plus a row in [`sources.json`](../sources.json).
 be filled in is a reason to pause, not a formality to skip.
 
 **Updating a vendored mod** — bump its **Bundled version** in the same commit that updates its files,
-so the manifest never describes a build that is no longer shipping.
+so the manifest never describes a build that is no longer shipping. For a first-party mod, also
+update the `bundled` block in `sources.json`.
 
 **Patching a vendored mod locally** — record the patch as an explicit entry under that feature: what
 changed, why, and whether it was offered upstream. A local change nobody wrote down becomes

@@ -3,7 +3,7 @@
 > Adds 4:3 to the video settings and fixes the UI that breaks at that ratio.
 >
 > **Runs in:** everywhere · **Off switch:** ❌ none (it *is* a setting)
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted).
 
 Pure CSS plus one radio button. No script, no timers, no runtime cost.
 
@@ -21,7 +21,9 @@ halves of one feature:
 
 ## Files
 
-**The option** — `panorama/layout/popups/popup_settings.xml`:
+**The option** — `panorama/layout/popups/popup_settings.xml` (`#AspectRatioPanel`, line 717 after the
+6722 rebase; the same file also carries the Experimental Extended FOV slider, `#BetterFOVAspectRatio`,
+which 6711's new `citadel_settings_camera` subsection forced to be re-placed after `#CameraFOV`):
 
 ```xml
 <Panel id="AspectRatioPanel" class="LeftRightFlow">
@@ -40,13 +42,13 @@ option the engine supports but the UI does not surface. Mode `3` makes the clien
 > The three Valve buttons use `#token` localization; **the 4×3 button is hard-coded `"4x3"`** because
 > no token exists for it. Acceptable — the string is language-neutral.
 
-**The fix** — `.AspectRatio4x3` rules across ten stylesheets:
+**The fix** — `.AspectRatio4x3` rules across nine stylesheets (grepped 2026-09-30):
 
 | Stylesheet | Fixes |
 |---|---|
-| `hud.css` | `#health_and_abilities_container` centring; `#StatsAndModsContainer` under `gShopOpen` |
+| `hud.css` | `#health_and_abilities_container` centring; `#StatsAndModsContainer.gShopOpen #LowerLeft` |
 | `citadel_hud_hero_shop.css` | `#Shop`, `#MainPanel`, `#HeroScenePanel` |
-| `hud_quickbuy.css` | Queue outer panel, `#QuickbuyShopSummary` |
+| `hud_quickbuy.css` | Queue outer panel (`.gShopOpen .QuickbuyQueueOuter`), `.QuickbuyShopSummaryContainer` |
 | `citadel_hud_hero_builds.css` | Build edit section, `#AbilityBuildContainer` |
 | `citadel_ui_ability_order.css` | `#AbilityBuildContainer` — `ui-scale: 88%` |
 | `citadel_db_page_profile.css` | Main contents, stats, match history, tabs, hero scene |
@@ -84,10 +86,19 @@ without UMM.
 
 ## Known issues
 
-- **Coverage is unverified.** Ten stylesheets are patched; whether that is every panel that breaks at
+- **Coverage is unverified.** Nine stylesheets are patched; whether that is every panel that breaks at
   4:3 has not been checked systematically. Any newly added Valve screen will be unpatched by default.
 - Each patched stylesheet is another Valve file this mod owns, and therefore another rebase surface
   after a patch.
+- **Three rules were tuned against pre-6711 geometry** and are unverified at 4:3 on 6722:
+  - `hud_quickbuy.css` — was `.AspectRatio4x3 #QuickbuyShopSummary { margin-left: 210px }`; Valve
+    moved the summary into `.QuickbuyShopSummaryContainer`, so the rule now shifts the container to
+    `17px` (queue and summary share x = 90 px since 6711; the old rules moved both by −110 px).
+    **Inferred.**
+  - `hud.css` — `.AspectRatio4x3 #StatsAndModsContainer.gShopOpen #LowerLeft` offsets were tuned
+    against Valve's old `translateY(-36px)`, which 6711 removed; the shop layout may be off by ~26 px.
+  - `citadel_hud_hero_shop.css` — `.AspectRatio4x3 #MainPanel` (`scale3d(0.9,…)`, `translate3d(60px,
+    -50px, 0)`) was tuned for a 1150 px panel; 6711 widened `#MainPanel` to 1200 px.
 
 ---
 

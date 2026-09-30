@@ -3,7 +3,7 @@
 > Replacement models, materials, particles, and textures that cut rendering cost or fix visual bugs.
 >
 > **Runs in:** everywhere · **Off switch:** ❌ n/a — these are replacements, not features
-> **Last verified:** 2026-08-05 against commit `ac57b17`.
+> **Last verified:** 2026-09-30 against working tree on fix/patch-6711-rebase (uncommitted) — only the Vindicta scope and minimap-texture facts were re-checked; the rest is as recorded on 2026-08-05 (`ac57b17`).
 
 The only part of the mod with **negative** cost. Everything else adds work; this removes it.
 
@@ -15,8 +15,8 @@ The only part of the mod with **negative** cost. Everything else adds work; this
 |---|---|
 | Optimized McGinnis Wall | The wall's mesh, materials, and particle systems |
 | Sinner's Light Fix | Sinner's Sacrifice vault lighting materials |
-| Vindicta Scope Downscale | *(see [Known issues](#known-issues) — not located in this repo)* |
-| — | Minimap textures (compact minimap, neutral vault, tunnels) |
+| Vindicta Scope Downscale | `panorama/images/hud/crosshair/scope_common_psd.png`, compiled via `panorama/image_compiler.vdata` (re-added in `fb74e00`) |
+| — | Minimap textures (neutral-camp icons, tunnels) — **unused since the 6722 update**, see below |
 
 ---
 
@@ -42,8 +42,11 @@ models/
 particles/abilities/engineer/                      7 .vpcf replacements
 
 panorama/images/minimap/
-├── qollite_tunnels.png / .vtex                    1024², 780 KB
-└── base/neutral_{large,medium,vault}_custom_png.*
+├── qollite_tunnels.png / .vtex                    1024², 780 KB — referenced by nothing
+└── base/neutral_{large,medium,vault}_custom_png.*  rules match nothing
+
+panorama/images/hud/crosshair/scope_common_psd.png   Vindicta scope
+panorama/image_compiler.vdata                        lists it for compilation
 ```
 
 Total roughly 2.5 MB, dominated by `models/`.
@@ -89,10 +92,13 @@ same principle.
 
 ### Minimap textures
 
-`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*` and
-`materials/minimap/neutral_vault.png` restyle neutral-camp markers.
-`qollite_tunnels.png` is the tunnel overlay used by the minimap's minimalist mode
-([minimap](minimap.md)) — at 1024² and 780 KB it is the single largest file in `panorama/`.
+`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*` were meant to restyle
+neutral-camp markers, but they are referenced only by `.dmm_custom_neutral_*_icon` rules in `hud.css`,
+and nothing sets a `dmm_custom_*` class. `materials/minimap/neutral_vault.png` is referenced by nothing.
+`qollite_tunnels.png` was the tunnel overlay for the minimap's minimalist mode; its rule targeted
+Valve's `.map_button.shop_tunnel`, a class 6711 removed, and was dropped at the 6722 rebase — so the
+single largest file in `panorama/` (1024², 780 KB) now ships unused
+([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
 
 ---
 
@@ -104,22 +110,21 @@ same principle.
 
 ## Known issues
 
-- **"Vindicta Scope Downscale" could not be located.** The README lists it, but nothing in
-  `materials/`, `models/`, `particles/`, or the Panorama tree obviously implements it — the only
-  scope-related reference is `#scope_screen_effect` in `hud.css`, which is **identical to Valve's
-  baseline**. Either the feature ships elsewhere, was removed without a README update, or is
-  implemented somewhere not yet found. **Needs a maintainer's answer.**
+- **Vindicta Scope Downscale** was listed in the README but could not be located when this page was
+  first written; `fb74e00` re-added it (the scope texture above). How it downscales — a smaller
+  texture at Valve's path — was not re-examined.
 - **No before/after measurements exist.** For a mod that treats runtime cost as a requirement, the
   optimizations are undocumented in effect. Frame-time numbers for the McGinnis wall would be worth
   having — both to justify the work and to catch a regression when Valve reships the asset.
 - **These files go stale silently.** If Valve updates the wall model or the vault materials, our
   replacements keep overriding with the old version and users see outdated art with no error. Add an
   after-patch check.
-- `qollite_tunnels.png` at 780 KB is worth a compression pass on footprint grounds.
+- `qollite_tunnels.png` (780 KB) and the neutral-icon textures ship unused — delete, or restore a
+  6722 equivalent for the tunnels overlay ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
 
 ---
 
 ## See also
 
-- [minimap](minimap.md) — consumes the tunnel and neutral-camp textures
+- [minimap](minimap.md) — formerly consumed the tunnel and neutral-camp textures
 - [`../PANORAMA.md`](../PANORAMA.md) §3 — path ownership and pak priority

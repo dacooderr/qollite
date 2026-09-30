@@ -1,7 +1,161 @@
-var w=function(){function t(){if(k&&k.IsValid&&k.IsValid())return k;for(var a=$.GetContextPanel(),b=0;a&&a.GetParent&&a.GetParent()&&b<64;)a=a.GetParent(),b++;return k=a&&a.FindChildTraverse?a.FindChildTraverse("NotificationRoot"):null}function x(){if(g&&g.panel&&g.panel.IsValid&&g.panel.IsValid())return g;var a=t();if(!a)return QolLiteNotificationsLog.error("manager: no #NotificationRoot"),null;var b=$.CreatePanel("Panel",a,"");b.AddClass("GenericAnnouncement");b.hittest=!1;a=$.CreatePanel("Label",
-b,"");a.AddClass("AnnouncementTitle");var e=$.CreatePanel("Label",b,"");e.AddClass("AnnouncementDescription");g={panel:b,titleLabel:a,descLabel:e};l=m=null;$.Schedule(.03,function(){b.IsValid()&&b.AddClass("NotifVisible")});return g}function u(){if(g&&g.panel&&g.panel.IsValid()){var a=g.panel;a.AddClass("NotifExpired");$.Schedule(.4,function(){a.IsValid()&&a.DeleteAsync(0)})}l=m=g=null}function n(){var a=[],b=!1,e=null,c=null;for(f in d)if(d.hasOwnProperty(f)){a.push(f);var h=d[f].phase;h==="spawn"?
-b=!0:h==="descent"?d[f].seconds!=null&&(c===null||d[f].seconds<c)&&(c=d[f].seconds):d[f].seconds!=null&&(e===null||d[f].seconds<e)&&(e=d[f].seconds)}if(a.length){var f=[];for(h=0;h<a.length;h++)f.push(d[a[h]].title);a=f.length<=2?f.join(" & "):f.join(", ");b=c!==null?QolLiteNotificationsStrings.sub("descent",c):b?QolLiteNotificationsStrings.sub("spawn"):QolLiteNotificationsStrings.sub("warn",e==null?0:e);if(e=x()){if(a!==l){l=a;try{e.titleLabel.text=a}catch(y){}}if(b!==m){m=b;try{e.descLabel.text=
-b}catch(y){}}}}else u()}function z(){r=!1;var a=Date.now(),b=!1,e=!1,c;for(c in d)if(d.hasOwnProperty(c)){var h=d[c];h.expireAt&&a>=h.expireAt?(h.phase==="warn"&&(p[c]=!0,QolLiteNotificationsLog.log("warn hidden: "+h.title)),delete d[c],b=!0):e=!0}b&&n();e&&q()}function q(){r||(r=!0,$.Schedule(.25,z))}var k=null,g=null,d={},p={},l=null,m=null,r=!1,v=0;return{init:function(){var a=t();a?a.RemoveAndDeleteChildren():QolLiteNotificationsLog.error("manager: #NotificationRoot not found");g=null;d={};p=
-{};l=m=null},clearAll:function(){d={};p={};u()},countdown:function(a,b,e){if(!p[a]){var c=d[a];if(c&&c.phase==="warn")c.title=b,c.seconds=e;else{if(c)return;d[a]={title:b,phase:"warn",seconds:e,expireAt:Date.now()+QolLiteNotificationsConfig.durationSecs*1E3};QolLiteNotificationsLog.log("warn shown: "+b+" (hides in "+QolLiteNotificationsConfig.durationSecs+"s)")}n();q()}},descent:function(a,b,e){var c=d[a];c=!c||c.phase!=="descent";d[a]={title:b,phase:"descent",seconds:e,expireAt:Date.now()+2E3};c&&
-QolLiteNotificationsLog.log("descent: "+b+" ("+e+"s)");n();q()},spawn:function(a,b){var e=!d[a]||d[a].phase!=="spawn";d[a]={title:b,phase:"spawn",seconds:null,expireAt:Date.now()+QolLiteNotificationsConfig.durationSecs*1E3};if(e&&(QolLiteNotificationsLog.log("spawn: "+b),QolLiteNotificationsConfig.soundEnabled&&QolLiteNotificationsConfig.soundEvent&&(a=Date.now(),!(a-v<300)))){v=a;try{$.DispatchEvent("PlaySoundEffect",QolLiteNotificationsConfig.soundEvent)}catch(c){}}n();q()}}}();
-typeof w!=="undefined"&&(this.QolLiteNotificationsManager=w);
+// Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif_manager.js.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
+// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
+// below refer to the upstream repo.
+"use strict";
+// Notification manager (overlay context). Single-slot: at most ONE toast on screen.
+// Everything currently active (schedule groups + the live urn) is held in `items` keyed
+// by source; the one toast's title is the join of all active titles, so coincident
+// notifications combine instead of stacking. The look reuses the game's GenericAnnouncement
+// resources (citadel_hud_game_announcements.vcss).
+//
+// Every item lives at most durationSecs (~the game's native toast duration) and then hides
+// - a toast never camps the screen for the whole warn window:
+//   countdown(key,title,seconds) - pre-spawn warning. Shows for durationSecs from first
+//     appearance, its number ticking, then hides; `done` stops it re-appearing.
+//   spawn(key,title)             - "Available now" for durationSecs, then hides.
+// If any active item has spawned, the sub-line shows "Available now"; else the nearest
+// countdown. spawn overrides a still-visible warning for the same key (converts in place).
+var QolLiteNotificationsManager = (function () {
+    var root = null;
+    var toast = null;       // { panel, titleLabel, descLabel }
+    var items = {};         // key -> { title, phase:"warn"|"spawn", seconds, expireAt }
+    var done = {};          // key -> true : this key's warning already ran its duration
+    var _lastTitle = null, _lastSub = null;
+    var _sweeping = false;
+
+    function now() { return Date.now(); }
+    function life() { return QolLiteNotificationsConfig.durationSecs * 1000; }
+
+    function getRoot() {
+        if (root && root.IsValid && root.IsValid()) { return root; }
+        var p = $.GetContextPanel(), guard = 0;
+        while (p && p.GetParent && p.GetParent() && guard < 64) { p = p.GetParent(); guard++; }
+        root = (p && p.FindChildTraverse) ? p.FindChildTraverse("NotificationRoot") : null;
+        return root;
+    }
+
+    function ensureToast() {
+        if (toast && toast.panel && toast.panel.IsValid && toast.panel.IsValid()) { return toast; }
+        var r = getRoot();
+        if (!r) { QolLiteNotificationsLog.error("manager: no #NotificationRoot"); return null; }
+        var p = $.CreatePanel("Panel", r, "");
+        p.AddClass("GenericAnnouncement");
+        p.hittest = false;
+        var t = $.CreatePanel("Label", p, ""); t.AddClass("AnnouncementTitle");
+        var d = $.CreatePanel("Label", p, ""); d.AddClass("AnnouncementDescription");
+        toast = { panel: p, titleLabel: t, descLabel: d };
+        _lastTitle = _lastSub = null;
+        $.Schedule(0.03, function () { if (p.IsValid()) { p.AddClass("NotifVisible"); } });
+        return toast;
+    }
+
+    function hideToast() {
+        if (toast && toast.panel && toast.panel.IsValid()) {
+            var p = toast.panel;
+            p.AddClass("NotifExpired");
+            $.Schedule(0.4, function () { if (p.IsValid()) { p.DeleteAsync(0); } });
+        }
+        toast = null; _lastTitle = _lastSub = null;
+    }
+
+    function render() {
+        var keys = [], anySpawn = false, minWarn = null, minDescent = null, k;
+        for (k in items) {
+            if (!items.hasOwnProperty(k)) { continue; }
+            keys.push(k);
+            var ph = items[k].phase;
+            if (ph === "spawn") { anySpawn = true; }
+            else if (ph === "descent") { if (items[k].seconds != null && (minDescent === null || items[k].seconds < minDescent)) { minDescent = items[k].seconds; } }
+            else if (items[k].seconds != null && (minWarn === null || items[k].seconds < minWarn)) { minWarn = items[k].seconds; }
+        }
+        if (!keys.length) { hideToast(); return; }
+
+        var titles = [];
+        for (var i = 0; i < keys.length; i++) { titles.push(items[keys[i]].title); }
+        var title = titles.length <= 2 ? titles.join(" & ") : titles.join(", ");
+        // sub priority: a live descent countdown wins (time-sensitive), then "available", then warn
+        var sub;
+        if (minDescent !== null) { sub = QolLiteNotificationsStrings.sub("descent", minDescent); }
+        else if (anySpawn) { sub = QolLiteNotificationsStrings.sub("spawn"); }
+        else { sub = QolLiteNotificationsStrings.sub("warn", minWarn == null ? 0 : minWarn); }
+
+        var tt = ensureToast();
+        if (!tt) { return; }
+        if (title !== _lastTitle) { _lastTitle = title; try { tt.titleLabel.text = title; } catch (e) {} }
+        if (sub !== _lastSub) { _lastSub = sub; try { tt.descLabel.text = sub; } catch (e) {} }
+    }
+
+    function sweep() {
+        _sweeping = false;
+        var n = now(), changed = false, has = false, k;
+        for (k in items) {
+            if (!items.hasOwnProperty(k)) { continue; }
+            var it = items[k];
+            if (it.expireAt && n >= it.expireAt) {
+                if (it.phase === "warn") { done[k] = true; QolLiteNotificationsLog.log("warn hidden: " + it.title); }
+                delete items[k]; changed = true; continue;
+            }
+            has = true;
+        }
+        if (changed) { render(); }
+        if (has) { schedule(); }
+    }
+    function schedule() { if (!_sweeping) { _sweeping = true; $.Schedule(0.25, sweep); } }
+
+    // Play the native cue once per spawn moment (coincident events that merge share one cue).
+    var _lastSoundMs = 0;
+    function playSound() {
+        if (!QolLiteNotificationsConfig.soundEnabled || !QolLiteNotificationsConfig.soundEvent) { return; }
+        var n = now();
+        if (n - _lastSoundMs < 300) { return; }
+        _lastSoundMs = n;
+        try { $.DispatchEvent("PlaySoundEffect", QolLiteNotificationsConfig.soundEvent); } catch (e) {}
+    }
+
+    return {
+        init: function () {
+            var r = getRoot();
+            if (r) { r.RemoveAndDeleteChildren(); }
+            else { QolLiteNotificationsLog.error("manager: #NotificationRoot not found"); }
+            toast = null; items = {}; done = {}; _lastTitle = _lastSub = null;
+        },
+
+        clearAll: function () { items = {}; done = {}; hideToast(); },
+
+        // pre-spawn countdown. Called each tick while in the warn window; shows for
+        // durationSecs from first appearance (ticking), then hides and won't re-appear.
+        countdown: function (key, title, seconds) {
+            if (done[key]) { return; }
+            var it = items[key];
+            if (it && it.phase === "warn") {
+                it.title = title; it.seconds = seconds;        // tick update; keep expireAt
+            } else if (!it) {
+                items[key] = { title: title, phase: "warn", seconds: seconds, expireAt: now() + life() };
+                QolLiteNotificationsLog.log("warn shown: " + title + " (hides in " + QolLiteNotificationsConfig.durationSecs + "s)");
+            } else {
+                return;                                        // already spawned; ignore
+            }
+            render(); schedule();
+        },
+
+        // descent: live "Landing in Ns" countdown (driven each tick by the urn receiver);
+        // expireAt is refreshed each call so it stays while the receiver drives it, then the
+        // receiver calls spawn() at 0 to flip it to "Available now".
+        descent: function (key, title, seconds) {
+            var it = items[key];
+            var fresh = !it || it.phase !== "descent";
+            items[key] = { title: title, phase: "descent", seconds: seconds, expireAt: now() + 2000 };
+            if (fresh) { QolLiteNotificationsLog.log("descent: " + title + " (" + seconds + "s)"); }  // no sound (has a timer)
+            render(); schedule();
+        },
+
+        // spawn: "Available now" for durationSecs (overrides a still-visible warning), then hides
+        spawn: function (key, title) {
+            var fresh = !items[key] || items[key].phase !== "spawn";
+            items[key] = { title: title, phase: "spawn", seconds: null, expireAt: now() + life() };
+            if (fresh) { QolLiteNotificationsLog.log("spawn: " + title); playSound(); }
+            render(); schedule();
+        }
+    };
+})();

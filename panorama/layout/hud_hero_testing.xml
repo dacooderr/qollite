@@ -107,7 +107,7 @@
 					<Button class="nav_menu_item small_text quarter_width htpp_spawn_action htpp_glow_white" onactivate="HeroTestingChangeHero()">
 						<Label text="#HeroTesting_ChangeHero" />
 					</Button>
-					<Button class="nav_menu_item small_text quarter_width htpp_spawn_action htpp_glow_white" onactivate="HeroTestingChangeTeam();">
+					<Button class="nav_menu_item small_text quarter_width htpp_spawn_action htpp_glow_white" onactivate="Cmd( &apos;changeteam&apos; );">
 						<Label text="#HeroTesting_ChangeTeam" />
 					</Button>
 					<Button class="nav_menu_item small_text quarter_width htpp_spawn_action htpp_glow_white" onactivate="Cmd( &apos;resetme&apos; ); $.DispatchEvent( &apos;PlaySoundEffect&apos;, &apos;Stinger.LevelUp&apos; )">
@@ -146,10 +146,10 @@
 					</Button>
 				</Panel>
 				<Panel class="nav_menu_item_container htpp_row_4col htpp_separator_top">
-					<ToggleButton class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="DisableDeathCheckbox" text="#HeroTesting_NoDeath" onactivate="UpdateNoDeathToggle(); $.DispatchEvent( &apos;PlaySoundEffect&apos;, &apos;Stinger.LevelUp&apos; )" />
-					<ToggleButton class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="EnableUnlimitedAmmoCheckbox" text="#HeroTesting_UnlimitedAmmo" onactivate="HeroTestingUpdateEnableUnlimitedAmmo()" />
-					<ToggleButton class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="DisableCooldownCheckbox" text="#HeroTesting_NoCooldown" onactivate="HeroTestingUpdateDisableCooldowns()" />
-					<ToggleButton class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="EnableFastStaminaCheckbox" text="#HeroTesting_FastStamina" onactivate="HeroTestingUpdateEnableFastStamina()" />
+					<CitadelSettingsCheckbox class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="DisableDeathCheckbox" text="#HeroTesting_NoDeath" convar="buddha" />
+					<CitadelSettingsCheckbox class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="EnableUnlimitedAmmoCheckbox" text="#HeroTesting_UnlimitedAmmo" convar="sv_infinite_ammo" />
+					<CitadelSettingsCheckbox class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="DisableCooldownCheckbox" text="#HeroTesting_NoCooldown" convar="citadel_ability_cooldown_max" />
+					<CitadelSettingsCheckbox class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text" id="EnableFastStaminaCheckbox" text="#HeroTesting_FastStamina" convar="citadel_rapid_stamina_regen" />
 					<ToggleButton class="nav_menu_item CitadelSettingsCheckbox htpp_btn_5 htpp_toggle_compact small_text hide_in_coop" id="HTPP_ActuallyDisableCooldownsCheckbox" text="∞ Cooldown" onactivate="UpdateEnableActuallyNoCooldowns()" />
 				</Panel>
 				<Panel class="nav_menu_item_container htpp_row_4col">

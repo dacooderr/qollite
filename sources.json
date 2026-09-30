@@ -6,8 +6,13 @@
       "feature": "minimap",
       "tier": "first-party",
       "gamebanana_id": 664456,
-      "upstream": "https://github.com/gfkm-gpt/deadlockmapmod (confirm canonical remote)",
-      "note": "BetterMap. Rebuild from upstream; do not edit the bundled scripts.",
+      "upstream": "https://github.com/gfkm/BetterMap",
+      "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. Carries one QOL Lite delta (Minimalist Map Opacity), see docs/BUNDLE.md section 3.",
+      "bundled": {
+        "commit": "ca29290306cbadb0b6bce7ba7bd789c26a95599f",
+        "date": "2026-09-30",
+        "version": "2.1"
+      },
       "pinned": {}
     },
     {
@@ -15,7 +20,12 @@
       "tier": "first-party",
       "gamebanana_id": 697050,
       "upstream": "https://github.com/gfkm/MapEventReminders",
-      "note": "Rebuild from upstream; do not edit the bundled scripts.",
+      "note": "Rebuild with scripts/bundle_mer.py; do not edit the bundled scripts. Deltas (DEBUG off, ASCII escaping) in docs/BUNDLE.md section 3.",
+      "bundled": {
+        "commit": "12e6b3b",
+        "date": "2026-09-30",
+        "version": null
+      },
       "pinned": {}
     },
     {
@@ -24,14 +34,6 @@
       "gamebanana_id": 623518,
       "upstream": null,
       "note": "Match not byte-verified against the bundled build.",
-      "pinned": {}
-    },
-    {
-      "feature": "show-rank",
-      "tier": "vendored",
-      "gamebanana_id": 681028,
-      "upstream": null,
-      "note": "Match not byte-verified. Calls api.deadlock-api.com.",
       "pinned": {}
     },
     {
@@ -47,7 +49,7 @@
       "tier": "vendored",
       "gamebanana_id": 675877,
       "upstream": null,
-      "note": "Statlocker Integration by tanaee.",
+      "note": "Statlocker Integration by tanaee. Its script (qollite_profile.js) is included by no layout since 9935d0c; see docs/TECH_DEBT.md section 4.",
       "pinned": {}
     },
     {
@@ -55,7 +57,7 @@
       "tier": "vendored",
       "gamebanana_id": 616749,
       "upstream": null,
-      "note": "Match not byte-verified.",
+      "note": "Match not byte-verified. Carries a 5-line local delta for build 6711+ (docs/BUNDLE.md section 4).",
       "pinned": {}
     },
     {
@@ -88,6 +90,22 @@
       "gamebanana_id": null,
       "upstream": null,
       "note": "No GameBanana match found.",
+      "pinned": {}
+    },
+    {
+      "feature": "friends-rank",
+      "tier": "vendored",
+      "gamebanana_id": null,
+      "upstream": null,
+      "note": "UNRESOLVED: added in 27087ae with no author, upstream or license recorded. Calls api.deadlock-api.com. See docs/BUNDLE.md section 5.",
+      "pinned": {}
+    },
+    {
+      "feature": "ammo-buff-notifier",
+      "tier": "vendored",
+      "gamebanana_id": null,
+      "upstream": null,
+      "note": "mercurial_magnum_notifier.*; credited to 'Han' only by the message of 9935d0c. See docs/BUNDLE.md section 4.",
       "pinned": {}
     }
   ]

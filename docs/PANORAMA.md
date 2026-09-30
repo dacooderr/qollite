@@ -169,10 +169,11 @@ one of these demonstrably works in Deadlock.
 | `$.Language()` | 4 | Returns the client UI language id. Wrapped in `try`/`catch` at every call site, with a `Language_<id>` ancestor-class fallback — treat as **possibly absent**. |
 | `$.FrameTime()` | 1 | |
 
-**Mod-defined globals on `$`.** `qollite_showrank.js` attaches
-`$.__QolLiteShowRankWebMediaBridge` (a versioned shared-state object, `version: 236`) and
-`$.QolLiteShowRankOpenDeadlock`. Because the script is loaded into six different layouts, this is how
-its instances find each other **within** a context; it is *not* a cross-context channel — see §3.
+**Mod-defined globals on `$`.** Scripts in one context can share state by parking it on `$`:
+`friends_rank_config.js` sets `$.FriendsRankConfig`, which `friends_rank.js` reads, and
+`friends_rank.js` exports `$.FriendsRankRefreshProfile` for the layouts' inline handlers. This works
+**within** a context only; it is *not* a cross-context channel — see §3. (The removed Show Rank used the
+same pattern, `$.__QolLiteShowRankWebMediaBridge` with `version: 236`.)
 
 **Panel methods in use:** `FindChildTraverse`, `FindChildrenWithClassTraverse`, `FindChild`,
 `GetParent`, `GetChild(i)`, `GetChildCount()`, `Children()`, `SetParent`, `AddClass`, `RemoveClass`,
@@ -191,7 +192,8 @@ Both come from the event-reminder modules, and they share a theme: **design the 
 the happy path.** Panorama cannot report failure (§3), so the only thing that saves you is deciding in
 advance what breakage looks like.
 
-Source shown is the readable upstream, not the minified form that ships here.
+Source shown is the readable upstream, lightly trimmed. Since 2026-09-30 the bundled
+`qollite_notifications_manager.js` and `qollite_notifications_clock.js` ship that same readable source.
 
 #### Stop the loop, don't skip the body
 

@@ -136,6 +136,12 @@ CitadelPostGameScoreboardNew
 	height: 52px;
 }
 
+.Player #HeroBadgeIcon
+{
+	ui-scale: 50%;
+	vertical-align: center;
+}
+
 .Player #HeroBadge
 {
 	margin-top: 4px;
@@ -660,7 +666,7 @@ CitadelPostGameScoreboardNew
 	vertical-align: middle;
 	font-size: 17px;
 	color: offWhite&44;
-	font-family: oracle;
+	font-family: numericOracle;
 	font-weight: light;
 	text-shadow: 0px 0px 0px 3 black;
 	font-weight: bold;
