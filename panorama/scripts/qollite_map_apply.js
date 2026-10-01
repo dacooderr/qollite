@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_apply.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_apply.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -53,7 +53,9 @@ var QolLiteMapApply = (function () {
         towerIconScalePct: _icons, shopIconScalePct: _icons, runeIconScalePct: _icons,
         urnIconScalePct: _icons,
         minimalMap: _minimal,
-        poiCratesEnabled: _poi, poiStatuesEnabled: _poi, poiToughEnabled: _poi, poiFrom3Min: _poi,
+        poiCratesEnabled: _poi, poiStatuesEnabled: _poi, poiToughEnabled: _poi, poiApplesEnabled: _poi,
+        poiCrateColor: _poi, poiStatueColor: _poi, poiToughColor: _poi, poiAppleColor: _poi,
+        poiFrom3Min: _poi,
         poiMarkerSizePx: _poi, poiOpacity: _poi,
         ultLargeMapEnabled: _polled, urnTrackerEnabled: _polled
     };

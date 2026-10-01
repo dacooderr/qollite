@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_popup.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_popup.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -17,6 +17,9 @@
 // pipeline/build_popup_settings.py and bound here without convars, the way Valve's
 // convar-less #EnableConsoleCheckbox works. Sliders bind through qollite_map_slider.js,
 // which never sends a value the player did not set (D16).
+// A colour setting shares its toggle's row (spec 2026-10-01-healing-apples-and-marker-colors.md C3):
+// one tooltip, one modified mark and one reset button for the row, and that reset restores both
+// the toggle and the colour (C7).
 // The preview is the real minimap: while any of our subsections is on screen the HUD
 // lifts it above this window (§6.2).
 var QolLiteMapPopup = (function () {
@@ -52,6 +55,12 @@ var QolLiteMapPopup = (function () {
     var ROW_MODIFIED_CLASS = "SettingsRowModified";
     var ROW_RESET_READ_BACK_SEC = [1, 3];              // DEBUG: what C++ does to the button and the class after a change
     var ROW_REASSERT_READ_BACK_SEC = [1];              // DEBUG: does a hover re-assert stick (one line per re-assert)
+    // A colour slider shares its toggle's row (spec 2026-10-01-healing-apples-and-marker-colors.md
+    // C3). Its own title is empty but would still take Valve's 280 px (settings_color_slider.css
+    // #Title), so its container is collapsed - inferred, unmeasured: in-game run 1 reads the
+    // widths back (DEBUG, LAYOUT_READ_BACK_SEC).
+    var TITLE_CONTAINER_CLASS = "TitleContainer";      // settings_color_slider.xml
+    var LAYOUT_READ_BACK_SEC = [1];
     var UMM_ROOT_ID = "UmmRoot";                       // UMM's base_hud.xml / base_dashboard.xml
     var STATE_TIMEOUT_SEC = 0.5;                       // bus round trip measured 0 ms (run 4)
     var RETRY_SEC = 0.25;                              // the layout and C++ nav are built around our start
@@ -76,7 +85,7 @@ var QolLiteMapPopup = (function () {
     var _peekUntil = 0;
     var _tries = 0;
     var _sliders = {};       // key -> QolLiteMapSlider binding
-    var _rowResets = {};     // key -> { row, button, on: our modified flag }
+    var _rowResets = {};     // row key -> { row, button, on: our modified flag, keys: the row's settings }
     var _lastSent = {};      // key -> value we sent
     var _lastSentAt = {};    // key -> Date.now() of that send
     var _readBackDone = false;
@@ -90,6 +99,20 @@ var QolLiteMapPopup = (function () {
     function _root() { var r = _ctx(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
     function _log(m) { QolLiteMapLog.log("popup: " + m); }
     function _groups() { return QolLiteMapSchema.groups(); }
+
+    // The settings that share one row (spec C3): the row's own setting and every setting
+    // that names it in `row`, in schema order.
+    function _rowKeys(rowKey) {
+        var out = [], list = QolLiteMapSchema.list();
+        for (var i = 0; i < list.length; i++) { if ((list[i].row || list[i].key) === rowKey) { out.push(list[i].key); } }
+        return out;
+    }
+
+    function _rowTooltip(rowKey) {
+        var keys = _rowKeys(rowKey), parts = [];
+        for (var i = 0; i < keys.length; i++) { parts.push(QolLiteMapSchema.byKey(keys[i]).tooltip); }
+        return parts.join(" ");
+    }
 
     // Our subsection panels that exist, in group order.
     function _subs() {
@@ -131,25 +154,40 @@ var QolLiteMapPopup = (function () {
         _send({ t: "flush" });   // a reset is deliberate: write it now, not after the idle delay (D17)
     }
 
+    // A value we sent that a state has not echoed yet, inside ECHO_GRACE_MS: the control
+    // keeps showing it (_sync skips the key), so the row's mark must judge it too, or a
+    // combined reset's first answer (toggle reset, old colour) re-marks the row.
+    function _inFlight(k) {
+        return _lastSentAt[k] !== undefined && _lastSent[k] !== _values[k] && Date.now() - _lastSentAt[k] < ECHO_GRACE_MS;
+    }
+
+    function _shownValue(k) { return _inFlight(k) ? _lastSent[k] : _values[k]; }
+
     function _isModified(e, v, d) {
-        return e.type === "slider" ? QolLiteMapSchema.toShown(e, v) !== QolLiteMapSchema.toShown(e, d) : v !== d;
+        return QolLiteMapSchema.isRanged(e) ? QolLiteMapSchema.toShown(e, v) !== QolLiteMapSchema.toShown(e, d) : v !== d;
     }
 
     // Valve's CSS shows a row's reset button only while the row carries ROW_MODIFIED_CLASS;
     // the button's `visible` follows the same flag. Compared against our flag, not the
-    // class C++ takes back (see ROW_RESET_CLASS).
+    // class C++ takes back (see ROW_RESET_CLASS). A row is modified while any of its
+    // settings differs from its default (spec C7).
     function _syncRowResets() {
         if (!_values) { return; }
-        var d = QolLiteMapSchema.defaults(), list = QolLiteMapSchema.list();
-        for (var i = 0; i < list.length; i++) {
-            var e = list[i], r = _rowResets[e.key];
-            if (!r || _values[e.key] === undefined) { continue; }
-            var on = _isModified(e, _values[e.key], d[e.key]);
-            if (on === r.on) { continue; }
+        var d = QolLiteMapSchema.defaults();
+        for (var key in _rowResets) {
+            if (!Object.prototype.hasOwnProperty.call(_rowResets, key)) { continue; }
+            var r = _rowResets[key], on = false, known = false;
+            for (var i = 0; i < r.keys.length; i++) {
+                var k = r.keys[i];
+                if (_values[k] === undefined) { continue; }
+                known = true;
+                if (_isModified(QolLiteMapSchema.byKey(k), _shownValue(k), d[k])) { on = true; }
+            }
+            if (!known || on === r.on) { continue; }
             r.on = on;
             r.row.SetHasClass(ROW_MODIFIED_CLASS, on);
             r.button.visible = on;
-            _rowResetReadBackLater(e.key, "modified");
+            _rowResetReadBackLater(key, "modified");
         }
     }
 
@@ -212,12 +250,18 @@ var QolLiteMapPopup = (function () {
         }
     }
 
-    function _resetRow(e) {
+    // Every setting of the row goes back to its default (spec C7: a colour's row resets
+    // its toggle and its colour). Only a setting that differs is sent; each is shown.
+    function _resetRow(rowKey) {
         if (!_values || _hidden) { return; }
-        var d = QolLiteMapSchema.defaults()[e.key];
-        _set(e.key, d);
-        _showNow(e, d);
-        _rowResetReadBackLater(e.key, "click");
+        var keys = _rowResets[rowKey].keys, d = QolLiteMapSchema.defaults();
+        for (var i = 0; i < keys.length; i++) {
+            var e = QolLiteMapSchema.byKey(keys[i]);
+            if (_isModified(e, _shownValue(keys[i]), d[keys[i]])) { _set(keys[i], d[keys[i]]); }
+            _showNow(e, d[keys[i]]);
+        }
+        _syncRowResets();   // no set at all (nothing differed) still settles the mark
+        _rowResetReadBackLater(rowKey, "click");
     }
 
     function _bindRowReset(e, row) {
@@ -225,10 +269,32 @@ var QolLiteMapPopup = (function () {
         if (!found.length) { QolLiteMapLog.error("popup: row-reset " + e.key + " - no " + ROW_RESET_CLASS + " in the row"); return; }
         var button = found[0];
         button.visible = false;   // until the row is modified (_syncRowResets)
-        button.SetPanelEvent("onactivate", function () { _resetRow(e); });
-        _rowResets[e.key] = { row: row, button: button, on: false };
+        button.SetPanelEvent("onactivate", function () { _resetRow(e.key); });
+        _rowResets[e.key] = { row: row, button: button, on: false, keys: _rowKeys(e.key) };
         _rowResetReadBack(e.key, "bind");
         _rowResetReadBackLater(e.key, "bind");
+    }
+
+    function _collapseTitle(e, ctl) {
+        var t = ctl.FindChildrenWithClassTraverse(TITLE_CONTAINER_CLASS);
+        if (t.length) { t[0].visible = false; }
+        else { QolLiteMapLog.error("popup: " + e.key + " has no ." + TITLE_CONTAINER_CLASS + " to collapse"); }
+    }
+
+    // DEBUG (spec §5.4): do a toggle and a colour slider fit one row.
+    function _layoutReadBackLater(e) {
+        for (var i = 0; i < LAYOUT_READ_BACK_SEC.length; i++) {
+            (function (sec) {
+                $.Schedule(sec, function () {
+                    if (!_ctx() || !_ctx().IsValid()) { return; }
+                    var row = _find(ROW_PREFIX + e.row), tg = _find(CTL_PREFIX + e.row), c = _find(CTL_PREFIX + e.key);
+                    if (!row || !tg || !c) { return; }
+                    _log("layout " + e.key + " row=" + row.actuallayoutwidth + "x" + row.actuallayoutheight +
+                        " toggle=" + tg.actuallayoutwidth + " color=" + c.actuallayoutwidth + "x" + c.actuallayoutheight +
+                        " (+" + sec + "s)");
+                });
+            })(LAYOUT_READ_BACK_SEC[i]);
+        }
     }
 
     function _bind(e) {
@@ -238,17 +304,23 @@ var QolLiteMapPopup = (function () {
             ctl.SetPanelEvent("onactivate", function () {
                 if (!_syncing && _values && !_hidden) { _set(e.key, !_values[e.key]); }
             });
-        } else if (e.type === "slider") {
+        } else if (QolLiteMapSchema.isRanged(e)) {
             var b = QolLiteMapSlider.bind(ctl, e, {
                 current: function () { return _values ? _values[e.key] : undefined; },
                 commit: function (v) { if (_values && !_hidden) { _set(e.key, v); } }
             });
-            if (!b) { QolLiteMapLog.error("popup: no inner Slider for " + e.key); return; }
+            if (!b) { QolLiteMapLog.error("popup: no inner slider for " + e.key); return; }
             _sliders[e.key] = b;
+        }
+        // In a toggle's row (spec C3): the row, its tooltip and its reset belong to that toggle.
+        if (e.row) {
+            _collapseTitle(e, ctl);
+            _layoutReadBackLater(e);
+            return;
         }
         var row = _find(ROW_PREFIX + e.key);
         if (!row) { QolLiteMapLog.error("popup: no row for " + e.key + " - regenerate popup_settings.vxml"); return; }
-        _tooltip(row, e.tooltip, function () { _reassertRowModified(e.key); });
+        _tooltip(row, _rowTooltip(e.key), function () { _reassertRowModified(e.key); });
         _bindRowReset(e, row);
     }
 
@@ -264,21 +336,19 @@ var QolLiteMapPopup = (function () {
                 try {
                     var ctl = _find(CTL_PREFIX + e.key), v = _values[e.key];
                     if (!ctl || v === undefined) { continue; }
-                    if (_lastSentAt[e.key] !== undefined) {
-                        if (_lastSent[e.key] === v) {
-                            delete _lastSentAt[e.key];
-                            delete _lastSent[e.key];
-                        } else if (Date.now() - _lastSentAt[e.key] < ECHO_GRACE_MS) {
-                            // The slider's own sync gate also skips while hovered, typing or already
-                            // showing the value. This window additionally covers the moment after
-                            // the pointer leaves, and toggles: it keeps the player's value against a
-                            // late state that differs - today impossible, both sides share one
-                            // schema, so it is a guard for a future divergence.
-                            continue;
-                        }
+                    if (_lastSentAt[e.key] !== undefined && _lastSent[e.key] === v) {
+                        delete _lastSentAt[e.key];
+                        delete _lastSent[e.key];
+                    } else if (_inFlight(e.key)) {
+                        // The slider's own sync gate also skips while hovered, typing or already
+                        // showing the value. This window additionally covers the moment after
+                        // the pointer leaves, and toggles: it keeps the player's value against a
+                        // late state that differs - e.g. a combined row reset's first answer,
+                        // which still carries the colour's old value.
+                        continue;
                     }
                     if (e.type === "toggle") { _showToggle(ctl, v); }
-                    else if (e.type === "slider") { if (_sliders[e.key]) { _sliders[e.key].sync(v); } }
+                    else if (_sliders[e.key]) { _sliders[e.key].sync(v); }
                 } catch (err) {
                     QolLiteMapLog.error("popup: sync failed for " + e.key + ": " + (err && err.message ? err.message : err));
                 }

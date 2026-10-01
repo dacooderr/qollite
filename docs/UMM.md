@@ -109,7 +109,7 @@ new widget type co-designed with the UMM author.
 
 | Mod `id` | Display `name` | Adapter | Settings |
 |---|---|---|---|
-| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 3 groups ("Minimap", "Minimap Icons", "Crates & Statues"), 8 toggles, 13 sliders — 21 widgets, built from `qollite_map_schema.js` |
+| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 3 groups ("Minimap", "Minimap Icons", "Map Objects"), 9 toggles, 13 sliders — 22 widgets, built from `qollite_map_schema.js` |
 | `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
@@ -125,7 +125,11 @@ two-character `umm` ids. Full list with ranges: [minimap § Settings](systems/mi
 |---|---|
 | Minimap | sliders `ms` (size, 200–800 px), `ox` / `oy` (offsets, −100..100 %), `mo` (map opacity, 10–100 %); toggles `mm` (Minimalist), `ul` (Traveler enlarge), `fw` (Full-Width HUD) |
 | Minimap Icons | sliders `is`, `ia`, `ie`, `it`, `ih`, `ir`, `iu` (you / ally / enemy / tower / shop / rune / urn, 50–200 %) |
-| Crates & Statues | toggles `pc`, `ps`, `pt`, `p3`, `ut`; sliders `pz` (marker size, 1–8 px), `po` (marker opacity, 10–100 %) |
+| Map Objects | toggles `pc`, `ps`, `pt`, `pa` (healing apples, 3.1), `p3`, `ut`; sliders `pz` (marker size, 1–8 px), `po` (marker opacity, 10–100 %) |
+
+**Not in the manifest: the four marker colours (3.1).** They are `standalone` in the schema, so
+`_register()` skips them. Under UMM they come only from BetterMap's own store, read once per HUD load
+by the seed, and cannot be changed while UMM is installed.
 
 **Changed at the 3.0 re-bundle (2026-10-01).** The mod id is still `bettermap`, but **every widget
 id changed**, so UMM-saved BetterMap values reset once. Upstream did this on purpose: two-character

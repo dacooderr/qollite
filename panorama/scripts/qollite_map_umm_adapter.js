@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_umm.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_umm.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -56,6 +56,15 @@ var QolLiteMapUmmAdapter = (function () {
         var settings = [], values = {}, group = null;
         for (var i = 0; i < list.length; i++) {
             var e = list[i];
+            // Standalone settings (the colours) are not UMM's (spec C4, owner): no widget, no
+            // value, and no group header for them.
+            if (e.standalone) { continue; }
+            // UMM's widgets are toggle / slider / select / checks (docs/knowledge/umm_integration.md):
+            // any other type would go out without a range, so it is refused, not guessed.
+            if (e.type !== "toggle" && e.type !== "slider") {
+                QolLiteMapLog.error("umm: no UMM widget for type \"" + e.type + "\" (" + e.key + ") - not registered");
+                continue;
+            }
             if (e.group !== group) { group = e.group; settings.push({ type: "group", label: group }); }
             var w = { id: e.umm, type: e.type, label: e.label };
             if (e.type === "slider") { w.min = e.min; w.max = e.max; w.step = e.step; w.unit = e.unit; }
@@ -72,7 +81,7 @@ var QolLiteMapUmmAdapter = (function () {
     function _onSet(id, value) {
         var e = QolLiteMapSchema.byUmmId(id);
         if (!e) { return; }   // e.g. "poiLevelAuto" from an older manifest: retired 2026-10-01
-        var stored = QolLiteMapSchema.sanitize(e.key, e.type === "slider" ? Number(value) / e.scale : value);
+        var stored = QolLiteMapSchema.sanitize(e.key, QolLiteMapSchema.isRanged(e) ? Number(value) / e.scale : value);
         if (stored === undefined) { QolLiteMapLog.log("umm: ignored invalid " + id + " = " + value); return; }
         var patch = {};
         patch[e.key] = stored;
@@ -123,6 +132,9 @@ var QolLiteMapUmmAdapter = (function () {
     // register's `values`. UMM still prefers what it saved itself: its restore
     // overrides them, and a value already in its session beats a register
     // (umm_core.js:1810-1811). values: sanitised stored values, or null.
+    // The seed runs on every HUD init while UMM is installed, not once. For the colours
+    // (standalone, spec C4: not in UMM's manifest) it is the every-session source: a
+    // "seed only once" change would silently reset the colours under UMM to defaults.
     function seed(values) {
         if (!_waitingSeed) {
             QolLiteMapLog.info("umm: seed ignored - already registered (a late store read is logged as store: off - UMM registered without a seed)");

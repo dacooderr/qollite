@@ -100,10 +100,20 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.0** (upstream CHANGELOG, 2026-10-01) at commit **`0237ebe`**
-  (`0237ebe5a4bd5280866d2d88c9e3a196cb9e1b88`, 2026-10-01, "Merge feat/native-settings: BetterMap 3.0 - native settings with auto-save,
-  per-type icon sizes, build 6728"). Bundled 2026-10-01.
-  - Previously bundled: **`ca29290`** (BetterMap 2.1, 2026-09-30), and before that the closest
+- **Bundled version:** BetterMap **3.1** (upstream CHANGELOG, 2026-10-02) at commit **`8d87d86`**
+  (`8d87d86647134886ba660f431008397c9e67c082`, "docs(release): 3.1 GameBanana update text and
+  changelog"). The mod files are those of `4dca39d` ("Merge feat/healing-apples"); `8d87d86` changes
+  only upstream docs. Bundled 2026-10-02.
+  - What 3.1 adds over 3.0:
+    - **Show Healing Apples** (36 markers, from 3:00, off by default).
+    - A colour slider for crates, statues, tough crates and apples, in each toggle's row. The colours
+      are not in UMM.
+    - New default colours.
+    - "Crates & Statues" renamed "Map Objects". Subsection ids and stored keys are unchanged.
+    - Only the scripts and the generated `popup_settings.vxml` changed upstream; `hud.vxml` and both
+      stylesheets are byte-equal to 3.0's.
+  - Previously bundled: **`0237ebe`** (BetterMap 3.0, 2026-10-01), **`ca29290`** (BetterMap 2.1,
+    2026-09-30), and before that the closest
     upstream commit **`60fa437`** (2026-07-26) — **inferred** by comparing the old minified bundle's
     string literals against every upstream commit. That build had DEBUG on
     ([`FIELD_NOTES.md`](FIELD_NOTES.md) §9).
@@ -120,7 +130,8 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   `panorama/layout/popups/popup_settings.xml` (shared with [4×3](systems/aspect-ratio-4x3.md) and the
   FOV slider), `panorama/styles/hud_minimap.css`, BetterMap's rules in `panorama/styles/hud.css`,
   `panorama/images/minimap/base/bm_vignette_png.*`
-- **Merge-layer files, compared by hand at `0237ebe`:**
+- **Merge-layer files, compared by hand at `0237ebe`** (at 3.1 only `popup_settings.xml`
+  changed upstream; it was merged again the same way, base upstream's `0237ebe` file, zero conflicts):
   - `hud.xml` is upstream's `hud.vxml` with the bundled script names and the `qollite_passive`
     include, nothing else.
   - `popup_settings.xml` is a 3-way merge: base Valve 6730, ours (4×3 button, FOV row), theirs

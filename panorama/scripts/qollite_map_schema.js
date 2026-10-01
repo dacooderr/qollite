@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_schema.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_schema.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -27,7 +27,8 @@ var QolLiteMapSchema = (function () {
     };
     var MAP = "Minimap";
     var ICONS = "Minimap Icons";
-    var OBJECTS = "Crates & Statues";
+    // Renamed from "Crates & Statues" when the apples came (spec O1); ids and stored keys did not change.
+    var OBJECTS = "Map Objects";
 
     // One subsection of Valve's settings window per group, in this order (spec I5).
     // C++ titles a subsection "#<id>" (no token exists, D7), so the popup sets `title`;
@@ -35,7 +36,7 @@ var QolLiteMapSchema = (function () {
     var GROUPS = [
         { name: MAP, id: "bettermap_minimap", sfx: "minimap", title: "Minimap (BetterMap by gfkm)" },
         { name: ICONS, id: "bettermap_icons", sfx: "icons", title: "Minimap Icons (BetterMap)" },
-        { name: OBJECTS, id: "bettermap_objects", sfx: "objects", title: "Crates & Statues (BetterMap)" }
+        { name: OBJECTS, id: "bettermap_objects", sfx: "objects", title: "Map Objects (BetterMap)" }
     ];
 
     // A per-type icon size (spec §4). `icon` drives qollite_map_icons.js and the generated
@@ -49,6 +50,17 @@ var QolLiteMapSchema = (function () {
         return { key: key, group: ICONS, type: "slider", label: label, def: 100,
                  min: LIMITS.iconScaleMinPct, max: LIMITS.iconScaleMaxPct, step: LIMITS.iconScaleStepPct,
                  unit: "%", scale: 1, umm: umm, tooltip: tooltip, icon: icon };
+    }
+
+    // A marker colour (spec docs/specs/2026-10-01-healing-apples-and-marker-colors.md §5.3):
+    // a position on Valve's colour track, stored 0..1 and shown 0..100 (the inner
+    // Slider#ColorSlider runs 0..1, research P3). `row` puts it into the settings row of
+    // the toggle it names (C3); `standalone` keeps it out of UMM's manifest (C4, owner:
+    // no colours in UMM), so it has no UMM id.
+    function _color(key, row, label, def, what) {
+        return { key: key, group: OBJECTS, type: "color", row: row, label: label, def: def,
+                 min: 0, max: 100, step: 1, scale: 100, standalone: true,
+                 tooltip: "Drag the palette to choose the color of the " + what + "." };
     }
 
     // `umm` is the UMM widget id: two characters (spec I6, owner 2026-10-01), so
@@ -109,13 +121,20 @@ var QolLiteMapSchema = (function () {
               { cls: "bm_size_urn_", engine: [".map_button.idol_spawn", ".map_button.idol_dropping"], own: [".bm_urn"] }),
         { key: "poiCratesEnabled", group: OBJECTS, type: "toggle", label: "Show Crates", def: false,
           umm: "pc",
-          tooltip: "Shows breakable crates on the minimap (blue)." },
+          tooltip: "Shows breakable crates on the minimap." },
+        _color("poiCrateColor", "poiCratesEnabled", "Crate Color", 0.57, "crates"),
         { key: "poiStatuesEnabled", group: OBJECTS, type: "toggle", label: "Show Golden Statues", def: false,
           umm: "ps",
-          tooltip: "Shows golden statues on the minimap (yellow)." },
+          tooltip: "Shows golden statues on the minimap." },
+        _color("poiStatueColor", "poiStatuesEnabled", "Golden Statue Color", 0.2, "golden statues"),
         { key: "poiToughEnabled", group: OBJECTS, type: "toggle", label: "Show Tough Crates", def: false,
           umm: "pt",
-          tooltip: "Shows tough crates, which need heavy melee and drop extra gold (green)." },
+          tooltip: "Shows tough crates, which need heavy melee and drop extra gold." },
+        _color("poiToughColor", "poiToughEnabled", "Tough Crate Color", 0.36, "tough crates"),
+        { key: "poiApplesEnabled", group: OBJECTS, type: "toggle", label: "Show Healing Apples", def: false,
+          umm: "pa",
+          tooltip: "Shows the floating healing apples on the minimap." },
+        _color("poiAppleColor", "poiApplesEnabled", "Healing Apple Color", 0.08, "healing apples"),
         { key: "poiFrom3Min", group: OBJECTS, type: "toggle", label: "Show Only Spawned Objects", def: true,
           umm: "p3",
           tooltip: "Hides each object until its spawn time (3:00, 5:00 or 10:00)." },
@@ -141,7 +160,7 @@ var QolLiteMapSchema = (function () {
         _icons = [];
         for (var i = 0; i < SETTINGS.length; i++) {
             _byKey[SETTINGS[i].key] = SETTINGS[i];
-            _byUmm[SETTINGS[i].umm] = SETTINGS[i];
+            if (SETTINGS[i].umm) { _byUmm[SETTINGS[i].umm] = SETTINGS[i]; }
             if (SETTINGS[i].icon) { _icons.push(SETTINGS[i]); }
         }
     }
@@ -165,21 +184,24 @@ var QolLiteMapSchema = (function () {
         return Math.max(e.min, Math.min(e.max, s));
     }
 
-    // toShown / fromShown trust their input (a finite number for sliders); untrusted
+    // Settings with a numeric range in shown units: sliders and colours.
+    function isRanged(e) { return e.type === "slider" || e.type === "color"; }
+
+    // toShown / fromShown trust their input (a finite number for ranged entries: sliders, colours); untrusted
     // values must go through sanitize() first.
-    // Stored value -> the number the player / UMM sees (sliders only; others pass through).
+    // Stored value -> the number the player / UMM sees (ranged entries only; toggles pass through).
     function toShown(e, stored) {
-        return e.type === "slider" ? _snapShown(e, Number(stored) * e.scale) : stored;
+        return isRanged(e) ? _snapShown(e, Number(stored) * e.scale) : stored;
     }
 
     // A shown number -> the stored value, snapped and clamped.
     function fromShown(e, shown) {
-        return e.type === "slider" ? _snapShown(e, Number(shown)) / e.scale : shown;
+        return isRanged(e) ? _snapShown(e, Number(shown)) / e.scale : shown;
     }
 
     // A candidate stored value -> the valid stored value, or undefined when it
-    // cannot be one (unknown key, wrong type). Sliders are clamped and snapped
-    // to their step.
+    // cannot be one (unknown key, wrong type). Ranged entries (sliders, colours) are
+    // clamped and snapped to their step.
     function sanitize(key, value) {
         var e = byKey(key);
         if (!e) { return undefined; }
@@ -190,6 +212,7 @@ var QolLiteMapSchema = (function () {
 
     return {
         LIMITS: LIMITS, list: list, groups: groups, iconEntries: iconEntries, byKey: byKey,
-        byUmmId: byUmmId, defaults: defaults, toShown: toShown, fromShown: fromShown, sanitize: sanitize
+        byUmmId: byUmmId, isRanged: isRanged, defaults: defaults, toShown: toShown, fromShown: fromShown,
+        sanitize: sanitize
     };
 })();
