@@ -364,6 +364,15 @@ like conflicts and `review-base`.
 At 6722: 80 files checked, 22 needed a human (conflicts or `review-base`; the tool had no
 `engine-ids` check then).
 
+At 6730 (2026-10-01; `245f295` (6722) → `3e78562` (6730) — panorama last changed at 6728,
+`573a412`): 84 files checked, 12 changed, no conflicts; the one `review-base` was the `@import`
+overlay `citadel_hud_hero_shop.css`, kept unchanged (step 4). Valve's changes: the top-bar health bar
+became `#HealthBar_Contents` / `#HealthBar_Fill` panels (the `ProgressBar#HeroHealth` and its rules
+are gone), souls show as `{s:gold}`, the shop's purchase key is a `CitadelBinding`, three subtitle
+rows in `popup_settings.xml`, `#hudActivePlayerStats` hidden post-game and in spectate. The same-build
+check found the shipped tree at `b2c12cc` missing three of those subtitle ids, and at `6e30505` also
+`HealthBar_Fill` — the id the players' crash dialog named ([`FIELD_NOTES.md`](FIELD_NOTES.md) §10).
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the

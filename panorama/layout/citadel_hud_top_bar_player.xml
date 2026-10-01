@@ -31,7 +31,7 @@
 			<Panel id="HeroContents" class="HeroContents">
 				<Panel class="SoulsValueContainer">
 					<Panel class="SoulsImage" />
-					<Label id="SoulsValue" class="SoulsValue" html="true" text="{g:citadel_thousands:gold}" />
+					<Label id="SoulsValue" class="SoulsValue" html="true" text="{s:gold}" />
 				</Panel>
 				<Panel id="HeroImageArea">
 					<Panel class="HeroContentsCoinBackground" />
