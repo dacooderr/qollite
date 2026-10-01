@@ -100,6 +100,7 @@ added no recurring HUD loop apart from the storage retries above.
 | `qollite_map_popup.js` → `_decorate` / `init` retries | 0.25 s | — | Waits for Valve's nav and rows to exist | ✅ Bounded (`RETRY_MAX`, 40) |
 | `qollite_map_popup.js` → `_unpeekLater` | 0.25 s (a literal) | — | After Show on Screen: checks whether the 3 s peek is over, then restores the window | ✅ Ends with the peek |
 | `qollite_map_popup.js` → `_requestState` | 0.5 s | — | Re-asks the HUD for the values if it has not answered | ✅ Bounded (`GET_RETRIES`) |
+| `qollite_map_popup.js` → `_layoutReadBackLater` | one-shot, 1 s | — | Per colour row (4), once per window open: 3 `FindChildTraverse` and a log string. Commented "DEBUG" but scheduled with DEBUG off too; only the `_log` is gated. New in BetterMap 3.1 | ✅ One-shot. Upstream nit: gate the scheduling on `QolLiteMapLog.isDebug()` |
 
 ### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_poi.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_poi.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -56,7 +56,7 @@ var QolLiteMapPoi = (function () {
         p.style.width = px + "px";
         p.style.height = px + "px";
         p.style.transform = "translateX(" + (-px / 2) + "px) translateY(" + (-px / 2) + "px)";
-        p.style.backgroundColor = QolLiteMapDraw.poiColor(m.t, opacity);
+        p.style.backgroundColor = QolLiteMapDraw.poiColor(m.t, state[QolLiteMapDraw.colorKey(m.t)], opacity);
         p.style.zIndex = "10";
     }
 
@@ -65,6 +65,7 @@ var QolLiteMapPoi = (function () {
         if (m.t === "crate" && !state.poiCratesEnabled) { return false; }
         if (m.t === "statue" && !state.poiStatuesEnabled) { return false; }
         if (m.t === "tough" && !state.poiToughEnabled) { return false; }
+        if (m.t === "apple" && !state.poiApplesEnabled) { return false; }
         // Small props live in the rat tunnels: shown only while that view is up.
         if (m.small && !_inTunnels) { return false; }
         // Always follow the current level (owner, 2026-10-01: no "show all levels" option).
@@ -166,15 +167,16 @@ var QolLiteMapPoi = (function () {
         _pollLevel();
 
         if (typeof QolLiteMapLog !== "undefined") {
-            var c = 0, cs = 0, s = 0, ss = 0, tg = 0;
+            var c = 0, cs = 0, s = 0, ss = 0, tg = 0, ap = 0;
             for (var i = 0; i < _markers.length; i++) {
                 var m = _markers[i];
                 if (m.t === "crate") { m.small ? cs++ : c++; }
                 else if (m.t === "statue") { m.small ? ss++ : s++; }
                 else if (m.t === "tough") { tg++; }
+                else if (m.t === "apple") { ap++; }
             }
             QolLiteMapLog.info("poi: " + _markers.length + " markers (crates " + c + "/" + cs +
-                " small, statues " + s + "/" + ss + " small, tough " + tg + "), underground=" + _underground);
+                " small, statues " + s + "/" + ss + " small, tough " + tg + ", apples " + ap + "), underground=" + _underground);
         }
     }
 

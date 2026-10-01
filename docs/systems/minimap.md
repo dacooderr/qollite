@@ -3,9 +3,9 @@
 > Resizable, movable minimap with per-type icon sizes, an objective overlay, and settings inside the
 > game's own settings window.
 >
-> **Origin:** BetterMap 3.0 (`0237ebe`) · **Runs in:** every match · **Off switch:** settings window or
+> **Origin:** BetterMap 3.1 (`8d87d86`) · **Runs in:** every match · **Off switch:** settings window or
 > UMM `bettermap` (partial — see [Known issues](#known-issues))
-> **Last verified:** 2026-10-01 against the BetterMap 3.0 re-bundle (branch `feat/bettermap-3.0`).
+> **Last verified:** 2026-10-02 against the BetterMap 3.1 re-bundle (branch `feat/bettermap-apples`).
 
 The largest feature in the mod: 22 scripts, a full `hud.xml` override, three subsections spliced into
 Valve's `popup_settings.xml`, and BetterMap's rules in two stylesheets. The scripts are **generated**
@@ -28,7 +28,8 @@ the 3.0 release candidate standalone, on game build 6728.
 | Enlarge to 750 px while a map-targeted ability is aimed (Mirage's Traveler) | **on** |
 | Full-Width HUD — lift Valve's 21:9 clamp on ultrawide screens | off |
 | Separate icon sizes, 50–200 %: you, allies, enemies, towers, shops, runes, urn | 100 % |
-| Overlay markers for crates, tough crates and golden statues, each shown from its own spawn time | off |
+| Overlay markers for crates, tough crates, golden statues and healing apples (3.1), each shown from its own spawn time | off |
+| A colour per marker type, picked on Valve's colour track in the settings window (3.1; not in UMM) | crates blue, statues yellow, tough crates green, apples red |
 | Urn spawn-location tracker with countdown | off |
 | Live preview of the real minimap: in the escape menu for 4 s after a change, and over the settings window while BetterMap's rows are on screen | — |
 | Settings in Valve's settings window, Game → three subsections, saved automatically | — |
@@ -44,7 +45,7 @@ Two mutually exclusive front ends, decided at HUD load:
 
 | | Without UMM | With UMM installed |
 |---|---|---|
-| UI | Settings → Game → **Minimap (BetterMap by gfkm)**, **Minimap Icons (BetterMap)**, **Crates & Statues (BetterMap)**, each with Preview on Screen and Reset to Defaults, plus Valve's per-row reset | UMM's window, id `bettermap`, three groups. BetterMap's subsections in the settings window are hidden |
+| UI | Settings → Game → **Minimap (BetterMap by gfkm)**, **Minimap Icons (BetterMap)**, **Map Objects (BetterMap)** ("Crates & Statues" before 3.1), each with Preview on Screen and Reset to Defaults, plus Valve's per-row reset | UMM's window, id `bettermap`, three groups. BetterMap's subsections in the settings window are hidden |
 | Saving | `qollite_map_store.js`: a hidden `CitadelHTMLPanel` keeps the settings in the embedded browser's `localStorage` behind `gfkm.github.io/bettermap-storage/` ([`../BUNDLE.md`](../BUNDLE.md) §4, Third-party services) | UMM. The store does one read at HUD load for a one-time migration into UMM, then deletes its panel |
 
 **Upgrading from the 2.1 bundle resets every UMM-saved BetterMap value once.** 3.0 gave every widget
@@ -251,11 +252,13 @@ listed and are stored as fractions where the unit is %.
 | Minimap | `ultLargeMapEnabled` | `true` | `ul` | toggle "Larger Map for Traveler (Mirage)" |
 | Minimap | `hudFullWidth` | `false` | `fw` | toggle "Full-Width HUD" |
 | Minimap Icons | `self` / `ally` / `enemy` / `tower` / `shop` / `rune` / `urn` + `IconScalePct` | 100 | `is` `ia` `ie` `it` `ih` `ir` `iu` | slider 50–200 %, step 10 |
-| Crates & Statues | `poiCratesEnabled` / `poiStatuesEnabled` / `poiToughEnabled` | `false` | `pc` / `ps` / `pt` | toggle |
-| Crates & Statues | `poiFrom3Min` | `true` | `p3` | toggle "Show Only Spawned Objects" |
-| Crates & Statues | `poiMarkerSizePx` | 3 | `pz` | slider 1–8 px |
-| Crates & Statues | `poiOpacity` | 0.8 | `po` | slider 10–100 % |
-| Crates & Statues | `urnTrackerEnabled` | `false` | `ut` | toggle |
+| Map Objects | `poiCratesEnabled` / `poiStatuesEnabled` / `poiToughEnabled` | `false` | `pc` / `ps` / `pt` | toggle |
+| Map Objects | `poiApplesEnabled` | `false` | `pa` | toggle "Show Healing Apples" — 3.1 |
+| Map Objects | `poiCrateColor` / `poiStatueColor` / `poiToughColor` / `poiAppleColor` | 0.57 / 0.2 / 0.36 / 0.08 | — (not in UMM) | colour, a position on Valve's colour track, in its toggle's row — 3.1 |
+| Map Objects | `poiFrom3Min` | `true` | `p3` | toggle "Show Only Spawned Objects" |
+| Map Objects | `poiMarkerSizePx` | 3 | `pz` | slider 1–8 px |
+| Map Objects | `poiOpacity` | 0.8 | `po` | slider 10–100 % |
+| Map Objects | `urnTrackerEnabled` | `false` | `ut` | toggle |
 
 **Removed in 3.0:**
 
@@ -271,10 +274,12 @@ listed and are stored as fractions where the unit is %.
 - **The loops run regardless of settings** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D1. The 33 Hz
   detail-view poll, now in `qollite_map_size.js`, is still the most expensive thing in the mod. Fix
   belongs upstream.
-- **With UMM, every HUD load still opens the storage page once** for the migration read, even after
-  UMM already holds BetterMap's values. This is read from `_init` in `qollite_map_store.js`, not
-  measured. It is a one-off cost at load, not per frame, plus a request to GitHub Pages. Most QOL Lite users have UMM. Proposal for upstream: skip the seed once UMM has
-  answered with BetterMap values.
+- **With UMM, every HUD load still opens the storage page once** (read from `_init` in
+  `qollite_map_store.js`, not measured). It is a one-off cost at load, not per frame, plus a request
+  to GitHub Pages. Most QOL Lite users have UMM. Since 3.1 that read is load-bearing: the marker
+  colours are not in UMM, so under UMM it is their only source (`seed()` in
+  `qollite_map_umm_adapter.js`). Skipping it would reset them to defaults. Under UMM the colours
+  cannot be changed either — they stay as last set without UMM.
 - Options are English-only (upstream: the build tools cannot ship translations).
 - `hud.xml` and `popup_settings.xml` need a rebase after every patch that touches them
   ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9).

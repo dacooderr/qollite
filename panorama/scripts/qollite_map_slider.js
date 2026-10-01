@@ -1,12 +1,12 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_slider.js
+// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_slider.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Binds one of Valve's CitadelSettingsSlider composites without a convar (spec
+// Binds one of Valve's CitadelSettingsSlider / CitadelSettingsColorSlider composites without a convar (spec
 // docs/specs/2026-10-01-native-settings.md §6.1). Runs in the settings popup.
 //
 // The composite is C++ (panorama/layout/popups/settings_slider.xml, build 6722):
@@ -36,7 +36,10 @@
 //     "keeps changing". Mouse-out, or the next state, repairs the display;
 //   - any other change is put back to the HUD's value, a bounded number of times.
 var QolLiteMapSlider = (function () {
-    var INNER_ID = "Slider";            // settings_slider.xml: CitadelSettingsSlider > Slider#Slider
+    // The inner slider per schema type: settings_slider.xml CitadelSettingsSlider > Slider#Slider,
+    // settings_color_slider.xml CitadelSettingsColorSlider > Slider#ColorSlider (0..1; the colour
+    // composite has no value / min / max, research P3, so it always writes the inner slider).
+    var INNER_ID = { slider: "Slider", color: "ColorSlider" };
     var REASSERT_MAX = 3;               // per control per window open: a fighting composite is logged, never looped
     // After we write, the composite may push its own position back asynchronously; run 1
     // saw that within the same second. While this window is open a hover alone does not
@@ -57,7 +60,8 @@ var QolLiteMapSlider = (function () {
     // hooks.commit(stored) -> a player change, already snapped by the schema.
     // Returns null when the composite has no inner slider or the entry has no range.
     function bind(ctl, e, hooks) {
-        var inner = ctl.FindChildTraverse(INNER_ID);
+        var innerId = Object.prototype.hasOwnProperty.call(INNER_ID, e.type) ? INNER_ID[e.type] : null;
+        var inner = innerId ? ctl.FindChildTraverse(innerId) : null;
         if (!inner) { return null; }
         if (!(e.max > e.min)) {
             QolLiteMapLog.error("slider: " + e.key + " has no range (max <= min), not bound");

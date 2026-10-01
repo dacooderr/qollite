@@ -1270,12 +1270,19 @@
 					<PopupSettingsSettingsSubsection id="bettermap_objects">
 						<PopupSettingsSettingsRow id="bm_row_poiCratesEnabled">
 							<CitadelSettingsToggle id="bm_ctl_poiCratesEnabled" text="Show Crates" />
+							<CitadelSettingsColorSlider id="bm_ctl_poiCrateColor" text="" />
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow id="bm_row_poiStatuesEnabled">
 							<CitadelSettingsToggle id="bm_ctl_poiStatuesEnabled" text="Show Golden Statues" />
+							<CitadelSettingsColorSlider id="bm_ctl_poiStatueColor" text="" />
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow id="bm_row_poiToughEnabled">
 							<CitadelSettingsToggle id="bm_ctl_poiToughEnabled" text="Show Tough Crates" />
+							<CitadelSettingsColorSlider id="bm_ctl_poiToughColor" text="" />
+						</PopupSettingsSettingsRow>
+						<PopupSettingsSettingsRow id="bm_row_poiApplesEnabled">
+							<CitadelSettingsToggle id="bm_ctl_poiApplesEnabled" text="Show Healing Apples" />
+							<CitadelSettingsColorSlider id="bm_ctl_poiAppleColor" text="" />
 						</PopupSettingsSettingsRow>
 						<PopupSettingsSettingsRow id="bm_row_poiFrom3Min">
 							<CitadelSettingsToggle id="bm_ctl_poiFrom3Min" text="Show Only Spawned Objects" />
