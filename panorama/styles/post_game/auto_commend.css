@@ -1,0 +1,93 @@
+/* Prettified by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io */
+
+.AutoCommendRow
+{
+	width: fit-children;
+	height: 28px;
+	vertical-align: bottom;
+	horizontal-align: left;
+	flow-children: right;
+	margin-bottom: 16px;
+	margin-left: 200px;
+	z-index: 90;
+}
+
+.AutoCommendStyle
+{
+	width: fit-children;
+	height: 28px;
+	margin-left: 4px;
+	margin-right: 4px;
+	padding: 0px 12px 0px 10px;
+	border-radius: 60px;
+	background-color: offWhite&05;
+	flow-children: right;
+	transition-property: pre-transform-scale2d, background-color, opacity;
+	transition-duration: 0.1s;
+	opacity: 1;
+}
+
+.AutoCommendStyle:hover
+{
+	pre-transform-scale2d: 1.08;
+	background-color: offWhite&15;
+}
+
+.AutoCommendStyle:active
+{
+	pre-transform-scale2d: 0.92;
+	sound: "UI.CommendConfirmation";
+}
+
+.AutoCommendStyle.ac_done
+{
+	opacity: 0.35;
+}
+
+.AutoCommendIcon
+{
+	width: 14px;
+	height: 14px;
+	margin-right: 6px;
+	vertical-align: center;
+	background-image: url("s2r://panorama/images/icons/icon_thumbsup.vsvg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	wash-color: offWhite&cc;
+	transition-property: wash-color;
+	transition-duration: 0.1s;
+}
+
+.AutoCommendLabel
+{
+	vertical-align: center;
+	font-size: 14px;
+	color: offWhite&cc;
+	text-align: left;
+}
+
+.AutoCommendTeam .AutoCommendIcon,.AutoCommendTeam .AutoCommendLabel
+{
+	wash-color: #8fdf8a;
+	color: #8fdf8a;
+}
+
+.AutoCommendEnemy .AutoCommendIcon,.AutoCommendEnemy .AutoCommendLabel
+{
+	wash-color: #e88989;
+	color: #e88989;
+}
+
+.AutoCommendUnmuted .AutoCommendIcon,.AutoCommendUnmuted .AutoCommendLabel
+{
+	wash-color: #e6c36a;
+	color: #e6c36a;
+}
+
+.AutoCommendReturn .AutoCommendIcon,.AutoCommendReturn .AutoCommendLabel
+{
+	wash-color: #8ee0b0;
+	color: #8ee0b0;
+}
+
