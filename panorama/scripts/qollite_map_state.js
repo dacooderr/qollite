@@ -1,49 +1,36 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_state.js
+// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_state.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
+// The in-memory settings object. Setting defaults come from QolLiteMapSchema (the
+// one list of settings), plus its LIMITS. Persistence lives in qollite_map_store.js
+// (standalone) or UMM. DEFAULTS is built on first use, not at script load: the
+// cross-script load order is not guaranteed (panorama_notes.md), so the schema
+// may not have loaded yet when this file does.
 var QolLiteMapState = (function () {
-    var DEFAULTS = {
-        poiCratesEnabled: false,
-        poiStatuesEnabled: false,
-        poiToughEnabled: false,    // 6722 tough crates (heavy melee, big gold)
-        poiLevelMode: "auto",      // "auto" = follow is_underground, "both" = show all levels
-        poiMarkerSizePx: 3,
-        poiOpacity: 0.8,
-        poiFrom3Min: true,        // hide each POI until its own spawn time (3:00/5:00/10:00 on 6722); key name kept for saved settings
-        minimapSizePx: 400,
-        minimapSizeMinPx: 200,
-        minimapSizeMaxPx: 800,
-        minimapSizeStepPx: 20,
-        mapOpacity: 0.95,
-        minimapCorner: "bottom-right", // "bottom-right" | "bottom-left" | "top-right" | "top-left"
-        minimapOffsetX: 0,             // -1..1: >0 fraction of the free travel from the anchored horizontal edge, <0 past it (max half off-screen)
-        minimapOffsetY: 0,             // -1..1: same for the anchored vertical edge
-        hudFullWidth: false,           // lift the clamp_width cap (6722: Valve 21:9 option, 1920px) -> full monitor width
-        minimalMap: false,
-        minimalMapOpacity: 0.9,        // QOL Lite local delta (not in upstream BetterMap): map-layer opacity in Minimalist mode
-        playerIconScalePct: 100,       // player markers on the minimap, % of Valve's size
-        playerIconScaleMinPct: 50,     // limits: one CSS rule per step in hud_minimap.vcss (bm_player_scale_*)
-        playerIconScaleMaxPct: 200,
-        playerIconScaleStepPct: 10,
-        ultLargeMapEnabled: true,      // on by default; enlarge the minimap while aiming a map ability (Mirage Traveler)
-        urnTrackerEnabled: false       // off by default (opt-in): predicts an objective, a
-                                       // grey-area category in Deadlock - let the player choose it
-    };
-
+    var _defaults = null;
     var _state = null;
 
-    function reset() {
-        _state = {};
-        for (var k in DEFAULTS) {
-            if (Object.prototype.hasOwnProperty.call(DEFAULTS, k)) {
-                _state[k] = DEFAULTS[k];
-            }
+    function _own(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+
+    function _defaultsObj() {
+        if (!_defaults) {
+            var d = QolLiteMapSchema.defaults();
+            var limits = QolLiteMapSchema.LIMITS;
+            for (var k in limits) { if (_own(limits, k)) { d[k] = limits[k]; } }
+            _defaults = Object.freeze(d);
         }
+        return _defaults;
+    }
+
+    function reset() {
+        var d = _defaultsObj();
+        _state = {};
+        for (var k in d) { if (_own(d, k)) { _state[k] = d[k]; } }
     }
 
     function get() {
@@ -52,20 +39,18 @@ var QolLiteMapState = (function () {
     }
 
     function patch(obj) {
-        if (!_state) { reset(); }
-        for (var k in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, k)) {
-                _state[k] = obj[k];
-            }
-        }
+        var s = get();
+        for (var k in obj) { if (_own(obj, k)) { s[k] = obj[k]; } }
     }
 
-    reset();
+    // Only the player settings (schema keys) - what is saved and sent to the popup.
+    function values() {
+        var s = get(), out = {}, list = QolLiteMapSchema.list();
+        for (var i = 0; i < list.length; i++) { out[list[i].key] = s[list[i].key]; }
+        return out;
+    }
 
-    return {
-        DEFAULTS: DEFAULTS,
-        get: get,
-        patch: patch,
-        reset: reset
-    };
+    var api = { get: get, patch: patch, reset: reset, values: values };
+    Object.defineProperty(api, "DEFAULTS", { get: _defaultsObj, enumerable: true });
+    return api;
 })();

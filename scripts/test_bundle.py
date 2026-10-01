@@ -53,6 +53,15 @@ class BetterMapRename(unittest.TestCase):
                          ["BettermapFoo", "POI_DATA", "bettermap_x.js"])
         self.assertEqual(bb.leftovers("QolLiteMapState"), [])
 
+    def test_leftovers_agree_with_rename_on_paths(self):
+        # rename() keeps path-qualified names on purpose; leftovers() must not then reject them.
+        self.assertEqual(bb.leftovers(bb.rename("// mod/panorama/scripts/bettermap_store.js\n")), [])
+
+    def test_leftovers_catch_irregular_names(self):
+        self.assertEqual(bb.leftovers("// see bettermap.js and urn_data.js"),
+                         ["bettermap.js", "urn_data.js"])
+        self.assertEqual(bb.leftovers("qollite_map_poi_data.js qollite_map_bootstrap.js"), [])
+
     def test_transform_fails_on_unrenamed(self):
         # `Bettermap` alone (no capital suffix) survives rename() and must stop the build.
         with self.assertRaises(bc.BundleError):
@@ -77,6 +86,29 @@ class BetterMapFiles(unittest.TestCase):
     def test_every_delta_targets_a_bundled_file(self):
         self.assertLessEqual(set(bb.DELTAS), set(bb.FILES.values()))
 
+    def test_bettermap_3_modules(self):
+        for mod in ("schema", "draw", "icons", "apply", "store_codec", "store",
+                    "settings_bus", "slider", "popup"):
+            self.assertEqual(bb.FILES[f"bettermap_{mod}.js"], f"qollite_map_{mod}.js")
+        # Removed upstream in 3.0 (the in-HUD settings panel; player sizing moved to icons).
+        self.assertNotIn("bettermap_settings.js", bb.FILES)
+        self.assertNotIn("bettermap_player.js", bb.FILES)
+
+    def test_unlisted_upstream_module_fails(self):
+        listed = [f"{bb.UPSTREAM_DIR}/{up}" for up in bb.FILES]
+        bb.check_listing(listed)
+        with self.assertRaises(bc.BundleError):
+            bb.check_listing(listed + [f"{bb.UPSTREAM_DIR}/bettermap_new.js"])
+
+    def test_listed_module_missing_upstream_fails(self):
+        with self.assertRaises(bc.BundleError):
+            bb.check_listing([f"{bb.UPSTREAM_DIR}/bettermap_log.js"])
+
+    def test_no_local_deltas(self):
+        # "Minimalist Map Opacity" was dropped at BetterMap 3.0: upstream's Map Opacity
+        # covers it, and 3.0 resets every UMM-saved BetterMap value anyway (docs/BUNDLE.md).
+        self.assertEqual(bb.DELTAS, {})
+
     def test_header(self):
         h = bb.header("abc1234", "bettermap_log.js")
         self.assertIn("github.com/gfkm/BetterMap @ abc1234, mod/panorama/scripts/bettermap_log.js\n", h)
@@ -99,11 +131,6 @@ class BetterMapDeltas(unittest.TestCase):
 
     def test_file_without_deltas_passes_through(self):
         self.assertEqual(bb.apply_deltas("other.js", "x\n", self.DELTAS), "x\n")
-
-    def test_real_delta_table_rejects_foreign_source(self):
-        # The shipped DELTAS against a source lacking their anchors must not be skipped.
-        with self.assertRaises(bc.BundleError):
-            bb.transform("bettermap_state.js", "var BettermapState = {};\n", "abc1234")
 
 
 class MerRename(unittest.TestCase):

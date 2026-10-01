@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_poi.js
+// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_poi.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -9,16 +9,6 @@
 var QolLiteMapPoi = (function () {
     var MAP_NAME = "dl_midtown";
 
-    // Markers are tiny, so type is conveyed by colour alone (owner directive):
-    // crate = blue, statue = yellow, tough crate = green (the outline colour the
-    // game itself gives it: misc.vdata m_colorOutline 50,205,50). No shape/border-radius - which also keeps
-    // us clear of the strict JS style setter (no Valve precedent for
-    // style.borderRadius; see CURRENT_STATUS checkpoint #1).
-    var COLOR = {
-        crate: "rgba(74, 158, 255, ",   // blue
-        statue: "rgba(255, 207, 74, ",  // yellow
-        tough: "rgba(50, 205, 50, "     // green
-    };
     var SMALL_FACTOR = 0.6;             // small POI = base size * factor (min 1px)
     var UNDERGROUND_Z_MAX = 0;          // world z below this = underground POI
     var LEVEL_POLL_SEC = 0.25;
@@ -66,7 +56,7 @@ var QolLiteMapPoi = (function () {
         p.style.width = px + "px";
         p.style.height = px + "px";
         p.style.transform = "translateX(" + (-px / 2) + "px) translateY(" + (-px / 2) + "px)";
-        p.style.backgroundColor = COLOR[m.t] + opacity.toFixed(2) + ")";
+        p.style.backgroundColor = QolLiteMapDraw.poiColor(m.t, opacity);
         p.style.zIndex = "10";
     }
 
@@ -77,11 +67,9 @@ var QolLiteMapPoi = (function () {
         if (m.t === "tough" && !state.poiToughEnabled) { return false; }
         // Small props live in the rat tunnels: shown only while that view is up.
         if (m.small && !_inTunnels) { return false; }
-        if (state.poiLevelMode === "auto") {
-            if (_inTunnels) { return m.small; }
-            if (m.under !== _underground) { return false; }
-        }
-        return true;
+        // Always follow the current level (owner, 2026-10-01: no "show all levels" option).
+        if (_inTunnels) { return m.small; }
+        return m.under === _underground;
     }
 
     // Comma list of the distinct spawn times already reached; changes only when
@@ -124,7 +112,7 @@ var QolLiteMapPoi = (function () {
             var p = data.pois[i];
             if (typeof p.u !== "number" || typeof p.v !== "number") { continue; }
             // A type added to the data before the runtime knows it - skip, never throw.
-            if (!COLOR[p.t]) { continue; }
+            if (!QolLiteMapDraw.hasPoiType(p.t)) { continue; }
             var marker = $.CreatePanel("Panel", host, "poi_" + i);
             marker.style.horizontalAlign = "left";
             marker.style.verticalAlign = "top";
@@ -153,7 +141,7 @@ var QolLiteMapPoi = (function () {
             _underground = u;
             _inTunnels = t;
             _log("level -> " + (t ? "rat tunnels (small only)" : (u ? "underground" : "surface")));
-            if (QolLiteMapState.get().poiLevelMode === "auto") { _applyVisibility(); }
+            _applyVisibility();
         }
         var inv = QolLiteMapMinimap.isInverted();
         if (inv !== _inverted) {
@@ -170,114 +158,11 @@ var QolLiteMapPoi = (function () {
         $.Schedule(LEVEL_POLL_SEC, _pollLevel);
     }
 
-    function _bindToggle(id, key, after) {
-        var toggle = _panel(id);
-        if (!toggle) { return; }
-        toggle.SetPanelEvent("onactivate", function () {
-            var patch = {};
-            patch[key] = !QolLiteMapState.get()[key];
-            QolLiteMapState.patch(patch);
-            _log(key + " = " + patch[key]);
-            _syncControls();
-            after();
-        });
-    }
-
-    function _syncControls() {
-        var state = QolLiteMapState.get();
-        var pairs = [
-            ["minimap_crates_toggle", state.poiCratesEnabled],
-            ["minimap_statues_toggle", state.poiStatuesEnabled],
-            ["minimap_tough_toggle", state.poiToughEnabled],
-            ["minimap_poi_level_toggle", state.poiLevelMode === "auto"],
-            ["minimap_poi_spawn_toggle", state.poiFrom3Min]
-        ];
-        for (var i = 0; i < pairs.length; i++) {
-            var t = _panel(pairs[i][0]);
-            if (t && typeof t.SetSelected === "function") { t.SetSelected(pairs[i][1]); }
-        }
-        var sizeSlider = _panel("minimap_crates_size_slider");
-        if (sizeSlider) {
-            var sCtrl = sizeSlider.FindChildTraverse("Slider");
-            if (sCtrl) { sCtrl.value = state.poiMarkerSizePx; }
-        }
-        var opSlider = _panel("minimap_crates_opacity_slider");
-        if (opSlider) {
-            var oCtrl = opSlider.FindChildTraverse("Slider");
-            if (oCtrl) { oCtrl.value = state.poiOpacity; }
-        }
-    }
-
-    function bindControls() {
-        _bindToggle("minimap_crates_toggle", "poiCratesEnabled", _applyVisibility);
-        _bindToggle("minimap_statues_toggle", "poiStatuesEnabled", _applyVisibility);
-        _bindToggle("minimap_tough_toggle", "poiToughEnabled", _applyVisibility);
-        _bindToggle("minimap_poi_spawn_toggle", "poiFrom3Min", _applyVisibility);
-
-        var levelToggle = _panel("minimap_poi_level_toggle");
-        if (levelToggle) {
-            levelToggle.SetPanelEvent("onactivate", function () {
-                var mode = QolLiteMapState.get().poiLevelMode === "auto" ? "both" : "auto";
-                QolLiteMapState.patch({ poiLevelMode: mode });
-                _log("poiLevelMode = " + mode);
-                _syncControls();
-                _applyVisibility();
-            });
-        }
-
-        var sizeSlider = _panel("minimap_crates_size_slider");
-        if (sizeSlider) {
-            var sCtrl = sizeSlider.FindChildTraverse("Slider");
-            if (sCtrl) {
-                sCtrl.min = 1;
-                sCtrl.max = 8;
-                sCtrl.SetPanelEvent("onvaluechanged", function () {
-                    var px = Math.max(1, Math.min(8, Math.round(sCtrl.value)));
-                    QolLiteMapState.patch({ poiMarkerSizePx: px });
-                    _applyAllStyles();
-                });
-            }
-        }
-
-        var opSlider = _panel("minimap_crates_opacity_slider");
-        if (opSlider) {
-            var oCtrl = opSlider.FindChildTraverse("Slider");
-            if (oCtrl) {
-                oCtrl.SetPanelEvent("onvaluechanged", function () {
-                    var v = Math.max(0.01, Math.min(1.0, Math.round(oCtrl.value * 100) / 100));
-                    QolLiteMapState.patch({ poiOpacity: v });
-                    _applyAllStyles();
-                });
-            }
-        }
-
-        var resetBtn = _panel("minimap_reset_crates_button");
-        if (resetBtn) {
-            resetBtn.SetPanelEvent("onactivate", function () {
-                var d = QolLiteMapState.DEFAULTS;
-                QolLiteMapState.patch({
-                    poiCratesEnabled: d.poiCratesEnabled,
-                    poiStatuesEnabled: d.poiStatuesEnabled,
-                    poiToughEnabled: d.poiToughEnabled,
-                    poiFrom3Min: d.poiFrom3Min,
-                    poiLevelMode: d.poiLevelMode,
-                    poiMarkerSizePx: d.poiMarkerSizePx,
-                    poiOpacity: d.poiOpacity
-                });
-                _syncControls();
-                _applyAllStyles();
-                _applyVisibility();
-            });
-        }
-    }
-
     function init() {
         _underground = _isUnderground();
         _inTunnels = _isInTunnels();
         _inverted = QolLiteMapMinimap.isInverted();
         _renderMarkers();
-        bindControls();
-        _syncControls();
         _pollLevel();
 
         if (typeof QolLiteMapLog !== "undefined") {
@@ -293,10 +178,8 @@ var QolLiteMapPoi = (function () {
         }
     }
 
-    // Re-apply everything from QolLiteMapState. Used when settings change outside
-    // the in-HUD panel (e.g. the UMM adapter pushing a value).
+    // Re-apply everything from QolLiteMapState (QolLiteMapApply.all).
     function refresh() {
-        _syncControls();
         _applyVisibility();
         _applyAllStyles();
     }

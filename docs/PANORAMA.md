@@ -221,7 +221,7 @@ Two details carry the weight:
   and returning early. Whatever creates an item calls `schedule()` to start it again.
 - **The `_sweeping` latch** — five items arriving in one frame schedule one sweep, not five.
 
-Contrast `qollite_map_settings.js`, which re-arms every 0.03 s regardless of state. That difference
+Contrast `_pollDetailView` in `qollite_map_size.js`, which re-arms every 0.03 s regardless of state. That difference
 is [`TECH_DEBT.md`](TECH_DEBT.md) D1 and D2 in one line.
 
 #### Give bridged state a TTL
@@ -438,16 +438,20 @@ function safeInit(name, fn) {
 - **⚠️ Raw `<Slider>` is unreliable** — it renders vertical with odd stepping. Use Valve's composite
   controls, **`CitadelSettingsSlider`** and **`CitadelSettingsToggle`**, and bind to their inner
   `Slider` via `FindChildTraverse("Slider")` + `SetPanelEvent("onvaluechanged", …)`. ✅ That is what
-  the minimap settings panel does throughout.
+  BetterMap's rows in the settings window do (`qollite_map_slider.js`).
 - **`Button` is composed, not atomic.** The correct markup is
   `<Button class="InputButton Fill Small"><Panel class="Bottom"/><Panel class="Top"/><Panel class="Content">…</Panel></Button>`.
   Size variants `Large | Small | XSmall`; style variants `Fill | Dark | CTA | Caution | Warning |
   Disabled | IconOnly`.
 - **Composite settings controls normally bind to a convar**, which is how the game's own settings
-  persist. **A mod cannot register into that C++ settings tree from layout alone** — which is exactly
-  why settings here are wired to JS and persisted through UMM. ✅ QOL Lite's minimap panel *imitates*
-  Valve's settings markup (`SettingsRow`, `SettingsSectionContainer`) while wiring the controls to
-  JavaScript.
+  persist. A mod **can** add rows and whole subsections to the game's settings window by overriding
+  `popups/popup_settings.xml`. The C++ builds its registry from that layout when the window loads, so
+  added `PopupSettingsSettingsSubsection`s get native navigation, search and hover. BetterMap 3.0
+  does this. That is upstream's in-game finding (BetterMap `docs/knowledge/native_settings_injection.md`,
+  four probe runs on 6722–6728), not re-measured here. Controls without a convar persist nothing on
+  their own: BetterMap binds them in JS and saves through UMM or its own store
+  ([minimap](systems/minimap.md)). The cost is that the override is a full copy of Valve's layout,
+  shared by every feature that adds to it, and it goes stale on every patch that touches it.
 - **`RadioButton group="…"`** gives mutual exclusion; `selected="true"` sets the default.
   **`TabButton` / `TabContents`** pair via `group=` and `tabid=` and the engine wires visibility.
 - **`hittest="false"`** is the reliable input blocker. Pair it with `visibility: collapse` when

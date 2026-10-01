@@ -70,14 +70,15 @@ searches the whole tree; when its target does not exist it visits every panel be
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_map_settings.js` → `_pollDetailView` | 0.03 s | ~33 Hz | 8 `FindChildTraverse` (the `#minimap_persp` ancestor walk plus 7 ids) to decide whether the detail view is open; while TAB is held, also `applyCurrentSize` (6 lookups, 10 style writes) | **No** — keeps running after UMM retires the in-HUD panel |
+| `qollite_map_size.js` → `_pollDetailView` | 0.03 s | ~33 Hz | 8 `FindChildTraverse` (the `#minimap_persp` ancestor walk plus 7 ids) to decide whether the detail view is open; while TAB is held, also `applyCurrentSize` (6 lookups, 10 style writes). Moved here from the removed `qollite_map_settings.js` in BetterMap 3.0, unchanged | **No** |
 | `qollite_map_size.js` → `_pollMapTargeting` | 0.06 s | ~17 Hz | One anchor lookup plus an ancestor walk for `.map_targeting`, only if `ultLargeMapEnabled` — which **defaults to on** | Loop always runs; lookup gated |
 | `qollite_map_urn.js` → `_poll` | 0.15 s | ~7 Hz | `#GameTime`, then up to 6 `FindChildrenWithClassTraverse` **from the root** (`idol_spawn` + 5 live classes) | **No** — runs with the tracker off (it keeps observing the urn side) |
 | `qollite_map_poi.js` → `_pollLevel` | 0.25 s | 4 Hz | 3 anchor lookups (underground, tunnels, inverted) + `#GameTime` | **No** — runs with every POI layer off |
 | `qollite_map_preview.js` → `_poll` | 0.25 s | 4 Hz | `JSON.stringify` of the state + 1 lookup + ancestor walk (new in BetterMap 2.1) | **No** |
-| `qollite_map_player.js` → `_pollZoom` | 0.5 s | 2 Hz | 1 lookup; anchor walk only when the icon scale is not 100 % (new in BetterMap 2.1) | **No** |
+| `qollite_map_icons.js` → `_poll` | 0.5 s | 2 Hz | `#hud_minimap` lookup, two anchor searches (`useZoomedMinimap`, `dl_midtown`), 7 class checks; on `dl_midtown` also one `FindChildrenWithClassTraverse("tier1_shop")` under `#hud_minimap` for the stray-shop workaround. Replaced `qollite_map_player.js` → `_pollZoom` in BetterMap 3.0 | **No** |
 | `qollite_map_minimap.js` → `_probeClasses` | 0.5 s | — | DEBUG-only diagnostics | ✅ Never scheduled while `DEBUG = false` (as bundled) |
 | `qollite_map_bootstrap.js` → `tryInit` | 0.05 s | — | `typeof` checks | ✅ Stops after init or 20 tries |
+| `qollite_map_store.js` | one-shot | — | Request timeouts (10 s), the 3 s idle save, page-load retries at 5 / 15 / 45 s, then every 45 s while the storage page is unreachable. New in BetterMap 3.0 | ✅ Without UMM only; under UMM it stops after the migration read (≤ 2 s) |
 | `qollite_passive.js` | — | — | no loop | ✅ |
 
 Compared with the previous bundle (BetterMap `60fa437`, DEBUG on) the map scripts no longer walk the
@@ -85,6 +86,20 @@ whole tree looking for the deleted `#map_render` (17×/s in `size`, 4×/s in `po
 tracker's DEBUG-only scans are gone. On an offline mock of the HUD tree that took total tree searches
 from ~385/s to ~352/s — a relative figure, not an engine measurement. What did **not** change is D1:
 six loops that run with their feature off (two of them new in 2.1), all upstream design.
+
+BetterMap 3.0 (`0237ebe`, 2026-10-01) kept the same six. The 33 Hz poll moved from
+`qollite_map_settings.js` into `qollite_map_size.js`, and `qollite_map_icons.js` replaced
+`qollite_map_player.js` at the same 2 Hz with a little more work per tick. 3.0 removed no loop and
+added no recurring HUD loop apart from the storage retries above.
+
+### `popups/popup_settings.xml` — while the settings window is open
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `qollite_map_popup.js` → `_liftTick` | 0.25 s | 4 Hz | Class checks on the window root; while BetterMap's rows are on screen, one `lift` message on `ClientUI_FireOutput` | ✅ Stops when the window closes. Under UMM it keeps ticking while the window is open but sends nothing |
+| `qollite_map_popup.js` → `_decorate` / `init` retries | 0.25 s | — | Waits for Valve's nav and rows to exist | ✅ Bounded (`RETRY_MAX`, 40) |
+| `qollite_map_popup.js` → `_unpeekLater` | 0.25 s (a literal) | — | After Show on Screen: checks whether the 3 s peek is over, then restores the window | ✅ Ends with the peek |
+| `qollite_map_popup.js` → `_requestState` | 0.5 s | — | Re-asks the HUD for the values if it has not answered | ✅ Bounded (`GET_RETRIES`) |
 
 ### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 
@@ -141,15 +156,15 @@ Loops in scripts no layout includes, so they never start (§4):
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Status: open — upstream BetterMap. Files:** `qollite_map_settings.js`,
-`qollite_map_size.js`, `qollite_map_urn.js`, `qollite_map_poi.js`, `qollite_map_preview.js`,
-`qollite_map_player.js`.
+**Severity: High. Status: open — upstream BetterMap, still so at 3.0 (`0237ebe`). Files:**
+`qollite_map_size.js` (two loops), `qollite_map_urn.js`, `qollite_map_poi.js`,
+`qollite_map_preview.js`, `qollite_map_icons.js`.
 
 The POI overlay and urn tracker default to **off** (`qollite_map_state.js`: `poiCratesEnabled`,
 `poiStatuesEnabled`, `poiToughEnabled`, `urnTrackerEnabled` all `false`). Their loops run anyway — the
 flag is checked *inside* the tick, after the wakeup and often after the tree walk. BetterMap 2.1 added
-two more always-on loops (`preview`, `player`), cheap but unconditional. Six loops in total run with
-every optional feature off.
+two more always-on loops (`preview`, `player` — `icons` since 3.0), cheap but unconditional. Six
+loops in total run with every optional feature off.
 
 **Fix (upstream, then re-bundle — the bundle is regenerated, [`BUNDLE.md`](BUNDLE.md) §3):** check the
 flag before re-arming, and restart the loop from the setting's change handler.
@@ -168,13 +183,12 @@ function setEnabled(on) {
 
 Proposals recorded at the re-bundle, in order of expected win:
 
-1. `settings._pollDetailView` (33 Hz, 8 searches a tick, forever) — cache the panels once
-   (`IsValid()`-checked) and/or react to the existing `GlobalClassListener` classes; stop while UMM
-   is active, since the panel is retired then.
+1. `size._pollDetailView` (33 Hz, 8 searches a tick, forever) — cache the panels once
+   (`IsValid()`-checked) and/or react to the existing `GlobalClassListener` classes.
 2. `urn._poll` — do not schedule while `urnTrackerEnabled` is false (re-seed on enable), or search from
    `#hud_minimap` instead of the context root.
 3. `poi._pollLevel` — stop with all POI layers off; `QolLiteMapMinimap.anchor()` re-searches the tree
-   three times per poi tick and once per size and player tick — cache the anchor.
+   three times per poi tick, once per size tick and twice per icons tick — cache the anchor.
 4. `ultLargeMapEnabled` defaults on, so the 17 Hz targeting poll does real work for everyone.
 
 ### D2. Two loops ignore their config entirely

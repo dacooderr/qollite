@@ -317,8 +317,24 @@ as a precedent; the crash disproves that. A missing panel here is not a styling 
 > are fatal, merely logged, or unused was not tested. The removal that followed
 > ([hero testing](systems/hero-testing.md)) was not checked in game.
 
+**It is not only full replacements.** On 2026-10-01 players on game build 6728 hit:
+
+```
+FATAL ERROR: Unable to find child 'HealthBar_Fill' in layout file 'panorama\layout\citadel_hud_top_bar_player.xml'
+```
+
+That override is a *modded copy* of Valve's file, forked at 6711. 6728 replaced the row's
+`ProgressBar#HeroHealth` with `#HealthBar_Contents` / `#HealthBar_Fill` panels, and the stale copy
+had neither. The maintainer added the two panels in `8d58280`. The same-build check
+(`--old` = `--new` = 6730, `--ref 6e30505`) flags exactly `HealthBar_Fill` in that file, so the tool
+does see this shape — it just has to be run after every patch, including the small ones. The same run
+also flags three ids 6728 added to `popup_settings.xml` (`SubtitlesBackgroundStyleEnum`,
+`SubtitleSolidBackgroundOptions`, `SubtitleOutlineOptions`), still missing at `b2c12cc`; whether the
+engine aborts on those was not tested.
+
 **What to do:**
 
+- Run the same-build check on every game build the tracker records, not only on large patches.
 - Prefer no override. With no file at the path the game loads Valve's own, current layout, and the
   question never arises.
 - An override of a Valve layout keeps **every** Valve id that `client_strings.txt` names, even where

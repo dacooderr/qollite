@@ -263,7 +263,7 @@ CitadelHudHeroShop.gShopOpen
 	visibility: visible;
 }
 
-.GameStatePostGame #gameplay_hud,.GameStatePostGame CitadelHudSoulAPContainer,.GameStatePostGame #AbilitiesContainer,.GameStatePostGame #StatsAndModsContainer
+.GameStatePostGame #gameplay_hud,.GameStatePostGame CitadelHudSoulAPContainer,.GameStatePostGame #AbilitiesContainer,.GameStatePostGame #StatsAndModsContainer,.GameStatePostGame #hudActivePlayerStats
 {
 	opacity: 0;
 }
@@ -2666,7 +2666,7 @@ CitadelTooltipManager
 	opacity: 0;
 }
 
-.spec_mode #StatsAndModsContainer
+.spec_mode #StatsAndModsContainer,.spec_mode #hudActivePlayerStats
 {
 	visibility: collapse;
 }
@@ -2676,7 +2676,7 @@ CitadelTooltipManager
 	opacity: 1;
 }
 
-.spec_mode.player_selected #StatsAndModsContainer
+.spec_mode.player_selected #StatsAndModsContainer,.spec_mode.player_selected #hudActivePlayerStats
 {
 	visibility: visible;
 }
@@ -3922,35 +3922,15 @@ CitadelHudSoulAPContainer.ShowGoldAndAPOnHud
 	horizontal-align: center;
 	vertical-align: center;
 	z-index: 1001;
-	hittest: false;
 }
 
 #minimap_markers
 {
 	width: 100%;
 	height: 100%;
-	hittest: false;
 }
 
-#minimap_settings_actions
-{
-	ignore-parent-flow: true;
-	visibility: collapse;
-	hittest: false;
-	flow-children: right;
-	width: fit-children;
-	height: fit-children;
-	horizontal-align: center;
-	vertical-align: top;
-	margin-top: 10px;
-	z-index: 9000;
-}
 
-#minimap_persp.gScoreboardOpen #minimap_settings_actions,.gScoreboardOpen #minimap_persp #minimap_settings_actions
-{
-	visibility: visible;
-	hittest: true;
-}
 
 .dmm_custom_neutral_medium_icon .map_button.neutral_medium,.dmm_custom_neutral_medium_icon .map_button.neutral_medium_up,.dmm_custom_neutral_medium_icon .map_button.neutral_medium_down
 {

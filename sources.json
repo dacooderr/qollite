@@ -7,11 +7,11 @@
       "tier": "first-party",
       "gamebanana_id": 664456,
       "upstream": "https://github.com/gfkm/BetterMap",
-      "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. Carries one QOL Lite delta (Minimalist Map Opacity), see docs/BUNDLE.md section 3.",
+      "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. No QOL Lite deltas since 3.0; hud.xml, popup_settings.xml and the styles are merged by hand, see docs/BUNDLE.md section 3.",
       "bundled": {
-        "commit": "ca29290306cbadb0b6bce7ba7bd789c26a95599f",
-        "date": "2026-09-30",
-        "version": "2.1"
+        "commit": "0237ebe5a4bd5280866d2d88c9e3a196cb9e1b88",
+        "date": "2026-10-01",
+        "version": "3.0"
       },
       "pinned": {}
     },
