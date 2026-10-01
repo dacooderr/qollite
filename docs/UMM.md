@@ -109,36 +109,36 @@ new widget type co-designed with the UMM author.
 
 | Mod `id` | Display `name` | Adapter | Settings |
 |---|---|---|---|
-| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 2 groups ("Crates & Statues", "Minimap"), 9 toggles, 8 sliders, 1 select — 18 widgets, one of them a QOL Lite local delta |
+| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 3 groups ("Minimap", "Minimap Icons", "Crates & Statues"), 8 toggles, 13 sliders — 21 widgets, built from `qollite_map_schema.js` |
 | `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
-| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabled`) |
+| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabl### `bettermap` in detail
 
-### `bettermap` in detail
-
-Read from `_buildSchema()` in `qollite_map_umm_adapter.js` (BetterMap `ca29290`):
+Since BetterMap 3.0 (`0237ebe`) the manifest is built from `qollite_map_schema.js` by `_register()`
+in `qollite_map_umm_adapter.js`. Groups come from each setting's `group`; widget ids are the schema's
+two-character `umm` ids. Full list with ranges: [minimap § Settings](systems/minimap.md#settings).
 
 | Group | Widget ids |
 |---|---|
-| Crates & Statues | toggles `poiCratesEnabled`, `poiStatuesEnabled`, `poiToughEnabled`, `poiFrom3Min`, `poiLevelAuto`, `urnTrackerEnabled`; sliders `poiMarkerSizePx` (1–8 px), `poiOpacityPct` (10–100 %) |
-| Minimap | sliders `minimapSizePx` (200–800 px, step 20), `playerIconScalePct` (50–200 %, step 10), `mapOpacityPct` (10–100 %), `minimapOffsetXPct` / `minimapOffsetYPct` (**−100..100 %**), `minimalMapOpacityPct` (0–100 %); select `minimapCorner` (4 corners); toggles `hudFullWidth`, `minimalMap`, `ultLargeMapEnabled` |
+| Minimap | sliders `ms` (size, 200–800 px), `ox` / `oy` (offsets, −100..100 %), `mo` (map opacity, 10–100 %); toggles `mm` (Minimalist), `ul` (Traveler enlarge), `fw` (Full-Width HUD) |
+| Minimap Icons | sliders `is`, `ia`, `ie`, `it`, `ih`, `ir`, `iu` (you / ally / enemy / tower / shop / rune / urn, 50–200 %) |
+| Crates & Statues | toggles `pc`, `ps`, `pt`, `p3`, `ut`; sliders `pz` (marker size, 1–8 px), `po` (marker opacity, 10–100 %) |
 
-Changed at the 2026-09-30 re-bundle (id `bettermap` unchanged, so saved values keep applying):
+**Changed at the 3.0 re-bundle (2026-10-01).** The mod id is still `bettermap`, but **every widget
+id changed**, so UMM-saved BetterMap values reset once. Upstream did this on purpose: two-character
+ids keep BetterMap's share of UMM's shared 500-character token small. It is recorded in its
+CHANGELOG.
 
-- **Added:** `poiToughEnabled` (default off), `playerIconScalePct` (default 100), the two groups.
-- **Removed:** `poiShowSmall`. A saved value for it is ignored without error.
-- **Widened:** the offset sliders, from 0..100 to −100..100 — old saved values are a subset, still
-  valid.
-- **Relabelled, same key:** `poiFrom3Min` → "Hide Objects Until Spawned" (per-POI spawn time),
-  `ultLargeMapEnabled` → "Larger Map for Traveler (Mirage)".
-- **Local delta, not upstream:** `minimalMapOpacityPct` ([`BUNDLE.md`](BUNDLE.md) §3).
-- Upstream also fixed `register` to send each widget's factory `default`, so UMM's reset buttons
-  restore the default rather than the last value.
+- Removed: `minimapCorner`, `poiLevelAuto`, `playerIconScalePct` (split into `is` / `ia` / `ie`).
+- Removed: the QOL Lite delta `minimalMapOpacityPct` ([`BUNDLE.md`](BUNDLE.md) §3).
+- One-time seed: with UMM installed, the adapter's first register waits up to 2 s for values
+  BetterMap's own store had saved without UMM, so a player who adds UMM keeps them. Nothing is
+  written to the store while UMM is present.
+- With UMM present, BetterMap's subsections in the game's settings window are hidden, so there is
+  only one UI.
 
-Every `bettermap` setting is in this schema. (An earlier version of this file and of the minimap page
-said five settings were reachable only through the in-HUD panel; that was not true of the schema
-either before or after the re-bundle.)
+ndle.)
 
 ### Not integrated
 
@@ -215,9 +215,10 @@ Finally, add a row to the table in §4 and to the feature's page under [`systems
   than sliding a fraction directly.
 - **Keep the substring guard.** `indexOf('"umm"')` before `JSON.parse` — this channel carries three
   protocols and every listener sees all of them.
-- **Detect the core, do not assume it.** The idiom here is a latch set on the first `hello` or `set`;
-  the minimap adapter uses it to retire its own in-HUD settings panel via
-  `QolLiteMapSettings.setUmmActive(true)` so the user does not get two competing UIs.
+- **Detect the core, do not assume it.** The idiom here is a latch set on the first `hello` or `set`.
+  The minimap adapter uses it (`QolLiteMapUmmAdapter.isPresent()`) to switch off its own store, and
+  the settings window hides BetterMap's subsections when it finds `#UmmRoot`, so the user does not get
+  two competing UIs.
 - **`id` must be stable.** It is the persistence key. Renaming it silently orphans every user's saved
   values.
 - **Verify against the live UMM release before relying on protocol details.** This document reflects

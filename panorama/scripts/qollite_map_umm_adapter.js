@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_umm.js
+// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_umm.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -8,12 +8,10 @@
 
 // Universal Mod Manager (UMM) adapter.
 //
-// When a UMM core is present it hosts BetterMap's settings as a tab in its
-// shared window AND owns persistence - Panorama has no storage API, and UMM's
-// server-side hero-build-description trick is the only channel that survives a
-// restart (see docs/knowledge/panorama_notes.md). Standalone is unaffected:
-// without UMM this module simply never hears back, and the in-HUD settings panel
-// stays the settings UI + there is no persistence (memory only).
+// When a UMM core is present it hosts BetterMap's settings as a tab in its shared
+// window AND owns persistence: our standalone store and our subsection in Valve's
+// settings window step aside (spec docs/specs/2026-10-01-native-settings.md D5).
+// Standalone is unaffected: without UMM this module never hears back.
 //
 // Protocol, verified against the decompiled core
 // (references/mods/Mod Manager/panorama/scripts/umm_core.js):
@@ -21,102 +19,31 @@
 //   mod  -> core  {umm:1, t:"register", id, name, settings, values}
 //   core -> mod   {umm:1, t:"hello"}              (re-announce -> resend register)
 //   core -> mod   {umm:1, t:"set", id, key, value}
-// The core replays every value back as `set` right after a register, which is
-// how a returning player's saved values arrive - we just apply what we're told.
+// Right after a register the core replays its session values as `set`; a returning
+// player's saved values arrive later, in its restore, as `set` too - only for mods
+// registered by then (umm_core.js:1365-1389). We just apply what we're told. With
+// UMM installed the first register waits up to SEED_WAIT_SEC for our stored values
+// (one-time migration, spec §8.1).
+// The manifest is built from QolLiteMapSchema; widget values are in shown units.
 var QolLiteMapUmmAdapter = (function () {
     var CHANNEL = "ClientUI_FireOutput";
     var PROTOCOL = 1;
     var MOD_ID = "bettermap";
     var MOD_NAME = "BetterMap";
-
-    // One entry per UMM widget, mapped to QolLiteMapState. `key` = a 1:1 state
-    // key; get/set instead when the widget value needs a transform (level mode
-    // <-> bool, opacity fraction <-> integer percent for a nicer slider).
-    // `group` entries are UMM section headers (umm_core.js renders them, carries
-    // no value); they mirror the in-HUD panel's Overlay / Minimap tabs.
-    // Built on first use, not at script load: slider limits come from
-    // QolLiteMapState.DEFAULTS and cross-script load order is not guaranteed.
-    var SCHEMA = null;
-
-    function _buildSchema() {
-        var D = QolLiteMapState.DEFAULTS;
-        return [
-        { type: "group", label: "Crates & Statues" },
-        { id: "poiCratesEnabled",  type: "toggle", label: "Show Crates",         key: "poiCratesEnabled" },
-        { id: "poiStatuesEnabled", type: "toggle", label: "Show Golden Statues", key: "poiStatuesEnabled" },
-        { id: "poiToughEnabled",   type: "toggle", label: "Show Tough Crates",   key: "poiToughEnabled" },
-        { id: "poiFrom3Min",       type: "toggle", label: "Hide Objects Until Spawned", key: "poiFrom3Min" },
-        {
-            id: "poiLevelAuto", type: "toggle", label: "Auto Level (Underground)",
-            get: function (s) { return s.poiLevelMode === "auto"; },
-            set: function (v) { return { poiLevelMode: v ? "auto" : "both" }; }
-        },
-        { id: "poiMarkerSizePx", type: "slider", label: "Marker Size", min: 1, max: 8, step: 1, unit: "px", key: "poiMarkerSizePx" },
-        {
-            id: "poiOpacityPct", type: "slider", label: "Marker Opacity", min: 10, max: 100, step: 5, unit: "%",
-            get: function (s) { return Math.round((Number(s.poiOpacity) || 0.8) * 100); },
-            set: function (v) { return { poiOpacity: Math.max(0.01, Math.min(1, v / 100)) }; }
-        },
-        { id: "urnTrackerEnabled", type: "toggle", label: "Urn Spawn Tracker", key: "urnTrackerEnabled" },
-        { type: "group", label: "Minimap" },
-        {
-            id: "minimapSizePx", type: "slider", label: "Minimap Size", unit: "px", key: "minimapSizePx",
-            min: D.minimapSizeMinPx, max: D.minimapSizeMaxPx, step: D.minimapSizeStepPx
-        },
-        {
-            id: "playerIconScalePct", type: "slider", label: "Player Icon Size", unit: "%", key: "playerIconScalePct",
-            min: D.playerIconScaleMinPct, max: D.playerIconScaleMaxPct, step: D.playerIconScaleStepPct
-        },
-        {
-            id: "mapOpacityPct", type: "slider", label: "Map Opacity", min: 10, max: 100, step: 5, unit: "%",
-            get: function (s) { return Math.round((Number(s.mapOpacity) || 0.95) * 100); },
-            set: function (v) { return { mapOpacity: Math.max(0.01, Math.min(1, v / 100)) }; }
-        },
-        {
-            id: "minimapCorner", type: "select", label: "Minimap Corner", key: "minimapCorner",
-            options: [
-                { value: "bottom-right", label: "Bottom-Right" },
-                { value: "bottom-left", label: "Bottom-Left" },
-                { value: "top-right", label: "Top-Right" },
-                { value: "top-left", label: "Top-Left" }
-            ]
-        },
-        {
-            id: "minimapOffsetXPct", type: "slider", label: "Minimap Offset X", min: -100, max: 100, step: 5, unit: "%",
-            get: function (s) { return Math.round((Number(s.minimapOffsetX) || 0) * 100); },
-            set: function (v) { return { minimapOffsetX: Math.max(-1, Math.min(1, v / 100)) }; }
-        },
-        {
-            id: "minimapOffsetYPct", type: "slider", label: "Minimap Offset Y", min: -100, max: 100, step: 5, unit: "%",
-            get: function (s) { return Math.round((Number(s.minimapOffsetY) || 0) * 100); },
-            set: function (v) { return { minimapOffsetY: Math.max(-1, Math.min(1, v / 100)) }; }
-        },
-        { id: "hudFullWidth", type: "toggle", label: "Full-Width HUD", key: "hudFullWidth" },
-        { id: "minimalMap", type: "toggle", label: "Minimalist Minimap", key: "minimalMap" },
-        // QOL Lite local delta (not in upstream BetterMap) - see qollite_map_minimal.js. Widget id kept from the
-        // pre-6711 bundle so saved values still apply.
-        {
-            id: "minimalMapOpacityPct", type: "slider", label: "Minimalist Map Opacity", min: 0, max: 100, step: 5, unit: "%",
-            get: function (s) {
-                var v = Number(s.minimalMapOpacity);
-                return Math.round((isNaN(v) ? D.minimalMapOpacity : Math.max(0, Math.min(1, v))) * 100);
-            },
-            set: function (v) { return { minimalMapOpacity: Math.max(0, Math.min(1, Number(v) / 100)) }; }
-        },
-        { id: "ultLargeMapEnabled", type: "toggle", label: "Larger Map for Traveler (Mirage)", key: "ultLargeMapEnabled" }
-        ];
-    }
-
-    function _schema() {
-        if (!SCHEMA) { SCHEMA = _buildSchema(); }
-        return SCHEMA;
-    }
+    var UMM_ROOT_ID = "UmmRoot";   // UMM's base_hud.xml / base_dashboard.xml (qollite_map_store.js checks it too)
+    // A seed needs two page loads: `ready` (~1 s after HUD init, run 3) plus one
+    // reload per request for the get - so ~1-2 s, not measured as a pair. The risk
+    // is asymmetric: a missed seed is harmless (retried next launch from our
+    // untouched record), but a register that lands after UMM's restore misses UMM's
+    // saved values for that session (restore skips unregistered mods,
+    // umm_core.js:1370), and a Save would then overwrite them. So the bound is kept
+    // short on purpose; in-game run 2 logs the order (spec §8.1).
+    var SEED_WAIT_SEC = 2;
 
     var _present = false;
+    var _waitingSeed = false;
 
-    function _widgetValue(entry, state) {
-        return entry.get ? entry.get(state) : state[entry.key];
-    }
+    function _root() { var r = $.GetContextPanel(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
 
     function _send(payload) {
         try { $.DispatchEvent(CHANNEL, JSON.stringify(payload)); } catch (e) {}
@@ -124,66 +51,43 @@ var QolLiteMapUmmAdapter = (function () {
 
     function _register() {
         var state = QolLiteMapState.get();
-        var settings = [];
-        var values = {};
         var defaults = QolLiteMapState.DEFAULTS;
-        var schema = _schema();
-        for (var i = 0; i < schema.length; i++) {
-            var e = schema[i];
-            if (e.type === "group") { settings.push({ type: "group", label: e.label }); continue; }
-            var w = { id: e.id, type: e.type, label: e.label };
-            if (e.type === "slider") {
-                w.min = e.min; w.max = e.max; w.step = e.step; w.unit = e.unit;
-            } else if (e.type === "select") {
-                w.options = e.options;
-            }
+        var list = QolLiteMapSchema.list();
+        var settings = [], values = {}, group = null;
+        for (var i = 0; i < list.length; i++) {
+            var e = list[i];
+            if (e.group !== group) { group = e.group; settings.push({ type: "group", label: group }); }
+            var w = { id: e.umm, type: e.type, label: e.label };
+            if (e.type === "slider") { w.min = e.min; w.max = e.max; w.step = e.step; w.unit = e.unit; }
             // UMM's reset button restores `default` (umm_core.js createToggle/
             // createSlider/createSelect), so it must be the factory value - the
             // live value would make a re-register (on `hello`) redefine "reset".
-            w["default"] = _widgetValue(e, defaults);
+            w["default"] = QolLiteMapSchema.toShown(e, defaults[e.key]);
             settings.push(w);
-            values[e.id] = _widgetValue(e, state);
+            values[e.umm] = QolLiteMapSchema.toShown(e, state[e.key]);
         }
         _send({ umm: PROTOCOL, t: "register", id: MOD_ID, name: MOD_NAME, settings: settings, values: values });
     }
 
-    // Re-sync every subsystem from state; idempotent, so applying one `set` this
-    // way is fine even though it refreshes all three.
-    function _applyAll() {
-        if (typeof QolLiteMapPoi !== "undefined" && QolLiteMapPoi.refresh) { QolLiteMapPoi.refresh(); }
-        if (typeof QolLiteMapSize !== "undefined" && QolLiteMapSize.apply) { QolLiteMapSize.apply(); }
-        if (typeof QolLiteMapSize !== "undefined" && QolLiteMapSize.applyClampWidth) { QolLiteMapSize.applyClampWidth(); }
-        if (typeof QolLiteMapPosition !== "undefined" && QolLiteMapPosition.apply) { QolLiteMapPosition.apply(); }
-        if (typeof QolLiteMapSettings !== "undefined" && QolLiteMapSettings.applyMapOpacity) { QolLiteMapSettings.applyMapOpacity(); }
-        if (typeof QolLiteMapMinimal !== "undefined" && QolLiteMapMinimal.refresh) { QolLiteMapMinimal.refresh(); }
-        if (typeof QolLiteMapUrn !== "undefined" && QolLiteMapUrn.refresh) { QolLiteMapUrn.refresh(); }
-        if (typeof QolLiteMapPlayer !== "undefined" && QolLiteMapPlayer.refresh) { QolLiteMapPlayer.refresh(); }
-    }
-
-    function _entryByWidgetId(id) {
-        var schema = _schema();
-        for (var i = 0; i < schema.length; i++) { if (schema[i].id === id) { return schema[i]; } }
-        return null;
-    }
-
-    function _onSet(key, value) {
-        var e = _entryByWidgetId(key);
-        if (!e) { return; }
-        var patch = e.set ? e.set(value) : (function () { var o = {}; o[e.key] = value; return o; })();
+    function _onSet(id, value) {
+        var e = QolLiteMapSchema.byUmmId(id);
+        if (!e) { return; }   // e.g. "poiLevelAuto" from an older manifest: retired 2026-10-01
+        var stored = QolLiteMapSchema.sanitize(e.key, e.type === "slider" ? Number(value) / e.scale : value);
+        if (stored === undefined) { QolLiteMapLog.log("umm: ignored invalid " + id + " = " + value); return; }
+        var patch = {};
+        patch[e.key] = stored;
         QolLiteMapState.patch(patch);
-        _applyAll();
-        if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("umm: set " + key + " = " + value); }
+        // Only what this key affects: a UMM slider drag sends a set per step.
+        QolLiteMapApply.key(e.key);
+        QolLiteMapLog.log("umm: set " + id + " = " + value);
     }
 
     function _markPresent() {
         if (_present) { return; }
         _present = true;
-        if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.info("umm: core present - deferring settings UI to UMM"); }
-        // UMM now hosts settings + persistence; retire our own in-HUD panel so
-        // there is one source of truth. (Standalone stays the no-UMM fallback.)
-        if (typeof QolLiteMapSettings !== "undefined" && QolLiteMapSettings.setUmmActive) {
-            QolLiteMapSettings.setUmmActive(true);
-        }
+        QolLiteMapLog.info("umm: core present - settings and saving go through UMM");
+        // While the seed read runs, the store turns itself off when it answers.
+        if (!_waitingSeed) { QolLiteMapStore.disable("UMM core answered", true); }
     }
 
     function _onMessage(payload) {
@@ -191,20 +95,61 @@ var QolLiteMapUmmAdapter = (function () {
         var msg;
         try { msg = JSON.parse(payload); } catch (e) { return; }
         if (!msg || msg.umm !== PROTOCOL) { return; }
-
         if (msg.t === "hello") {
             _markPresent();
-            _register();
+            if (!_waitingSeed) { _register(); }
         } else if (msg.t === "set" && msg.id === MOD_ID) {
             _markPresent();
             _onSet(msg.key, msg.value);
         }
     }
 
-    function init() {
-        try { $.RegisterForUnhandledEvent(CHANNEL, _onMessage); } catch (e) {}
+    function _endSeed(reason) {
+        if (!_waitingSeed) { return; }
+        _waitingSeed = false;
+        QolLiteMapLog.info("umm: first register - " + reason);
         _register();
     }
 
-    return { init: init };
+    // No seed in time: register with what we have, and stop the store's read -
+    // nobody would use its answer.
+    function _seedTimeout() {
+        if (!_waitingSeed) { return; }
+        QolLiteMapStore.disable("UMM registered without a seed", true);
+        _endSeed("no stored values within " + SEED_WAIT_SEC + " s");
+    }
+
+    // Spec §8.1 (one-time migration): the standalone values become the first
+    // register's `values`. UMM still prefers what it saved itself: its restore
+    // overrides them, and a value already in its session beats a register
+    // (umm_core.js:1810-1811). values: sanitised stored values, or null.
+    function seed(values) {
+        if (!_waitingSeed) {
+            QolLiteMapLog.info("umm: seed ignored - already registered (a late store read is logged as store: off - UMM registered without a seed)");
+            return;
+        }
+        var n = 0;
+        if (values) {
+            for (var k in values) { if (Object.prototype.hasOwnProperty.call(values, k)) { n++; } }
+            QolLiteMapState.patch(values);
+            // A throwing feature must not skip the register.
+            try { QolLiteMapApply.all(); }
+            catch (e) { QolLiteMapLog.error("umm: apply after seed threw: " + (e && e.message ? e.message : e)); }
+        }
+        _endSeed(n ? "seeded with " + n + " stored values" : "nothing stored to seed");
+    }
+
+    function init() {
+        try { $.RegisterForUnhandledEvent(CHANNEL, _onMessage); } catch (e) {}
+        if (_root().FindChildTraverse(UMM_ROOT_ID)) {
+            _waitingSeed = true;
+            $.Schedule(SEED_WAIT_SEC, _seedTimeout);
+            return;
+        }
+        _register();
+    }
+
+    function isPresent() { return _present; }
+
+    return { init: init, isPresent: isPresent, seed: seed };
 })();

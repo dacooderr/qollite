@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_urn.js
+// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_urn.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -46,7 +46,7 @@ var QolLiteMapUrn = (function () {
     var POLL_SEC = 0.15;              // brisk, so the prediction hides the instant a real urn appears
     var ADV_THRESHOLD = 0.10;
 
-    var _marker = null;               // { root, ring, timer }
+    var _marker = null;               // { root, ring, timer, sizeCls } - sizeCls: the QolLiteMapIcons class now on root
     var _markerVisible = false;
     var _anchorTime = null;           // clock (s) of the last observed spawn (for clock-back detection + logs)
     var _anchorSide = null;           // side of the last observed urn ("left"/"right")
@@ -59,7 +59,7 @@ var QolLiteMapUrn = (function () {
     var _readyForNewSpawn = true;     // only anchor a NEW spawn after the previous urn has gone (none);
                                       // a mid-delivery idol_spawn on the carry side is NOT a fresh spawn
 
-    var _descentMarker = null;        // { root, ring, timer } - the 12s "urn is landing" overlay
+    var _descentMarker = null;        // { root, ring, timer, sizeCls } (as _marker) - the 12s "urn is landing" overlay
     var _descentVisible = false;
     var _descentStartT = null;        // clock (s) the current urn spawned (descent start)
     var _descentUV = null;            // where to draw the descent marker (the fresh urn's spawn point)
@@ -225,6 +225,19 @@ var QolLiteMapUrn = (function () {
     }
 
     // ---- marker ----
+    // Urn Icon Size (spec docs/specs/2026-10-01-minimap-icon-sizes.md §5.4): the tracker's
+    // marker takes the same class as the game's urn markers, from QolLiteMapIcons, so both
+    // follow one slider. The rule `.bm_urn.<cls><pct>` is generated into hud_minimap.vcss,
+    // which hud.vxml includes too (our host lives there).
+    function _applySize(m) {
+        if (!m || !m.root) { return; }
+        var want = QolLiteMapIcons.className("urnIconScalePct");
+        if (want === m.sizeCls) { return; }
+        if (m.sizeCls) { m.root.RemoveClass(m.sizeCls); }
+        if (want) { m.root.AddClass(want); }
+        m.sizeCls = want;
+    }
+
     function _ensureMarker() {
         if (_marker && _marker.root && _marker.root.IsValid && _marker.root.IsValid()) { return _marker; }
         var host = _panel("minimap_urn_host");
@@ -241,7 +254,7 @@ var QolLiteMapUrn = (function () {
         icon.AddClass("bm_urn_icon");
         var timer = $.CreatePanel("Label", root, "");
         timer.AddClass("bm_urn_timer");
-        _marker = { root: root, ring: ring, timer: timer };
+        _marker = { root: root, ring: ring, timer: timer, sizeCls: null };
         return _marker;
     }
 
@@ -252,6 +265,7 @@ var QolLiteMapUrn = (function () {
         m.root.style.x = (at.u * 100).toFixed(3) + "%";
         m.root.style.y = (at.v * 100).toFixed(3) + "%";
         m.root.style.visibility = "visible";
+        _applySize(m);
         // ring fills clockwise toward the spawn: clip the bordered circle to a
         // radial arc of 0..360deg (the trick the engine's CircularProgressBar uses).
         var win = pred.window || SPAWN_PERIOD;
@@ -298,7 +312,7 @@ var QolLiteMapUrn = (function () {
         var ring = $.CreatePanel("Panel", root, ""); ring.AddClass("bm_urn_ring"); ring.AddClass("bm_urn_descent_ring");
         var icon = $.CreatePanel("Panel", root, ""); icon.AddClass("bm_urn_icon");
         var timer = $.CreatePanel("Label", root, ""); timer.AddClass("bm_urn_timer");
-        _descentMarker = { root: root, ring: ring, timer: timer };
+        _descentMarker = { root: root, ring: ring, timer: timer, sizeCls: null };
         return _descentMarker;
     }
     function _showDescent(elapsed) {
@@ -308,6 +322,7 @@ var QolLiteMapUrn = (function () {
         m.root.style.x = (at.u * 100).toFixed(3) + "%";
         m.root.style.y = (at.v * 100).toFixed(3) + "%";
         m.root.style.visibility = "visible";
+        _applySize(m);
         var frac = Math.max(0, Math.min(1, elapsed / DESCENT_SEC));   // ring fills as it lands
         if (m.ring) {
             // wash-color tints the white base ring (a colour multiply, not a border
@@ -431,27 +446,9 @@ var QolLiteMapUrn = (function () {
         $.Schedule(POLL_SEC, _poll);
     }
 
-    function _syncControls() {
-        var tg = _panel("minimap_urn_tracker_toggle");
-        if (tg && typeof tg.SetSelected === "function") { tg.SetSelected(!!QolLiteMapState.get().urnTrackerEnabled); }
-    }
-
-    function bindControls() {
-        var tg = _panel("minimap_urn_tracker_toggle");
-        if (!tg) { return; }
-        tg.SetPanelEvent("onactivate", function () {
-            QolLiteMapState.patch({ urnTrackerEnabled: !QolLiteMapState.get().urnTrackerEnabled });
-            _syncControls();
-        });
-    }
-
     function init() {
-        bindControls();
-        _syncControls();
         _poll();
     }
 
-    function refresh() { _syncControls(); }
-
-    return { init: init, refresh: refresh };
+    return { init: init };
 })();

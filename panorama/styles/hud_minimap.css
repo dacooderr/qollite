@@ -1887,6 +1887,8 @@
 	background-color: rgba(200, 50, 50, 0.5);
 }
 
+/* ===== BetterMap: Wrapper for drag positioning (immune to gDetailView CSS) ===== */
+
 #minimap_persp_wrapper
 {
 	width: fit-children;
@@ -1908,18 +1910,23 @@
 	margin-right: 0px;
 }
 
-#minimap_persp_wrapper #minimap_container,#minimap_persp_wrapper #minimap_frame
+#minimap_persp_wrapper #minimap_container,
+#minimap_persp_wrapper #minimap_frame
 {
 	width: 400px;
 	height: 400px;
 }
 
+/* Build 6722 pushes the container 80px down (room for #minimap_hints inside a
+   520px-tall #minimap_persp). Our persp is exactly the container size (the size
+   slider sets both), so the offset would push the map out of its own box. */
 #minimap_persp_wrapper #minimap_container
 {
 	margin-top: 0px;
 }
 
-.gDetailView #minimap_persp,.gScoreboardOpen #minimap_persp
+.gDetailView #minimap_persp,
+.gScoreboardOpen #minimap_persp
 {
 	width: 400px;
 	height: 400px;
@@ -1928,242 +1935,750 @@
 	opacity: 1;
 }
 
-.gDetailView #minimap_persp #minimap_container,.gScoreboardOpen #minimap_persp #minimap_container,.gDetailView #minimap_persp #minimap_frame,.gScoreboardOpen #minimap_persp #minimap_frame
+.gDetailView #minimap_persp #minimap_container,
+.gScoreboardOpen #minimap_persp #minimap_container,
+.gDetailView #minimap_persp #minimap_frame,
+.gScoreboardOpen #minimap_persp #minimap_frame
 {
 	width: 400px;
 	height: 400px;
 }
 
-#minimap_settings_actions
-{
-	visibility: visible;
-	hittest: true;
-	horizontal-align: right;
-	flow-children: right;
-	width: 170px;
-	height: 34px;
-	margin-bottom: 4px;
-	overflow: noclip;
-	z-index: 30000;
-	opacity: 1;
-}
-
-#minimap_persp_wrapper.gDetailView #minimap_settings_actions,#minimap_persp_wrapper.gScoreboardOpen #minimap_settings_actions,#minimap_persp.gDetailView #minimap_settings_actions,#minimap_persp.gScoreboardOpen #minimap_settings_actions,.gDetailView #minimap_settings_actions,.gScoreboardOpen #minimap_settings_actions,.gDetailView #minimap_persp #minimap_settings_actions,.gScoreboardOpen #minimap_persp #minimap_settings_actions
-{
-	visibility: visible;
-	hittest: true;
-	opacity: 1;
-}
-
-#minimap_persp_wrapper.gDetailView #minimap_persp,#minimap_persp_wrapper.gScoreboardOpen #minimap_persp,#minimap_persp.gDetailView,#minimap_persp.gScoreboardOpen
+/* Prevent engine opacity:.5 on TAB. */
+#minimap_persp_wrapper.gDetailView #minimap_persp,
+#minimap_persp_wrapper.gScoreboardOpen #minimap_persp,
+#minimap_persp.gDetailView,
+#minimap_persp.gScoreboardOpen
 {
 	opacity: 1;
 }
 
-#minimap_settings
-{
-	horizontal-align: center;
-	vertical-align: middle;
-	width: 480px;
-	height: 580px;
-	z-index: 9999;
-	visibility: collapse;
-	overflow: clip;
-}
 
-#minimap_settings_backing
-{
-	ignore-parent-flow: true;
-	width: 100%;
-	height: 100%;
-	world-blur: ingameHudBlur;
-	background-color: rgba(11, 14, 20, 0.82);
-}
-
-#minimap_settings #SettingsBody
-{
-	width: 100%;
-	height: 100%;
-	flow-children: down;
-	padding: 8px 12px 12px 12px;
-	overflow: squish scroll;
-	z-index: 1;
-	opacity: 1;
-}
-
-#minimap_settings #SettingsBody .SettingsSectionContainer
-{
-	width: 100%;
-}
-
-#minimap_settings #SettingsBody .SettingContent
-{
-	padding: 8px 10px;
-}
-
-#minimap_settings #SettingsBody .SettingLabel
-{
-	width: 150px;
-	padding-right: 10px;
-}
-
-#minimap_settings #SettingsBody CitadelSettingsSlider #Slider
-{
-	width: 140px;
-	margin-right: 10px;
-}
-
-#minimap_settings #SettingsBody CitadelSettingsSlider TextEntry
-{
-	max-width: 52px;
-}
-
-#minimap_settings #SettingsBody .SettingsSectionSubtitle
-{
-	font-size: 18px;
-}
-
-#minimap_tab_strip
-{
-	width: 100%;
-	height: 30px;
-	flow-children: right;
-	margin-bottom: 6px;
-}
-
-#minimap_settings .minimap_tab_button
-{
-	width: fill-parent-flow(1.0);
-	height: 28px;
-	background-color: rgba(255, 255, 255, 0.04);
-	margin-right: 4px;
-}
-
-#minimap_settings .minimap_tab_button:hover
-{
-	background-color: rgba(255, 255, 255, 0.09);
-}
-
-#minimap_settings .minimap_tab_button:selected
-{
-	background-color: rgba(255, 255, 255, 0.16);
-}
-
-#minimap_settings .minimap_tab_button .RadioBox
-{
-	visibility: collapse;
-}
-
-#minimap_settings .minimap_tab_button_label
-{
-	horizontal-align: center;
-	vertical-align: center;
-	font-size: 13px;
-	text-transform: uppercase;
-	color: rgba(210, 216, 232, 0.9);
-}
-
-.minimap_tab_content
-{
-	width: 100%;
-	visibility: collapse;
-}
-
-.minimap_tab_content.TabActive
-{
-	visibility: visible;
-}
-
+/* ===== BetterMap: Minimalist minimap (BmMinimalMap) - keep only the map layers ===== */
 #hud_minimap.BmMinimalMap
 {
 	background-color: rgba(0, 0, 0, 0);
 	border-radius: 0px;
 }
 
-.is_underground #hud_minimap.BmMinimalMap,#hud_minimap.BmMinimalMap.is_underground
+/* Edge vignette (native opacity-mask). Only when the minimap shows the UNDERGROUND
+   (build 6722 sets is_underground on #hud_minimap itself - same class our POI code reads).
+   Masks the whole viewport (#hud_minimap), NOT the panned image layer - masking that
+   misaligns with the view and hides it. Surface view is untouched.
+   (The rule that hid Valve's decorative inner layers - flat background, zipline lanes,
+   neutral/upper overlays - is gone with those layers: 6722 draws the map as three
+   plain images, backgroundImage1..3, which ARE the map.) */
+.is_underground #hud_minimap.BmMinimalMap,
+#hud_minimap.BmMinimalMap.is_underground
 {
 	opacity-mask: url("s2r://panorama/images/minimap/base/bm_vignette_png.vtex");
 	opacity-mask-scale: cover;
 	opacity-mask-threshold: 0% 100%;
 }
 
+/* ===== BetterMap: keep the mid-boss tracker above player markers ===== */
+/* Valve puts Midboss at z-index 4, players at 11-24, so a crowded mid lane
+   hides the boss tracker. Lift it clear above every player marker. The urn
+   tracker (own overlay) sits at the same level. */
 .map_button.mid_boss
 {
 	z-index: 30;
 }
 
-#hud_minimap.bm_player_scale_50 .map_button.player
+/* BEGIN GENERATED: bettermap icon sizes (pipeline/build_minimap_styles.py - do not edit) */
+#hud_minimap.bm_size_self_50 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.5;
 }
 
-#hud_minimap.bm_player_scale_60 .map_button.player
+#hud_minimap.bm_size_self_60 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.6;
 }
 
-#hud_minimap.bm_player_scale_70 .map_button.player
+#hud_minimap.bm_size_self_70 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.7;
 }
 
-#hud_minimap.bm_player_scale_80 .map_button.player
+#hud_minimap.bm_size_self_80 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.8;
 }
 
-#hud_minimap.bm_player_scale_90 .map_button.player
+#hud_minimap.bm_size_self_90 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.9;
 }
 
-#hud_minimap.bm_player_scale_110 .map_button.player
+#hud_minimap.bm_size_self_100 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_self_110 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.1;
 }
 
-#hud_minimap.bm_player_scale_120 .map_button.player
+#hud_minimap.bm_size_self_120 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.2;
 }
 
-#hud_minimap.bm_player_scale_130 .map_button.player
+#hud_minimap.bm_size_self_130 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.3;
 }
 
-#hud_minimap.bm_player_scale_140 .map_button.player
+#hud_minimap.bm_size_self_140 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.4;
 }
 
-#hud_minimap.bm_player_scale_150 .map_button.player
+#hud_minimap.bm_size_self_150 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.5;
 }
 
-#hud_minimap.bm_player_scale_160 .map_button.player
+#hud_minimap.bm_size_self_160 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.6;
 }
 
-#hud_minimap.bm_player_scale_170 .map_button.player
+#hud_minimap.bm_size_self_170 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.7;
 }
 
-#hud_minimap.bm_player_scale_180 .map_button.player
+#hud_minimap.bm_size_self_180 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.8;
 }
 
-#hud_minimap.bm_player_scale_190 .map_button.player
+#hud_minimap.bm_size_self_190 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.9;
 }
 
-#hud_minimap.bm_player_scale_200 .map_button.player
+#hud_minimap.bm_size_self_200 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 2;
 }
 
+#hud_minimap.bm_size_ally_50 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_ally_60 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_ally_70 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_ally_80 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_ally_90 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_ally_110 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_ally_120 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_ally_130 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_ally_140 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_ally_150 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_ally_160 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_ally_170 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_ally_180 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_ally_190 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_ally_200 .map_button.player.friend
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_enemy_50 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_enemy_60 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_enemy_70 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_enemy_80 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_enemy_90 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_enemy_110 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_enemy_120 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_enemy_130 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_enemy_140 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_enemy_150 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_enemy_160 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_enemy_170 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_enemy_180 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_enemy_190 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_enemy_200 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_tower_50 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_50 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_50 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_50 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_50 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_tower_60 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_60 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_60 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_60 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_60 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_tower_70 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_70 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_70 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_70 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_70 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_tower_80 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_80 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_80 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_80 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_80 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_tower_90 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_90 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_90 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_90 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_90 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_tower_110 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_110 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_110 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_110 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_110 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_tower_120 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_120 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_120 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_120 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_120 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_tower_130 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_130 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_130 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_130 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_130 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_tower_140 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_140 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_140 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_140 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_140 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_tower_150 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_150 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_150 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_150 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_150 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_tower_160 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_160 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_160 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_160 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_160 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_tower_170 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_170 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_170 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_170 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_170 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_tower_180 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_180 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_180 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_180 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_180 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_tower_190 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_190 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_190 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_190 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_190 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_tower_200 .map_button.boss_icon_t1,
+#hud_minimap.bm_size_tower_200 .map_button.boss_icon_t2,
+#hud_minimap.bm_size_tower_200 .map_button.boss_icon_t3,
+#hud_minimap.bm_size_tower_200 .map_button.boss_barracks_icon,
+#hud_minimap.bm_size_tower_200 .map_button.boss_buildingzip
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_shop_50 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_shop_50 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_60 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_shop_60 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_70 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_shop_70 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_80 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_shop_80 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_90 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_shop_90 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_110 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_shop_110 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_120 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_shop_120 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_130 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_shop_130 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_140 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_shop_140 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_150 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_shop_150 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_160 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_shop_160 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_170 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_shop_170 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_180 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_shop_180 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_190 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_shop_190 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_shop_200 .map_button.tier1_shop
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_shop_200 .map_button.tier1_shop.corrupted_item_shop
+{
+	pre-transform-scale2d: 1;
+}
+
+#hud_minimap.bm_size_rune_50 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_rune_60 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_rune_70 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_rune_80 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_rune_90 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_rune_110 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_rune_120 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_rune_130 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_rune_140 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_rune_150 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_rune_160 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_rune_170 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_rune_180 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_rune_190 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_rune_200 .map_button.powerup_spawn
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_urn_50 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_50 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_50
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_urn_60 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_60 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_60
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_urn_70 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_70 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_70
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_urn_80 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_80 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_80
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_urn_90 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_90 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_90
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_urn_110 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_110 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_110
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_urn_120 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_120 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_120
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_urn_130 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_130 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_130
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_urn_140 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_140 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_140
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_urn_150 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_150 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_150
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_urn_160 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_160 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_160
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_urn_170 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_170 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_170
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_urn_180 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_180 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_180
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_urn_190 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_190 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_190
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_urn_200 .map_button.idol_spawn,
+#hud_minimap.bm_size_urn_200 .map_button.idol_dropping,
+.bm_urn.bm_size_urn_200
+{
+	pre-transform-scale2d: 2;
+}
+
+/* END GENERATED: bettermap icon sizes */

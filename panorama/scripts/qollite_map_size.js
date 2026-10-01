@@ -1,19 +1,30 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ ca29290, mod/panorama/scripts/bettermap_size.js
+// Upstream: github.com/gfkm/BetterMap @ 0237ebe, mod/panorama/scripts/bettermap_size.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
+// Minimap size, Valve's 21:9 clamp (Full-Width HUD), map opacity, the Traveler
+// enlargement while a map ability is aimed, and keeping the map at its normal
+// size while TAB is held. Values come from QolLiteMapState; the settings UI is
+// Valve's settings window (qollite_map_popup.js), not this module.
 var QolLiteMapSize = (function () {
     var FULL_WIDTH_PX = 10000;           // effectively "no cap" - HUD/minimap spans the full monitor
-    var ULT_LARGE_PX = 750;             // minimap size while a map ability is aimed (Mirage Traveler)
+    var ULT_LARGE_PX = 750;              // minimap size while a map ability is aimed (Mirage Traveler)
     // Build 6722 draws the map at a fixed 360px inside the 400px container/compass
     // frame (hud_minimap.css #hud_minimap vs hud.css #minimap_container), so the
     // map itself must be scaled with the container or the slider only grows the frame.
     var MAP_TO_CONTAINER = 360 / 400;
     var MT_POLL_SEC = 0.06;
+    // Valve rescales the map while the TAB detail view is open, so we re-apply our
+    // size every 0.03 s - the rate that kept it steady.
+    var DETAIL_POLL_SEC = 0.03;
+    var DETAIL_STATE_IDS = [
+        "minimap_persp", "minimap_persp_wrapper", "context_action_container", "AbilitiesContainer",
+        "cast_failed_box", "CheaterVoteBox", "DamageReportGlobalClassListener"
+    ];
     var _ultActive = false;
 
     function _panel(id) {
@@ -54,25 +65,14 @@ var QolLiteMapSize = (function () {
     }
 
     function apply() {
-        var state = QolLiteMapState.get();
-        var px = _sanitizeSize(state.minimapSizePx);
-        _applyContainerSize(px);
-
-        var slider = _panel("minimap_size_slider");
-        if (slider) {
-            var ctrl = slider.FindChildTraverse("Slider");
-            if (ctrl) { ctrl.value = px; }
-            var entry = slider.FindChildTraverse("TextEntry");
-            if (entry) { entry.text = String(px); }
-        }
+        _applyContainerSize(_ultActive ? ULT_LARGE_PX : _sanitizeSize(QolLiteMapState.get().minimapSizePx));
         // A larger map shrinks how far the position offset can go before the map
         // runs off screen; re-clamp the placement against the new size.
-        if (typeof QolLiteMapPosition !== "undefined" && QolLiteMapPosition.apply) { QolLiteMapPosition.apply(); }
+        QolLiteMapPosition.apply();
     }
 
     function applyCurrentSize() {
-        var state = QolLiteMapState.get();
-        _applyContainerSize(_sanitizeSize(state.minimapSizePx));
+        _applyContainerSize(_sanitizeSize(QolLiteMapState.get().minimapSizePx));
     }
 
     // Since build 6722 the only vanilla cap on the minimap's clamp_width container
@@ -82,76 +82,66 @@ var QolLiteMapSize = (function () {
     function applyClampWidth() {
         var clamp = _panel("minimap_ui_clamp_container");
         if (!clamp) { return; }
-        var full = !!QolLiteMapState.get().hudFullWidth;
-        clamp.style.maxWidth = full ? (FULL_WIDTH_PX + "px") : null;
+        clamp.style.maxWidth = QolLiteMapState.get().hudFullWidth ? (FULL_WIDTH_PX + "px") : null;
     }
 
-    function _bindFullWidthToggle() {
-        var t = _panel("minimap_full_width_toggle");
-        if (!t) { return; }
-        if (typeof t.SetSelected === "function") { t.SetSelected(!!QolLiteMapState.get().hudFullWidth); }
-        t.SetPanelEvent("onactivate", function () {
-            QolLiteMapState.patch({ hudFullWidth: !QolLiteMapState.get().hudFullWidth });
-            if (typeof t.SetSelected === "function") { t.SetSelected(!!QolLiteMapState.get().hudFullWidth); }
-            applyClampWidth();
-            // the usable width changed -> re-clamp the map's position offsets.
-            if (typeof QolLiteMapPosition !== "undefined" && QolLiteMapPosition.apply) { QolLiteMapPosition.apply(); }
-        });
-    }
-
-    function bindSlider() {
-        var slider = _panel("minimap_size_slider");
-        if (!slider) { return; }
-        var ctrl = slider.FindChildTraverse("Slider");
-        if (!ctrl) { return; }
-
-        var state = QolLiteMapState.get();
-        ctrl.min = state.minimapSizeMinPx;
-        ctrl.max = state.minimapSizeMaxPx;
-        ctrl.value = _sanitizeSize(state.minimapSizePx);
-
-        ctrl.SetPanelEvent("onvaluechanged", function () {
-            var px = _sanitizeSize(ctrl.value);
-            QolLiteMapState.patch({ minimapSizePx: px });
-            apply();
-        });
+    // Opacity of the map image layer only; markers sit in #minimap_overlay_root.
+    function applyMapOpacity() {
+        var layer = _panel("HudMinimapContainer");
+        if (layer) { layer.style.opacity = String(QolLiteMapState.get().mapOpacity); }
     }
 
     // True while a map-targeted ability is being aimed (engine class
-    // `map_targeting` on the minimap). Verify in-game that Mirage's Traveler
-    // triggers it.
+    // `map_targeting` on the minimap).
     function _isMapTargeting() { return QolLiteMapMinimap.hasClassAbove("map_targeting"); }
 
     function _pollMapTargeting() {
         var on = !!QolLiteMapState.get().ultLargeMapEnabled && _isMapTargeting();
         if (on !== _ultActive) {
             _ultActive = on;
-            if (typeof QolLiteMapLog !== "undefined") {
-                QolLiteMapLog.log("size: map_targeting -> " + (on ? "enlarge" : "restore"));
-            }
+            QolLiteMapLog.log("size: map_targeting -> " + (on ? "enlarge" : "restore"));
             if (on) { _applyContainerSize(ULT_LARGE_PX); } else { applyCurrentSize(); }
         }
         $.Schedule(MT_POLL_SEC, _pollMapTargeting);
     }
 
-    function _bindUltToggle() {
-        var t = _panel("minimap_ult_map_toggle");
-        if (!t) { return; }
-        if (typeof t.SetSelected === "function") { t.SetSelected(!!QolLiteMapState.get().ultLargeMapEnabled); }
-        t.SetPanelEvent("onactivate", function () {
-            QolLiteMapState.patch({ ultLargeMapEnabled: !QolLiteMapState.get().ultLargeMapEnabled });
-            if (typeof t.SetSelected === "function") { t.SetSelected(!!QolLiteMapState.get().ultLargeMapEnabled); }
-        });
+    function _isDetailViewVisible() {
+        var ancestor = _panel("minimap_persp");
+        while (ancestor) {
+            if (ancestor.BHasClass && (ancestor.BHasClass("gDetailView") || ancestor.BHasClass("gScoreboardOpen"))) { return true; }
+            if (!ancestor.GetParent) { break; }
+            ancestor = ancestor.GetParent();
+        }
+        for (var i = 0; i < DETAIL_STATE_IDS.length; i++) {
+            var panel = _panel(DETAIL_STATE_IDS[i]);
+            if (panel && (panel.BHasClass("gDetailView") || panel.BHasClass("gScoreboardOpen"))) { return true; }
+        }
+        var ctx = $.GetContextPanel();
+        return !!(ctx && (ctx.BHasClass("gDetailView") || ctx.BHasClass("gScoreboardOpen")));
+    }
+
+    function _pollDetailView() {
+        if (_isDetailViewVisible()) {
+            var persp = _panel("minimap_persp");
+            if (persp) {
+                persp.SetHasClass("DisableBigMapScaleOnTab", true);
+                persp.style.opacity = "1";
+            }
+            applyCurrentSize();
+        }
+        $.Schedule(DETAIL_POLL_SEC, _pollDetailView);
     }
 
     function init() {
-        bindSlider();
         apply();
         applyClampWidth();
-        _bindFullWidthToggle();
-        _bindUltToggle();
+        applyMapOpacity();
         _pollMapTargeting();
+        _pollDetailView();
     }
 
-    return { init: init, apply: apply, applyCurrentSize: applyCurrentSize, applyClampWidth: applyClampWidth };
+    return {
+        init: init, apply: apply,
+        applyClampWidth: applyClampWidth, applyMapOpacity: applyMapOpacity
+    };
 })();
