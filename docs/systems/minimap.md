@@ -49,8 +49,10 @@ Two mutually exclusive front ends, decided at HUD load:
 
 **Upgrading from the 2.1 bundle resets every UMM-saved BetterMap value once.** 3.0 gave every widget
 a two-character id ([`../UMM.md`](../UMM.md) §4), so UMM no longer finds the old ones. This is
-upstream's decision, in its CHANGELOG. The QOL Lite-only "Minimalist Map Opacity" slider is gone.
-Map Opacity covers it ([`../BUNDLE.md`](../BUNDLE.md) §3).
+upstream's decision, in its CHANGELOG. The QOL Lite-only "Minimalist Map Opacity" slider is gone,
+and Map Opacity does **not** replace it. Map Opacity fades the whole map, Valve's hero and objective
+icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.md`](../BUNDLE.md)
+§3).
 
 ---
 
@@ -122,7 +124,7 @@ globals.
 | `qollite_map_urn.js` | HUD | `QolLiteMapUrn` | Urn spawn tracker |
 | `qollite_map_apply.js` | HUD | `QolLiteMapApply` | Re-applies features from state: everything, or only what one key affects |
 | `qollite_map_store_codec.js` | HUD | `QolLiteMapStoreCodec` | The stored record's format and validation (pure) |
-| `qollite_map_store.js` | HUD | `QolLiteMapStore` | Standalone saving through the hidden browser panel; off under UMM |
+| `qollite_map_store.js` | HUD | `QolLiteMapStore` | Standalone saving through the hidden browser panel; off under UMM after one migration read |
 | `qollite_map_settings_bus.js` | HUD | `QolLiteMapSettingsBus` | The HUD end of the settings window: answers `get`, applies `set` / `reset`, routes `peek` / `lift` / `flush` |
 | `qollite_map_bootstrap.js` | HUD | — | Waits for all modules, then `init()`s each in isolation |
 | `qollite_map_slider.js` | window | `QolLiteMapSlider` | Binds a convar-less `CitadelSettingsSlider`; accepts values only during real interaction |
@@ -219,8 +221,10 @@ level and spawn gate:
 
 - **Level** — surface, `is_underground` or `in_tunnels`, polled at 4 Hz via the anchor. Since 3.0
   it is always automatic.
-- **Spawn gate** — regex-parses `#GameTime`. Each POI stays hidden until its own spawn time
-  (3:00 / 5:00 / 10:00; 6728 moved 81 small crates to 5:00) while "Show Only Spawned Objects" is on.
+- **Spawn gate** — regex-parses `#GameTime`. While "Show Only Spawned Objects" is on, each POI stays
+  hidden until its own spawn time (3:00 / 5:00 / 10:00). 6728 moved 77 small crates and 4 small
+  statues from 3:00 to 5:00, counted per POI between upstream `ca29290` and `0237ebe`; upstream's
+  CHANGELOG says "81 small crates".
 
 > The data is **static spawn knowledge**. Live breakable state is not observable
 > ([`../PANORAMA.md`](../PANORAMA.md) §3) and would be a cheat if it were.

@@ -108,7 +108,9 @@ single most important structural constraint in the mod; §6 covers how features 
 
 ### Which layout loads which scripts
 
-Read out of the layouts' `<scripts>` blocks at commit `78bbf2a`, 2026-09-30:
+Read out of the layouts' `<scripts>` blocks at commit `78bbf2a`, 2026-09-30; the two BetterMap rows
+re-read at the 3.0 re-bundle, 2026-10-01. Layouts added since `78bbf2a` by other commits (Sheriff's
+Quick Commend, `b2c12cc`) are not in the table yet:
 
 | Layout | Scripts | Feature |
 |---|---|---|

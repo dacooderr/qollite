@@ -97,7 +97,9 @@ added no recurring HUD loop apart from the storage retries above.
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
 | `qollite_map_popup.js` → `_liftTick` | 0.25 s | 4 Hz | Class checks on the window root; while BetterMap's rows are on screen, one `lift` message on `ClientUI_FireOutput` | ✅ Stops when the window closes. Under UMM it keeps ticking while the window is open but sends nothing |
-| `qollite_map_popup.js` → `_decorate` / `init` retries | 0.25 s | — | Waits for Valve's nav and rows to exist | ✅ Bounded (`RETRY_MAX`) |
+| `qollite_map_popup.js` → `_decorate` / `init` retries | 0.25 s | — | Waits for Valve's nav and rows to exist | ✅ Bounded (`RETRY_MAX`, 40) |
+| `qollite_map_popup.js` → `_unpeekLater` | 0.25 s (a literal) | — | After Show on Screen: checks whether the 3 s peek is over, then restores the window | ✅ Ends with the peek |
+| `qollite_map_popup.js` → `_requestState` | 0.5 s | — | Re-asks the HUD for the values if it has not answered | ✅ Bounded (`GET_RETRIES`) |
 
 ### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 

@@ -69,8 +69,10 @@ FILES = {
     "bettermap_popup.js": "qollite_map_popup.js",
 }
 
-# Anything matching this after renaming is an upstream name that escaped the rules.
-LEFTOVER = re.compile(r"\bBettermap\w*|\bPOI_DATA\b|\bURN_DATA\b|\bbettermap_\w+\.js\b")
+# Anything matching this after renaming is an upstream name that escaped the rules. File names
+# use rename()'s lookbehind: a path-qualified name describes upstream and is kept on purpose.
+LEFTOVER = re.compile(r"\bBettermap\w*|\bPOI_DATA\b|\bURN_DATA\b"
+                      r"|(?<![\w/])(?:bettermap(?:_\w+)?|poi_data|urn_data)\.js\b")
 
 # ---- QOL Lite local deltas ----------------------------------------------------------------
 # {bundled file: [(anchor, replacement), ...]}, matched against the already-renamed source.

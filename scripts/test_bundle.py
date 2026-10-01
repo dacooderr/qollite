@@ -53,6 +53,15 @@ class BetterMapRename(unittest.TestCase):
                          ["BettermapFoo", "POI_DATA", "bettermap_x.js"])
         self.assertEqual(bb.leftovers("QolLiteMapState"), [])
 
+    def test_leftovers_agree_with_rename_on_paths(self):
+        # rename() keeps path-qualified names on purpose; leftovers() must not then reject them.
+        self.assertEqual(bb.leftovers(bb.rename("// mod/panorama/scripts/bettermap_store.js\n")), [])
+
+    def test_leftovers_catch_irregular_names(self):
+        self.assertEqual(bb.leftovers("// see bettermap.js and urn_data.js"),
+                         ["bettermap.js", "urn_data.js"])
+        self.assertEqual(bb.leftovers("qollite_map_poi_data.js qollite_map_bootstrap.js"), [])
+
     def test_transform_fails_on_unrenamed(self):
         # `Bettermap` alone (no capital suffix) survives rename() and must stop the build.
         with self.assertRaises(bc.BundleError):

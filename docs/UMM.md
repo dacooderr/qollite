@@ -113,7 +113,9 @@ new widget type co-designed with the UMM author.
 | `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
-| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabl### `bettermap` in detail
+| `recent_purchases` | Recent Purchases | `qollite_recent_purchases.js` | 1 toggle (`enabled`) |
+
+### `bettermap` in detail
 
 Since BetterMap 3.0 (`0237ebe`) the manifest is built from `qollite_map_schema.js` by `_register()`
 in `qollite_map_umm_adapter.js`. Groups come from each setting's `group`; widget ids are the schema's
@@ -137,8 +139,6 @@ CHANGELOG.
   written to the store while UMM is present.
 - With UMM present, BetterMap's subsections in the game's settings window are hidden, so there is
   only one UI.
-
-ndle.)
 
 ### Not integrated
 

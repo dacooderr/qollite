@@ -96,8 +96,8 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
 ### Minimap (BetterMap)
 
 - **Author:** gfkm
-- **GameBanana:** [664456 — Better Map / Customize](https://gamebanana.com/mods/664456), v1.01 (not
-  re-checked on 2026-09-30)
+- **GameBanana:** [664456 — Better Map / Customize](https://gamebanana.com/mods/664456), version there not
+  re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
 - **Bundled version:** BetterMap **3.0** (upstream CHANGELOG, 2026-10-01) at commit **`0237ebe`**
@@ -152,9 +152,13 @@ script `FILES` does not list, or `FILES` lists one upstream no longer has.
 **QOL Lite local deltas: none since 3.0.** The one delta, "Minimalist Map Opacity" (state key
 `minimalMapOpacity`, UMM slider `minimalMapOpacityPct`, in-HUD slider
 `#minimap_minimal_opacity_slider`), was dropped at the 3.0 re-bundle. Its only stated reason was to
-keep users' saved values applying, and 3.0 resets every UMM-saved BetterMap value anyway. Upstream's
-**Map Opacity** (10–100 %, every mode, not only Minimalist) covers what it did. The in-HUD panel that
-held its slider is gone upstream too.
+keep users' saved values applying, and 3.0 resets every UMM-saved BetterMap value anyway. The
+in-HUD panel that held its slider is gone upstream too. Dropped at the maintainers' decision
+(2026-10-01), knowing what is lost: the delta faded only `#MinimapBackgroundTest` (the map image,
+canvas and effects) and only in Minimalist mode, so the heroes and objectives stayed solid.
+Upstream's **Map Opacity** fades `#HudMinimapContainer`, which holds Valve's hero and objective
+markers too (`applyMapOpacity` in `qollite_map_size.js`). "Faint map, solid icons" is no longer
+possible. The way back is a BetterMap setting upstream, not a new local delta.
 
 > Upstream module names map one-to-one onto the bundled files. The `[BetterMap]` log prefix and
 > `bm_`/`Bm` class names in the shipped build are upstream names kept by the bundler — they are
@@ -257,8 +261,9 @@ Show Rank, while it shipped, branded its shared state `$.__QolLiteShowRankWebMed
 
 ### Third-party services
 
-Bundled code that reaches outside the game (read from the scripts' URLs, 2026-09-30). Users are not
-currently told about any of it:
+Bundled code that reaches outside the game (read from the scripts' URLs, 2026-09-30; the minimap
+row 2026-10-01). Since 2026-10-01 the README's "Network use" section tells users about the Friends Rank and minimap
+rows; the Statlocker buttons send nothing until clicked:
 
 | Feature | Service | When | Data sent |
 |---|---|---|---|
