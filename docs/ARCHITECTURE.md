@@ -376,6 +376,15 @@ rows in `popup_settings.xml`, `#hudActivePlayerStats` hidden post-game and in sp
 check found the shipped tree at `b2c12cc` missing three of those subtitle ids, and at `6e30505` also
 `HealthBar_Fill` — the id the players' crash dialog named ([`FIELD_NOTES.md`](FIELD_NOTES.md) §10).
 
+At 6746 (2026-10-04; `3e78562` (6730) → `5c722c0` (6746), seven builds): 84 files checked, 4
+changed, no `engine-ids`. Valve's changes reaching the pack: two settings rows in
+`popup_settings.xml`, and quickbuy's new sell mode (`.NextIsSell`, `#QuickbuyNext.Sell`). The
+`@import` overlay `hud_quickbuy.css` was flagged `review-base` and kept unchanged (step 4); its Valve
+part arrives through `base/hud_quickbuy.css`. `hud_quickbuy_entry.css` had one conflict: the mod
+inserts a `.QuickbuyPreviewEntry .QuickbuyItem` rule right before the rule Valve rewrote. Resolved
+by keeping the mod's rule, then Valve's new block. Valve's 6745 clean-up deleted 128 panorama files;
+among the overrides only `post_game/citadel_db_page_post_game.xml` was one, already dead since 6711.
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the
