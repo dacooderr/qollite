@@ -53,6 +53,15 @@ class BetterMapRename(unittest.TestCase):
                          ["BettermapFoo", "POI_DATA", "bettermap_x.js"])
         self.assertEqual(bb.leftovers("QolLiteMapState"), [])
 
+    def test_retired_module_names_renamed_in_comments(self):
+        # Upstream comments may name a module it has since deleted; it was bundled under this name.
+        self.assertEqual(bb.rename("// carried over from bettermap_settings.js\n"),
+                         "// carried over from qollite_map_settings.js\n")
+        self.assertEqual(bb.leftovers(bb.rename("// was bettermap_player.js\n")), [])
+
+    def test_retired_modules_are_not_bundled(self):
+        self.assertFalse(set(bb.RETIRED) & set(bb.FILES))
+
     def test_leftovers_agree_with_rename_on_paths(self):
         # rename() keeps path-qualified names on purpose; leftovers() must not then reject them.
         self.assertEqual(bb.leftovers(bb.rename("// mod/panorama/scripts/bettermap_store.js\n")), [])
@@ -90,6 +99,8 @@ class BetterMapFiles(unittest.TestCase):
         for mod in ("schema", "draw", "icons", "apply", "store_codec", "store",
                     "settings_bus", "slider", "popup"):
             self.assertEqual(bb.FILES[f"bettermap_{mod}.js"], f"qollite_map_{mod}.js")
+        # 3.2: the credit line's script, loaded by the always-on overlay layout.
+        self.assertEqual(bb.FILES["bettermap_overlay.js"], "qollite_map_overlay.js")
         # Removed upstream in 3.0 (the in-HUD settings panel; player sizing moved to icons).
         self.assertNotIn("bettermap_settings.js", bb.FILES)
         self.assertNotIn("bettermap_player.js", bb.FILES)

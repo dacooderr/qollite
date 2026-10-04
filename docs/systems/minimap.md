@@ -3,12 +3,13 @@
 > Resizable, movable minimap with per-type icon sizes, an objective overlay, and settings inside the
 > game's own settings window.
 >
-> **Origin:** BetterMap 3.1 (`8d87d86`) · **Runs in:** every match · **Off switch:** settings window or
+> **Origin:** BetterMap 3.2 (`a7b55cf`) · **Runs in:** every match · **Off switch:** settings window or
 > UMM `bettermap` (partial — see [Known issues](#known-issues))
-> **Last verified:** 2026-10-02 against the BetterMap 3.1 re-bundle (branch `feat/bettermap-apples`).
+> **Last verified:** 2026-10-04 against the BetterMap 3.2 re-bundle (branch `feat/bettermap-3.2`).
 
-The largest feature in the mod: 22 scripts, a full `hud.xml` override, three subsections spliced into
-Valve's `popup_settings.xml`, and BetterMap's rules in two stylesheets. The scripts are **generated**
+The largest feature in the mod: 23 scripts, a full `hud.xml` override, three subsections spliced into
+Valve's `popup_settings.xml`, an override of the always-on overlay for the credit line, and
+BetterMap's rules in three stylesheets. The scripts are **generated**
 from upstream BetterMap by `scripts/bundle_bettermap.py`. Change them upstream and re-bundle, never
 the bundled copy ([`../BUNDLE.md`](../BUNDLE.md) §3).
 
@@ -33,6 +34,8 @@ the 3.0 release candidate standalone, on game build 6728.
 | Urn spawn-location tracker with countdown | off |
 | Live preview of the real minimap: in the escape menu for 4 s after a change, and over the settings window while BetterMap's rows are on screen | — |
 | Settings in Valve's settings window, Game → three subsections, saved automatically | — |
+| Credit line "BetterMap for QOL Lite by gfkm" in a match, bottom right under Valve's match / build line, in Valve's font (3.2; the text is a QOL Lite delta) | always, no switch |
+| Ability range circles (Doorman's doorway) keep their true size at any Minimap Size (3.2) | — |
 
 Everything except the ability enlarge defaults to off or to the game's own look. The loops still run
 whatever the settings are ([Known issues](#known-issues)).
@@ -61,7 +64,7 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Layouts**
 
-- `panorama/layout/hud.xml` (406 lines). A **full override of Valve's HUD**, on build 6730, equal to
+- `panorama/layout/hud.xml` (406 lines). A **full override of Valve's HUD**, on build 6746, equal to
   BetterMap's `hud.vxml` apart from the bundled script names and the `qollite_passive` include. On top
   of the vanilla tree:
   - the 20 HUD script includes
@@ -86,9 +89,13 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Styles**
 
-- `panorama/styles/hud_minimap.css` (2,684 lines): Valve's sheet, then BetterMap's appendix from
-  line 1890. Upstream's file verbatim. Lines 1988–2684 are generated upstream from the schema
-  (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class.
+- `panorama/styles/hud_minimap.css` (2,839 lines at 3.2): Valve's sheet, then BetterMap's appendix
+  from line 1890. Upstream's file verbatim. Lines 1988–2839 are generated upstream from the schema
+  (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class and, since 3.2, per
+  `bm_mapsize_<px>` class.
+- `panorama/styles/qollite_map_overlay.css` (3.2): upstream's `bettermap_overlay.vcss`. Shows
+  `#BetterMapCredit` under `.BmCreditShown`, in Valve's font for `#ClientServerDebugStats`, and lifts
+  Valve's line by one line meanwhile (21 px, which upstream marks as not measured).
 - `panorama/styles/hud.css`: BetterMap's rules — `#minimap_persp` noclip and sizing under
   `gDetailView` / `gScoreboardOpen`, `#HudMinimapContainer` z-order, hit-testing, the neutral-icon
   rules, and `.bm_preview_live` at the end of the file. That last rule must stay after Valve's
@@ -102,9 +109,15 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
   `panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*`
   ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
 
-**Scripts.** Two JS contexts. The HUD loads 20 scripts through `hud.xml`, in this order. The settings
-window loads four through `popup_settings.xml`. It is rebuilt on every open and cannot see the HUD's
-globals.
+- `panorama/layout/citadel_hud_and_db_overlay.xml` (3.2). Valve's always-on overlay — the layer that
+  draws the match / build line, toasts and tooltips in every screen — plus `#BetterMapCredit`, our
+  stylesheet and our script. Upstream generates it from Valve's file; here it is merged by hand
+  ([`../BUNDLE.md`](../BUNDLE.md) §3). The label's text, "BetterMap for QOL Lite by gfkm", is the
+  QOL Lite delta.
+
+**Scripts.** Three JS contexts. The HUD loads 20 scripts through `hud.xml`, in this order. The settings
+window loads four through `popup_settings.xml`; it is rebuilt on every open and cannot see the HUD's
+globals. The overlay loads one, `qollite_map_overlay.js`.
 
 | Script | Context | Global | Role |
 |---|---|---|---|
@@ -115,12 +128,12 @@ globals.
 | `qollite_map_state.js` | HUD | `QolLiteMapState` | The in-memory settings object; `DEFAULTS` built from the schema |
 | `qollite_map_draw.js` | HUD | `QolLiteMapDraw` | Shared drawing rules: margins from the offsets, POI colours |
 | `qollite_map_minimap.js` | HUD | `QolLiteMapMinimap` | The anchor (`#MinimapBackgroundTest`), `hasClassAbove()`, DEBUG-only probes |
-| `qollite_map_size.js` | HUD | `QolLiteMapSize` | Size, map opacity, HUD clamp width, Traveler enlarge, normal size while TAB is held |
+| `qollite_map_size.js` | HUD | `QolLiteMapSize` | Size, map opacity, HUD clamp width, Traveler enlarge, normal size while TAB or the ability menu is open (by event since 3.2), the `bm_mapsize_<px>` class that keeps range circles to scale |
 | `qollite_map_position.js` | HUD | `QolLiteMapPosition` | Offsets → margins on `#minimap_persp_wrapper`, always bottom-right |
 | `qollite_map_poi.js` | HUD | `QolLiteMapPoi` | Builds and filters the POI markers |
 | `qollite_map_umm_adapter.js` | HUD | `QolLiteMapUmmAdapter` | UMM registration, id `bettermap`, manifest from the schema, the one-time seed |
 | `qollite_map_minimal.js` | HUD | `QolLiteMapMinimal` | Minimalist mode: `BmMinimalMap` on `#hud_minimap` and `#minimap_persp` |
-| `qollite_map_icons.js` | HUD | `QolLiteMapIcons` | Icon sizes: one `bm_size_<type>_<pct>` class per setting on `#hud_minimap`. Also hides a stray spawn-shop marker (below) |
+| `qollite_map_icons.js` | HUD | `QolLiteMapIcons` | Icon sizes: one `bm_size_<type>_<pct>` class per setting on `#hud_minimap` |
 | `qollite_map_preview.js` | HUD | `QolLiteMapPreview` | The real minimap over the escape menu and over the settings window |
 | `qollite_map_urn.js` | HUD | `QolLiteMapUrn` | Urn spawn tracker |
 | `qollite_map_apply.js` | HUD | `QolLiteMapApply` | Re-applies features from state: everything, or only what one key affects |
@@ -130,6 +143,7 @@ globals.
 | `qollite_map_bootstrap.js` | HUD | — | Waits for all modules, then `init()`s each in isolation |
 | `qollite_map_slider.js` | window | `QolLiteMapSlider` | Binds a convar-less `CitadelSettingsSlider`; accepts values only during real interaction |
 | `qollite_map_popup.js` | window | `QolLiteMapPopup` | The three subsections: titles, purple "new" marks, Show on Screen, Reset, per-row reset, lift heartbeat, hides everything under UMM |
+| `qollite_map_overlay.js` | overlay | `QolLiteMapOverlay` | The credit line: puts `BmCreditShown` on the overlay root while Valve's `#ClientServerDebugStats` shows its match line (not in the hideout, not in Valve's detailed mode). Polls at 1 Hz |
 
 ---
 
@@ -203,9 +217,13 @@ Each icon setting puts one class, `bm_size_<type>_<pct>`, on `#hud_minimap`. A g
 - Player sizes step aside in the game's zoomed minimap mode.
 - The broker keeps the game's size, because its own pulse animation would override any other.
 
-`qollite_map_icons.js` also collapses one shop marker at the bottom of `dl_midtown`. BetterMap's
-author saw it only with the mod; why it appears is unknown upstream. It is found by its position
-(`STRAY_SHOP_POS`), a labelled workaround. If Valve moves it, it simply shows again.
+3.0 also collapsed one shop marker at the bottom of `dl_midtown` as a stray; 3.2 shows it again —
+it is a real shop (upstream CHANGELOG 3.2).
+
+Ability range circles are sized by the C++ as if the marker kept Valve's size, so on a resized map
+they grew twice over. `qollite_map_size.js` puts `bm_mapsize_<px>` on `#hud_minimap`, and a
+generated rule in `hud_minimap.css` scales `.map_button.ability_castrange #CastRange` back by
+400 / size (3.2).
 
 ### Positioning
 
@@ -271,9 +289,11 @@ listed and are stored as fractions where the unit is %.
 
 ## Known issues
 
-- **The loops run regardless of settings** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D1. The 33 Hz
-  detail-view poll, now in `qollite_map_size.js`, is still the most expensive thing in the mod. Fix
-  belongs upstream.
+- **The loops run regardless of settings** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D1. Since 3.2
+  the 33 Hz detail-view poll is gone: TAB and the ability menu are caught by event, with a 2 Hz
+  safety poll; the 33 Hz re-apply runs only while one of them is open.
+- **The credit line costs a 1 Hz loop in the overlay** in every screen, with no switch (one lookup
+  and an ancestor walk a tick). It is a credit, not a feature, so it has no setting.
 - **With UMM, every HUD load still opens the storage page once** (read from `_init` in
   `qollite_map_store.js`, not measured). It is a one-off cost at load, not per frame, plus a request
   to GitHub Pages. Most QOL Lite users have UMM. Since 3.1 that read is load-bearing: the marker

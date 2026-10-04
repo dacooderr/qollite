@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/poi_data.js
+// Upstream: github.com/gfkm/BetterMap @ a7b55cf, mod/panorama/scripts/poi_data.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -545,7 +545,7 @@ var QolLiteMapPoiData = {
             { t: "statue", small: false, u: 0.40625, v: 0.38988, z: -32, s: 300 },
             { t: "crate", small: false, u: 0.15406, v: 0.38887, z: 256, s: 180 },
             { t: "statue", small: false, u: 0.15045, v: 0.39874, z: 270.404, s: 180 },
-            { t: "crate", small: false, u: 0.14583, v: 0.41481, z: 248, s: 180 },
+            { t: "crate", small: false, u: 0.13886, v: 0.41992, z: 642, s: 180 },
             { t: "crate", small: false, u: 0.13032, v: 0.38095, z: 256, s: 180 },
             { t: "crate", small: false, u: 0.13024, v: 0.37686, z: 256, s: 180 },
             { t: "crate", small: false, u: 0.12128, v: 0.39249, z: 256.375, s: 180 },

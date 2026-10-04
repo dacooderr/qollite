@@ -1,0 +1,28 @@
+<!-- xml reconstructed by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io -->
+<!-- Not decompiled: BetterMap's generated override (upstream pipeline/build_overlay.py, BetterMap 3.2 @ a7b55cf), merged into QOL Lite by hand - docs/BUNDLE.md section 3. The first line is kept for scripts/rebase_overrides.py. -->
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/base.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_base_styles.vcss_c" />
+		<include src="s2r://panorama/styles/citadel_hud_and_db_overlay.vcss_c" />
+		<include src="s2r://panorama/styles/qollite_map_overlay.vcss_c" />
+	</styles>
+	<scripts>
+		<include src="s2r://panorama/scripts/qollite_map_overlay.js" />
+	</scripts>
+	<CitadelOverlay class="HUDOverlay" hittest="false">
+		<CitadelClientStatus id="ClientStatus" hittest="false" hittestchildren="false" />
+		<Panel id="MutedPanel" class="LeftRightFlow" onmouseover="UIShowTextTooltip( #citadel_game_audio_muted );" onmouseout="UIHideTextTooltip()" hittest="false" hittestchildren="false">
+			<Panel class="MutedIcon" />
+		</Panel>
+		<Label id="ClientServerDebugStats" hittest="false" hittestchildren="false" />
+		<!-- QOL Lite local delta (not in upstream BetterMap): the credit names the QOL Lite build. -->
+		<Label id="BetterMapCredit" text="BetterMap for QOL Lite by gfkm" hittest="false" hittestchildren="false" />
+		<ToastManager id="ToastManager" hittest="false" toastduration="5.0s" maxtoastsvisible="3" />
+		<CitadelTooltipManager id="TooltipManager" hittest="false" />
+		<Panel class="QuittingOverlay" hittest="false">
+			<Panel class="QuittingOverlayLogoInner" hittest="false" />
+			<Panel class="QuittingOverlayLogoOutter" hittest="false" />
+		</Panel>
+	</CitadelOverlay>
+</root>

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_icons.js
+// Upstream: github.com/gfkm/BetterMap @ a7b55cf, mod/panorama/scripts/bettermap_icons.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -25,20 +25,6 @@ var QolLiteMapIcons = (function () {
     var ZOOM_POLL_SEC = 0.5;    // zoom mode is a game setting - rarely changes mid-match
     var _applied = {};          // key -> the class currently on #hud_minimap, or null
     var _pollErrLogged = false; // one error line, not one every ZOOM_POLL_SEC
-
-    // WORKAROUND (owner, 2026-10-01: "if you detected it, just don't show it"): with BetterMap
-    // the minimap shows one extra shop at the bottom that the game without the mod does not;
-    // why is unknown (spec §8, in-game runs 1-2). It is the unnamed team-2 trigger_item_shop
-    // at the spawn (dl_midtown entities: lanenum 0, no shop model, no counterpart for team 3).
-    // Its marker carries the same classes as a lane shop, so it is found by the position the
-    // engine writes: style.position, % of #hud_minimap, top-left of the marker, independent
-    // of the minimap's size (probe run 2, build 6728). If Valve moves it, it simply shows again.
-    var STRAY_SHOP_MAP_CLASS = "dl_midtown";
-    var STRAY_SHOP_CLASS = "tier1_shop";
-    var STRAY_SHOP_POS = { x: 56.26, y: 87.63 };
-    var STRAY_SHOP_TOLERANCE = 1.0;      // %; the nearest real shop marker (the broker) is ~25 % away (probe run 2)
-    var POSITION_RE = /^\s*(-?[0-9.]+)%\s+(-?[0-9.]+)%/;
-    var _strayHidden = [];               // panels we collapsed
 
     function _hud() {
         var ctx = $.GetContextPanel();
@@ -74,35 +60,6 @@ var QolLiteMapIcons = (function () {
             if (want) { hud.SetHasClass(want, true); }
             _applied[e.key] = want;
             QolLiteMapLog.log("icons: " + e.key + " -> " + (want || "native"));
-        }
-        _hideStrayShop(hud);
-    }
-
-    function _isStray(p) {
-        var m = String(p.style.position || "").match(POSITION_RE);
-        if (!m) { return false; }
-        return Math.abs(Number(m[1]) - STRAY_SHOP_POS.x) <= STRAY_SHOP_TOLERANCE &&
-            Math.abs(Number(m[2]) - STRAY_SHOP_POS.y) <= STRAY_SHOP_TOLERANCE;
-    }
-
-    // Collapses the stray spawn shop; a panel the engine has since moved elsewhere (it recycles
-    // marker panels) gets Valve's visibility back - null clears the inline value.
-    function _hideStrayShop(hud) {
-        var still = [];
-        for (var i = 0; i < _strayHidden.length; i++) {
-            var h = _strayHidden[i];
-            if (!h.IsValid()) { continue; }
-            if (_isStray(h)) { still.push(h); } else { h.style.visibility = null; }
-        }
-        _strayHidden = still;
-        if (!QolLiteMapMinimap.hasClassAbove(STRAY_SHOP_MAP_CLASS)) { return; }
-        var shops = hud.FindChildrenWithClassTraverse(STRAY_SHOP_CLASS);
-        for (var j = 0; j < shops.length; j++) {
-            var p = shops[j];
-            if (!_isStray(p) || _strayHidden.indexOf(p) !== -1) { continue; }
-            p.style.visibility = "collapse";
-            _strayHidden.push(p);
-            QolLiteMapLog.log("icons: hid the stray spawn shop at " + p.style.position);
         }
     }
 

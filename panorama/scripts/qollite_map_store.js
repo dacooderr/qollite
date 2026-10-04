@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_store.js
+// Upstream: github.com/gfkm/BetterMap @ a7b55cf, mod/panorama/scripts/bettermap_store.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -15,7 +15,7 @@
 // window, so it is the only writer. When UMM is present it only reads once, for
 // UMM's first register (spec §8.1), and never writes - UMM owns saving.
 //
-// Measured in-game (docs/knowledge/native_settings_injection.md, runs 3-4):
+// Measured in-game (settings probe runs 3-4, docs/knowledge/panorama_notes.md "Browser storage channel"):
 // every request reloads the page (a fresh "ready" each time), every answer
 // arrives twice, and a 0x0 / opacity 0 panel still loads and answers. Deadlock
 // needs a network connection to play at all, so "offline" means "GitHub Pages down".

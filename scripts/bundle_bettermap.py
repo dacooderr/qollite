@@ -67,6 +67,15 @@ FILES = {
     # Loaded by the settings window (popups/popup_settings.xml), not the HUD.
     "bettermap_slider.js": "qollite_map_slider.js",
     "bettermap_popup.js": "qollite_map_popup.js",
+    # Loaded by the always-on overlay (citadel_hud_and_db_overlay.xml): the credit line.
+    "bettermap_overlay.js": "qollite_map_overlay.js",
+}
+
+# Modules upstream has deleted, under the names they were bundled as. Not bundled (FILES is the
+# build); only so that upstream comments naming them are renamed instead of failing the build.
+RETIRED = {
+    "bettermap_settings.js": "qollite_map_settings.js",   # in-HUD settings panel, removed in 3.0
+    "bettermap_player.js": "qollite_map_player.js",       # replaced by bettermap_icons.js in 3.0
 }
 
 # Anything matching this after renaming is an upstream name that escaped the rules. File names
@@ -96,7 +105,7 @@ def rename(src, files=FILES):
     src = re.sub(r"\bURN_DATA\b", "QolLiteMapUrnData", src)
     # Script file names mentioned in comments. The lookbehind leaves path-qualified
     # names (mod/panorama/scripts/bettermap_x.js) alone: those describe upstream.
-    for up, ql in files.items():
+    for up, ql in list(files.items()) + list(RETIRED.items()):
         src = re.sub(r"(?<![\w/])" + re.escape(up), ql, src)
     return src
 
