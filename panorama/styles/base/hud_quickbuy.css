@@ -1,7 +1,7 @@
 /* Prettified by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io */
 
-@import url("s2r://panorama/styles/citadel_base_styles.vcss");
-@import url("s2r://panorama/styles/ability_icons.vcss");
+@import url("s2r://panorama/styles/citadel_base_styles.vcss_c");
+@import url("s2r://panorama/styles/ability_icons.vcss_c");
 @keyframes 'quickbuy_pulse'
 {
 	0%
@@ -161,6 +161,11 @@
 	animation-name: quickbuy_pulse;
 	animation-duration: 1.3s;
 	animation-iteration-count: infinite;
+}
+
+.NextIsSell #HudMini
+{
+	opacity: 0.5;
 }
 
 .ItemsReady #HudMini

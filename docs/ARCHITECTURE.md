@@ -376,6 +376,14 @@ rows in `popup_settings.xml`, `#hudActivePlayerStats` hidden post-game and in sp
 check found the shipped tree at `b2c12cc` missing three of those subtitle ids, and at `6e30505` also
 `HealthBar_Fill` — the id the players' crash dialog named ([`FIELD_NOTES.md`](FIELD_NOTES.md) §10).
 
+At 6753 (2026-10-06; `3e78562` (6730) → `8c7cf4e` (6753)): the maintainer's crash dialog on opening
+the settings window read `FATAL ERROR: Unable to find child 'ReticleCollapseGroup' in layout file
+'panorama\layout\popups\popup_settings.xml'`. The same-build check on `main` (`bf407d4`) flagged
+exactly that file, with `ReticleCollapseGroup`, `SettingsDefaultViewRow` and `SubtitleFilterOptions`.
+84 files checked, 6 changed; `hud_quickbuy.css` (`@import` overlay) kept unchanged; one conflict in
+`hud_quickbuy_entry.css`, the mod's `.QuickbuyPreviewEntry .QuickbuyItem` rule right before the rule
+Valve rewrote for quickbuy's sell mode, resolved by keeping the mod's rule, then Valve's block.
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the
