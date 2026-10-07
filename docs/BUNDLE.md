@@ -182,10 +182,11 @@ verbatim, because CSS, layouts and saved settings match them: the `[BetterMap]` 
 script `FILES` does not list, or `FILES` lists one upstream no longer has.
 
 **QOL Lite local delta — the credit text (since 3.2).** `citadel_hud_and_db_overlay.xml` says
-**"BetterMap for QOL Lite by gfkm"** where upstream says "BetterMap by gfkm". It is labelled
+**"QOL Lite Mod"** where upstream says "BetterMap by gfkm". It is labelled
 "QOL Lite local delta (not in upstream BetterMap)" in the layout. The bundled scripts carry no delta.
-Requested by BetterMap's author on 2026-10-04 for the QOL Lite build. "BetterMap" is capitalised as
-in upstream's brand.
+Requested by BetterMap's author: first as "BetterMap for QOL Lite by gfkm" (2026-10-04), then
+replaced by "QOL Lite Mod", without an author (2026-10-07). The label keeps upstream's id,
+`#BetterMapCredit`, which `qollite_map_overlay.css` matches.
 
 **Dropped delta — "Minimalist Map Opacity" (3.0).** The delta, "Minimalist Map Opacity" (state key
 `minimalMapOpacity`, UMM slider `minimalMapOpacityPct`, in-HUD slider

@@ -16,8 +16,8 @@
 			<Panel class="MutedIcon" />
 		</Panel>
 		<Label id="ClientServerDebugStats" hittest="false" hittestchildren="false" />
-		<!-- QOL Lite local delta (not in upstream BetterMap): the credit names the QOL Lite build. -->
-		<Label id="BetterMapCredit" text="BetterMap for QOL Lite by gfkm" hittest="false" hittestchildren="false" />
+		<!-- QOL Lite local delta (not in upstream BetterMap): the line names the pack, without an author. -->
+		<Label id="BetterMapCredit" text="QOL Lite Mod" hittest="false" hittestchildren="false" />
 		<ToastManager id="ToastManager" hittest="false" toastduration="5.0s" maxtoastsvisible="3" />
 		<CitadelTooltipManager id="TooltipManager" hittest="false" />
 		<Panel class="QuittingOverlay" hittest="false">

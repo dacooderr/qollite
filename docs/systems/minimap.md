@@ -34,7 +34,7 @@ the 3.0 release candidate standalone, on game build 6728.
 | Urn spawn-location tracker with countdown | off |
 | Live preview of the real minimap: in the escape menu for 4 s after a change, and over the settings window while BetterMap's rows are on screen | — |
 | Settings in Valve's settings window, Game → three subsections, saved automatically | — |
-| Credit line "BetterMap for QOL Lite by gfkm" in a match, bottom right under Valve's match / build line, in Valve's font (3.2; the text is a QOL Lite delta) | always, no switch |
+| Credit line "QOL Lite Mod" in a match, bottom right under Valve's match / build line, in Valve's font (3.2; the text is a QOL Lite delta) | always, no switch |
 | Ability range circles (Doorman's doorway) keep their true size at any Minimap Size (3.2) | — |
 
 Everything except the ability enlarge defaults to off or to the game's own look. The loops still run
@@ -112,8 +112,8 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 - `panorama/layout/citadel_hud_and_db_overlay.xml` (3.2). Valve's always-on overlay — the layer that
   draws the match / build line, toasts and tooltips in every screen — plus `#BetterMapCredit`, our
   stylesheet and our script. Upstream generates it from Valve's file; here it is merged by hand
-  ([`../BUNDLE.md`](../BUNDLE.md) §3). The label's text, "BetterMap for QOL Lite by gfkm", is the
-  QOL Lite delta.
+  ([`../BUNDLE.md`](../BUNDLE.md) §3). The label's text, "QOL Lite Mod" (upstream: "BetterMap by gfkm"),
+  is the QOL Lite delta.
 
 **Scripts.** Three JS contexts. The HUD loads 20 scripts through `hud.xml`, in this order. The settings
 window loads four through `popup_settings.xml`; it is rebuilt on every open and cannot see the HUD's
