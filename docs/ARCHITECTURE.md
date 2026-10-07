@@ -114,8 +114,7 @@ Quick Commend, `b2c12cc`) are not in the table yet:
 
 | Layout | Scripts | Feature |
 |---|---|---|
-| `hud.xml` | `qollite_map_*` ×20, `qollite_passive` (BetterMap 3.0 re-bundle, 2026-10-01) | [minimap](systems/minimap.md), [passives](systems/passives.md) |
-| `popups/popup_settings.xml` | `qollite_map_log`, `qollite_map_schema`, `qollite_map_slider`, `qollite_map_popup` — the settings window, a context of its own that is rebuilt on every open (BetterMap 3.0, 2026-10-01) | [minimap](systems/minimap.md) |
+| `hud.xml` | `qollite_map_*` ×24 — four of them build and run BetterMap's section in Valve's settings window from the HUD (runtime settings mount, upstream `5ac7816`, 2026-10-07) — and `qollite_passive` | [minimap](systems/minimap.md), [passives](systems/passives.md) |
 | `citadel_hud_and_db_overlay.xml` | `qollite_map_overlay` — Valve's always-on overlay, its own context (BetterMap 3.2, 2026-10-04) | [minimap](systems/minimap.md) |
 | `base_hud_and_db_overlay.xml` | `qollite_notifications_*` ×9 | [event reminders](systems/event-reminders.md) |
 | `citadel_hud_top_bar.xml` | `qollite_topbar`, `qollite_notifications_clock_bridge`, `qollite_notifications_urn_detector` | [top bar](systems/top-bar.md), [event reminders](systems/event-reminders.md) |
@@ -138,7 +137,8 @@ Layouts overridden with no script: `citadel_db_page_learn`, `citadel_db_page_new
 `citadel_db_page_news_entry`, `citadel_db_page_training`, `citadel_hero_stats_{armor,tech,weapon}_panel`,
 `citadel_hud_koth`, `citadel_ui_context_menu_player`, `citadel_ui_modified_{abilities,stats}_panel`,
 `hud_ability_icon`, `hud_escape_menu`, `hud_paused`, `hud_quickbuy_entry`, `players_list_entry`,
-`post_game/citadel_db_page_post_game` (`popups/popup_settings` loads BetterMap's window scripts since 3.0).
+`post_game/citadel_db_page_post_game`, and `popups/popup_settings` (BetterMap's window scripts left it
+at the runtime settings mount; it now carries only the 4×3 button and the FOV row).
 Seven of them are Valve 6722's file with no mod change (§4); `post_game/citadel_db_page_post_game`
 sits at a path the game no longer loads (§4).
 
@@ -321,7 +321,7 @@ anchor no longer matches exactly once. `--check` compares without writing (exit 
 Offline tests: `python scripts/test_bundle.py`, `python scripts/test_rebase_overrides.py`.
 
 **What the bundlers do not touch:** the layouts and stylesheets a first-party mod also needs —
-`hud.xml`'s script list, BetterMap's part of `popups/popup_settings.xml`, `hud_minimap.css`, the BetterMap rules in `hud.css`,
+`hud.xml`'s script list, `citadel_hud_and_db_overlay.xml`, `hud_minimap.css`, the BetterMap rules in `hud.css`,
 `base_hud_and_db_overlay.xml`, `notif.css`. Those live in the merge layer and are updated by hand
 against upstream's own copies; [`BUNDLE.md`](BUNDLE.md) §3 records what was compared.
 
@@ -472,7 +472,7 @@ two of them polled for it at ~17 Hz and 4 Hz. Fixed upstream in BetterMap, then 
 ### 8. Re-bundle the first-party mods
 
 Pull the upstream commits that target the new build and run `bundle_bettermap.py` /
-`bundle_mer.py` (§8), then bring the merge-layer files (`hud.xml`, `popups/popup_settings.xml`,
+`bundle_mer.py` (§8), then bring the merge-layer files (`hud.xml`, `citadel_hud_and_db_overlay.xml`,
 `hud_minimap.css`, `hud.css`) in line with upstream's own copies by hand ([`BUNDLE.md`](BUNDLE.md) §3
 says how each one is merged). Record the new commits in [`BUNDLE.md`](BUNDLE.md) §3.
 
@@ -562,3 +562,10 @@ compiled copies ships dead files, which is harmless but should be cleaned.
 `panorama/layout/citadel_hud_and_db_overlay.xml`, `panorama/styles/qollite_map_overlay.css` and
 `panorama/scripts/qollite_map_overlay.js`. Without the layout there is no credit line; without the
 stylesheet the line shows in every state, unstyled (inferred); without the script it never shows.
+
+**Files the runtime settings mount added (upstream `5ac7816`, 2026-10-07) — make sure the build
+compiles them:** `panorama/scripts/qollite_map_settings_nav.js` and
+`panorama/scripts/qollite_map_settings_mount.js`. The bootstrap waits for both, so a missing one
+switches off all of BetterMap (`boot: gave up after 20 attempts`). `popup_settings.xml` must be
+recompiled too: an old compiled copy still loads BetterMap's former window scripts and carries the
+old subsections next to the mounted section (inferred, not tried).

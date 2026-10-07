@@ -1,42 +1,37 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 3ad1ca1, mod/panorama/scripts/bettermap_popup.js
+// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_popup.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// BetterMap's subsections in Valve's settings window (spec
-// docs/specs/2026-10-01-native-settings.md §6; one subsection per schema group and
-// the per-row reset: docs/specs/2026-10-01-minimap-icon-sizes.md §5.6). Runs in the
-// popup's own context, rebuilt on every open (the popup is destroyed on close). It
-// never writes storage: it shows the HUD's live values (`get` -> `state`) and sends
-// every change back (`set`); qollite_map_settings_bus.js in the HUD applies and saves.
-// On close it sends `flush`, so the HUD writes the change now (D17).
-// The controls are Valve's own, rendered from the schema by
-// pipeline/build_popup_settings.py and bound here without convars, the way Valve's
-// convar-less #EnableConsoleCheckbox works. Sliders bind through qollite_map_slider.js,
-// which never sends a value the player did not set (D16).
+// BetterMap's subsections in Valve's settings window (spec docs/specs/2026-10-01-native-settings.md
+// §6; one subsection per schema group and the per-row reset: docs/specs/2026-10-01-minimap-icon-sizes.md
+// §5.6). Since docs/specs/2026-10-07-runtime-settings-injection.md it runs in the HUD context:
+// qollite_map_settings_mount.js builds our section in each new window and calls start(win); C++
+// destroys the window on close, so everything below is per window instance (`_gen`). It never
+// writes storage: it shows the HUD's live values (`get` -> `state`) and sends every change back
+// (`set`) through QolLiteMapSettingsBus, which applies and saves. On close it sends `flush`, so the
+// HUD writes the change now (D17).
+// The controls are Valve's own, bound without convars, the way Valve's convar-less
+// #EnableConsoleCheckbox works. Sliders bind through qollite_map_slider.js, which never sends a value
+// the player did not set (D16).
 // A colour setting shares its toggle's row (spec 2026-10-01-healing-apples-and-marker-colors.md C3):
 // one tooltip, one modified mark and one reset button for the row, and that reset restores both
 // the toggle and the colour (C7).
 // The preview is the real minimap: while any of our subsections is on screen the HUD
 // lifts it above this window (§6.2).
 var QolLiteMapPopup = (function () {
-    var CHANNEL = "ClientUI_FireOutput";
-    var PROTOCOL = 1;
     var CTL_PREFIX = "bm_ctl_";
     var ROW_PREFIX = "bm_row_";
-    // One of each per subsection, suffixed with its group's sfx (build_popup_settings.py).
+    // One of each per subsection, suffixed with its group's sfx (qollite_map_settings_mount.js).
     var SHOW_ROW_PREFIX = "bm_row_show_on_screen_";
     var SHOW_BUTTON_PREFIX = "bm_show_on_screen_";
     var RESET_ROW_PREFIX = "bm_row_reset_";
     var RESET_ROW_BUTTON_PREFIX = "bm_reset_";
-    var NAV_ID = "SettingsNavigationButtonsContainer";
-    var NAV_LABEL_CLASS = "SettingsNavigationButtonText";
-    var RESET_BUTTON_ID = "ResetSectionButton";        // Valve's SettingsSubsection snippet (hover-only)
-    var GAME_SECTION_TOKEN = "#citadel_settings_game";
-    var NEW_CLASS = "HaveNewSettings";                 // Valve's purple "new" dot (popup_settings.css); persists (run 4)
+    var RESET_BUTTON_ID = "ResetSectionButton";        // Valve's SettingsSubsection / SettingsSection snippets (hover-only)
+    var SECTION_TITLE_ID = "SectionTitleContainer";    // Valve's SettingsSection snippet
     var TOOLTIP_STYLE = "SettingsMenuTooltip";         // as Valve's rows: UIShowTextTooltipStyled( ..., SettingsMenuTooltip )
     var SHOW_TOOLTIP = "Fades this window for a few seconds so you can see the minimap against the game.";
     var RESET_TOOLTIP = "Restores every setting in this section to its default.";
@@ -62,12 +57,8 @@ var QolLiteMapPopup = (function () {
     var TITLE_CONTAINER_CLASS = "TitleContainer";      // settings_color_slider.xml
     var LAYOUT_READ_BACK_SEC = [1];
     var UMM_ROOT_ID = "UmmRoot";                       // UMM's base_hud.xml / base_dashboard.xml
-    var STATE_TIMEOUT_SEC = 0.5;                       // bus round trip measured 0 ms (run 4)
-    var RETRY_SEC = 0.25;                              // the layout and C++ nav are built around our start
-    var RETRY_MAX = 40;
-    var GET_RETRIES = 3;                               // extra `get` sends when no `state` arrives in STATE_TIMEOUT_SEC
-    // The bus round trip measured 0 ms in run 4, but same-stack delivery is not
-    // proven, so a late `state` must not drag the thumb back right after a change.
+    // The bus answers on the next frame (qollite_map_settings_bus.js), so a late `state` must not
+    // drag the thumb back right after a change.
     var ECHO_GRACE_MS = 500;
     // Valve's own video-preview mode of this window: .ShowGameWorld { opacity: 0.5 }
     // and its .PopupBackground at 0 (compiled popup_settings.vcss_c, build 6722).
@@ -80,10 +71,7 @@ var QolLiteMapPopup = (function () {
     var _values = null;
     var _syncing = false;
     var _hidden = false;
-    var _navButtons = {};    // group name -> its C++ nav button
-    var _gameNavButton = null;
     var _peekUntil = 0;
-    var _tries = 0;
     var _sliders = {};       // key -> QolLiteMapSlider binding
     var _rowResets = {};     // row key -> { row, button, on: our modified flag, keys: the row's settings }
     var _lastSent = {};      // key -> value we sent
@@ -93,8 +81,20 @@ var QolLiteMapPopup = (function () {
     var _scrollErrLogged = false;
     var _wasShown = false;
     var _resetPending = false;   // the next state answers our reset: show it even over a focused TextEntry
+    var _win = null;             // the open window instance (start)
+    var _gen = 0;                // which instance a scheduled callback belongs to
 
-    function _ctx() { return $.GetContextPanel(); }
+    // Everything that belongs to one window instance starts over in start().
+    function _resetSession() {
+        _values = null; _syncing = false; _hidden = false; _peekUntil = 0; _sliders = {}; _rowResets = {};
+        _lastSent = {}; _lastSentAt = {}; _readBackDone = false; _liftOn = false; _scrollErrLogged = false;
+        _wasShown = false; _resetPending = false;
+    }
+
+    // A callback scheduled for window instance `gen` still has that window.
+    function _live(gen) { return gen === _gen && !!_win && _win.IsValid(); }
+
+    function _ctx() { return _win; }
     function _find(id) { return _ctx().FindChildTraverse(id); }
     function _root() { var r = _ctx(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
     function _log(m) { QolLiteMapLog.log("popup: " + m); }
@@ -121,10 +121,7 @@ var QolLiteMapPopup = (function () {
         return out;
     }
 
-    function _send(msg) {
-        msg.bm = PROTOCOL;
-        $.DispatchEvent(CHANNEL, JSON.stringify(msg));
-    }
+    function _send(msg) { QolLiteMapSettingsBus.request(msg); }
 
     // A panel has one onmouseover, so a caller that also needs the hover passes `onOver`.
     function _tooltip(panel, text, onOver) {
@@ -216,11 +213,11 @@ var QolLiteMapPopup = (function () {
     // Always scheduled: _log is DEBUG-gated when it runs, as the read-backs are.
     // `secs` defaults to ROW_RESET_READ_BACK_SEC.
     function _rowResetReadBackLater(key, why, secs) {
-        var at = secs || ROW_RESET_READ_BACK_SEC;
+        var at = secs || ROW_RESET_READ_BACK_SEC, gen = _gen;
         for (var i = 0; i < at.length; i++) {
             (function (sec) {
                 $.Schedule(sec, function () {
-                    if (!_ctx() || !_ctx().IsValid()) { return; }
+                    if (!_live(gen)) { return; }
                     _rowResetReadBack(key, why + " +" + sec + "s");
                 });
             })(at[i]);
@@ -283,10 +280,11 @@ var QolLiteMapPopup = (function () {
 
     // DEBUG (spec §5.4): do a toggle and a colour slider fit one row.
     function _layoutReadBackLater(e) {
+        var gen = _gen;
         for (var i = 0; i < LAYOUT_READ_BACK_SEC.length; i++) {
             (function (sec) {
                 $.Schedule(sec, function () {
-                    if (!_ctx() || !_ctx().IsValid()) { return; }
+                    if (!_live(gen)) { return; }
                     var row = _find(ROW_PREFIX + e.row), tg = _find(CTL_PREFIX + e.row), c = _find(CTL_PREFIX + e.key);
                     if (!row || !tg || !c) { return; }
                     _log("layout " + e.key + " row=" + row.actuallayoutwidth + "x" + row.actuallayoutheight +
@@ -299,7 +297,7 @@ var QolLiteMapPopup = (function () {
 
     function _bind(e) {
         var ctl = _find(CTL_PREFIX + e.key);
-        if (!ctl) { QolLiteMapLog.error("popup: no control for " + e.key + " - regenerate popup_settings.vxml"); return; }
+        if (!ctl) { QolLiteMapLog.error("popup: no control for " + e.key + " - not built (see the mount log)"); return; }
         if (e.type === "toggle") {
             ctl.SetPanelEvent("onactivate", function () {
                 if (!_syncing && _values && !_hidden) { _set(e.key, !_values[e.key]); }
@@ -319,7 +317,7 @@ var QolLiteMapPopup = (function () {
             return;
         }
         var row = _find(ROW_PREFIX + e.key);
-        if (!row) { QolLiteMapLog.error("popup: no row for " + e.key + " - regenerate popup_settings.vxml"); return; }
+        if (!row) { QolLiteMapLog.error("popup: no row for " + e.key + " - not built (see the mount log)"); return; }
         _tooltip(row, _rowTooltip(e.key), function () { _reassertRowModified(e.key); });
         _bindRowReset(e, row);
     }
@@ -379,8 +377,9 @@ var QolLiteMapPopup = (function () {
         if (_readBackDone) { return; }
         _readBackDone = true;
         _readBack("+0s");
+        var gen = _gen;
         for (var i = 0; i < READ_BACK_SEC.length; i++) {
-            (function (sec) { $.Schedule(sec, function () { _readBack("+" + sec + "s"); }); })(READ_BACK_SEC[i]);
+            (function (sec) { $.Schedule(sec, function () { if (_live(gen)) { _readBack("+" + sec + "s"); } }); })(READ_BACK_SEC[i]);
         }
     }
 
@@ -410,12 +409,9 @@ var QolLiteMapPopup = (function () {
     function _applyHidden() {
         var subs = _subs();
         for (var i = 0; i < subs.length; i++) { subs[i].visible = false; }
-        for (var name in _navButtons) {
-            if (!Object.prototype.hasOwnProperty.call(_navButtons, name)) { continue; }
-            var holder = _navButtons[name].GetParent();   // NavigationAnimationContainer
-            if (holder) { holder.visible = false; }
-        }
-        if (_gameNavButton) { _gameNavButton.RemoveClass(NEW_CLASS); }
+        var section = _find(QolLiteMapSchema.section().id);
+        if (section) { section.visible = false; }
+        QolLiteMapSettingsNav.hide();
     }
 
     function _hide(reason) {
@@ -424,54 +420,20 @@ var QolLiteMapPopup = (function () {
         _applyHidden();
     }
 
-    // C++ labels a nav button "#<subsection id>" (no token, D7); after a retry it already
-    // shows our title.
-    function _groupForNavText(text) {
-        var g = _groups();
-        for (var i = 0; i < g.length; i++) {
-            if (text === "#" + g[i].id || text === g[i].title) { return g[i]; }
-        }
-        return null;
-    }
-
-    // Titles, section resets, nav labels and the purple marks. The nav is built by C++
-    // around our start, so retry until every one of our nav buttons is found; each
-    // attempt repeats the idempotent steps, and hiding (UMM) never waits for the nav.
-    function _decorate(attempt) {
-        if (!_ctx() || !_ctx().IsValid()) { return; }   // the popup closed while we waited
+    // Valve's hover-only reset buttons: a subsection's restores its group, our section's restores
+    // every setting (a reset without a group, native-settings §5.6).
+    function _bindSectionResets() {
         var groups = _groups();
         for (var i = 0; i < groups.length; i++) {
             (function (grp) {
-                var sub = _find(grp.id);
-                if (!sub) { return; }
-                sub.SetDialogVariable("subsection_name", grp.title);
-                var reset = sub.FindChildTraverse(RESET_BUTTON_ID);
+                var sub = _find(grp.id), reset = sub ? sub.FindChildTraverse(RESET_BUTTON_ID) : null;
                 if (reset) { reset.SetPanelEvent("onactivate", function () { _reset(grp.name); }); }
             })(groups[i]);
         }
-        var nav = _find(NAV_ID);
-        if (nav && nav.GetChildCount() > 0) {
-            var gameTitle = $.Localize(GAME_SECTION_TOKEN);
-            var labels = nav.FindChildrenWithClassTraverse(NAV_LABEL_CLASS);
-            for (var j = 0; j < labels.length; j++) {
-                var l = labels[j], g = _groupForNavText(l.text);
-                if (g) {
-                    l.text = g.title;
-                    _navButtons[g.name] = l.GetParent();
-                    _navButtons[g.name].AddClass(NEW_CLASS);
-                } else if (l.text === gameTitle) {
-                    _gameNavButton = l.GetParent();
-                    if (!_hidden) { _gameNavButton.AddClass(NEW_CLASS); }   // the mark would point at nothing of ours
-                }
-            }
-        }
-        if (_hidden) { _applyHidden(); }
-        var missing = 0;
-        for (var m = 0; m < groups.length; m++) { if (!_navButtons[groups[m].name]) { missing++; } }
-        if (missing) {
-            if (attempt < RETRY_MAX) { $.Schedule(RETRY_SEC, function () { _decorate(attempt + 1); }); }
-            else { QolLiteMapLog.error("popup: " + missing + " of our nav buttons were not found"); }
-        }
+        var section = _find(QolLiteMapSchema.section().id);
+        var title = section ? section.FindChildTraverse(SECTION_TITLE_ID) : null;
+        var all = title ? title.FindChildTraverse(RESET_BUTTON_ID) : null;
+        if (all) { all.SetPanelEvent("onactivate", function () { _reset(undefined); }); }
     }
 
     function _peek() {
@@ -481,15 +443,15 @@ var QolLiteMapPopup = (function () {
         _send({ t: "peek" });
         if (idle) {
             _ctx().AddClass(GAME_WORLD_CLASS);
-            _unpeekLater();
+            _unpeekLater(_gen);
         }
     }
 
-    function _unpeekLater() {
+    function _unpeekLater(gen) {
         $.Schedule(0.25, function () {
-            if (Date.now() < _peekUntil) { _unpeekLater(); return; }
-            var c = _ctx();
-            if (c && c.IsValid()) { c.RemoveClass(GAME_WORLD_CLASS); }
+            if (!_live(gen)) { return; }
+            if (Date.now() < _peekUntil) { _unpeekLater(gen); return; }
+            _ctx().RemoveClass(GAME_WORLD_CLASS);
         });
     }
 
@@ -509,9 +471,9 @@ var QolLiteMapPopup = (function () {
 
     // Heartbeat for the HUD's lift (spec §6.2): beats while any of our subsections is on
     // screen, one "off" on the transition, and stops for good once the window closes.
-    function _liftTick() {
+    function _liftTick(gen) {
+        if (!_live(gen)) { return; }
         var c = _ctx();
-        if (!c || !c.IsValid()) { return; }
         // Valve's markup starts the popup root Hidden and C++ removes the class on open;
         // when it does is unmeasured. Hidden only means "closing" after it has been seen off,
         // else one early beat would stop the lift for the whole open.
@@ -522,16 +484,12 @@ var QolLiteMapPopup = (function () {
         if (on !== _liftOn) { _log("lift " + (on ? "on" : "off") + (closing ? " (closing)" : "")); _liftOn = on; }
         // The tick stops here, so this runs once: the HUD writes the waiting change now (D17).
         if (closing) { _send({ t: "flush" }); return; }
-        $.Schedule(LIFT_BEAT_SEC, _liftTick);
+        $.Schedule(LIFT_BEAT_SEC, function () { _liftTick(gen); });
     }
 
-    function _onMessage(payload) {
-        // Whether the popup's JS context outlives its panel is unknown, so guard it.
-        if (!_ctx() || !_ctx().IsValid()) { return; }
-        if (typeof payload !== "string" || payload.indexOf("\"bm\"") === -1) { return; }
-        var msg;
-        try { msg = JSON.parse(payload); } catch (e) { return; }
-        if (!msg || msg.bm !== PROTOCOL || msg.t !== "state") { return; }
+    function _onState(msg) {
+        if (!_win || !_win.IsValid()) { return; }   // no window open: the next start() asks again
+        if (!msg || msg.t !== "state") { return; }
         _values = msg.values;
         if (msg.umm) { _hide("UMM owns the settings"); return; }
         if (!_hidden) { _setEnabled(true); }
@@ -545,32 +503,11 @@ var QolLiteMapPopup = (function () {
         _startReadBack();
     }
 
-    function _requestState(attempt) {
-        _send({ t: "get" });
-        $.Schedule(STATE_TIMEOUT_SEC, function () {
-            if (!_ctx() || !_ctx().IsValid()) { return; }   // the popup closed while we waited
-            if (_values || _hidden) { return; }
-            if (attempt < GET_RETRIES) { _requestState(attempt + 1); }
-            else { QolLiteMapLog.error("popup: no answer from the HUD after " + (GET_RETRIES + 1) + " requests - controls stay disabled"); }
-        });
-    }
-
-    function _allSubsPresent() {
-        return _subs().length === _groups().length;
-    }
-
-    function init() {
-        if (!_ctx() || !_ctx().IsValid()) { return; }   // the popup closed while we waited
-        // Script load order is not guaranteed (panorama_notes.md): wait for our
-        // dependencies and for the layout's panels instead of assuming them.
-        var ready = typeof QolLiteMapLog !== "undefined" && typeof QolLiteMapSchema !== "undefined" &&
-            typeof QolLiteMapSlider !== "undefined" && _allSubsPresent();
-        if (!ready) {
-            if (++_tries < RETRY_MAX) { $.Schedule(RETRY_SEC, init); }
-            else { $.Msg("[BetterMap] [ERROR] popup: dependencies or layout never became ready"); }
-            return;
-        }
-        $.RegisterForUnhandledEvent(CHANNEL, _onMessage);
+    // win: a new instance of Valve's settings window with our section already built in it.
+    function start(win) {
+        _gen++;
+        _win = win;
+        _resetSession();
         if (_root().FindChildTraverse(UMM_ROOT_ID)) { _hide("UMM is installed"); }
         var list = QolLiteMapSchema.list();
         for (var i = 0; i < list.length; i++) { _bind(list[i]); }
@@ -588,12 +525,14 @@ var QolLiteMapPopup = (function () {
             })(groups[j]);
         }
         _setEnabled(false);   // until the HUD answers
-        _decorate(0);
-        _requestState(0);
-        $.Schedule(LIFT_BEAT_SEC, _liftTick);
+        _bindSectionResets();
+        _send({ t: "get" });
+        var gen = _gen;
+        $.Schedule(LIFT_BEAT_SEC, function () { _liftTick(gen); });
     }
 
-    return { init: init };
-})();
+    // Once, from the bootstrap: the HUD's answers reach whichever window is open.
+    function init() { QolLiteMapSettingsBus.subscribe(_onState); }
 
-QolLiteMapPopup.init();
+    return { init: init, start: start };
+})();

@@ -141,8 +141,9 @@ CHANGELOG.
 - One-time seed: with UMM installed, the adapter's first register waits up to 2 s for values
   BetterMap's own store had saved without UMM, so a player who adds UMM keeps them. Nothing is
   written to the store while UMM is present.
-- With UMM present, BetterMap's subsections in the game's settings window are hidden, so there is
-  only one UI.
+- With UMM present, BetterMap builds nothing into the game's settings window
+  (`qollite_map_settings_mount.js`), so there is only one UI. If UMM appears after the section was
+  built, `qollite_map_popup.js` hides it.
 
 ### Not integrated
 
@@ -221,8 +222,8 @@ Finally, add a row to the table in §4 and to the feature's page under [`systems
   protocols and every listener sees all of them.
 - **Detect the core, do not assume it.** The idiom here is a latch set on the first `hello` or `set`.
   The minimap adapter uses it (`QolLiteMapUmmAdapter.isPresent()`) to switch off its own store, and
-  the settings window hides BetterMap's subsections when it finds `#UmmRoot`, so the user does not get
-  two competing UIs.
+  the settings mount builds no section into the settings window (the popup module also hides one it
+  finds already built when `#UmmRoot` appears), so the user does not get two competing UIs.
 - **`id` must be stable.** It is the persistence key. Renaming it silently orphans every user's saved
   values.
 - **Verify against the live UMM release before relying on protocol details.** This document reflects

@@ -7,11 +7,11 @@
       "tier": "first-party",
       "gamebanana_id": 664456,
       "upstream": "https://github.com/gfkm/BetterMap",
-      "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. One QOL Lite delta since 3.2 (the credit text in citadel_hud_and_db_overlay.xml); hud.xml, popup_settings.xml, the overlay layout and the styles are merged by hand, see docs/BUNDLE.md section 3.",
+      "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. One QOL Lite delta since 3.2 (the credit text in citadel_hud_and_db_overlay.xml); hud.xml, the overlay layout and the styles are merged by hand; nothing of BetterMap's is in popup_settings.xml since 5ac7816, see docs/BUNDLE.md section 3.",
       "bundled": {
-        "commit": "3ad1ca125f844c18cccd3aab716bad3628b9f240",
+        "commit": "5ac78165b13cb121b264f5362e9fe7b3dd013480",
         "date": "2026-10-07",
-        "version": "3.2.2"
+        "version": "3.2.2 + runtime settings mount (upstream branch feat/runtime-settings)"
       },
       "pinned": {}
     },

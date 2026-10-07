@@ -18,7 +18,7 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 
 | Feature | Origin | Runs in | Off switch | Cost |
 |---|---|---|---|---|
-| [Minimap](minimap.md) | BetterMap | Match; settings window | ✅ settings window or UMM `bettermap`, but six loops ignore it | 6 loops, 17–2 Hz (33 Hz only while TAB is held, since 3.2); 4 Hz in the settings window while it is open; 1 Hz in the overlay for the credit line |
+| [Minimap](minimap.md) | BetterMap | Match; settings window | ✅ settings window or UMM `bettermap`, but six loops ignore it | 6 loops, 17–2 Hz (33 Hz only while TAB is held, since 3.2); 4 Hz for the whole session looking for a new settings window (under UMM too); 33 Hz sidebar sync and 4 Hz lift while the window is open; 1 Hz in the overlay for the credit line |
 | [Event reminders](event-reminders.md) | Map Event Reminders | Match (overlay also in the dashboard) | ⚠️ UMM `eventnotifier`, but two loops ignore it | 3 standing loops, 5–4 Hz |
 | [Top bar](top-bar.md) | Top Bar Plus | Match, hideout | ❌ none | 1 Hz + a 2 Hz loop per player row |
 | [Statlocker button](statlocker.md) | Statlocker | — | — | **not loaded** — its script is included by no layout; the live Statlocker buttons are Friends Rank's |
@@ -65,7 +65,7 @@ table** — two features cannot both ship the same path.
 | `layout/citadel_db_page_training.xml` | unattributed — the Resources-page grid |
 | `layout/citadel_hud_koth.xml` | added in `5adefb4` ("potential fix for lingering rift pop-up"); no feature page |
 | `layout/popups/citadel_popup_global_leaderboard.xml` | [Leaderboard search](leaderboard-search.md) |
-| `layout/popups/popup_settings.xml` | [4×3](aspect-ratio-4x3.md) + the Experimental Extended FOV slider (Maffinz, [`../BUNDLE.md`](../BUNDLE.md) §4; restored at the re-merge after `4bb5c0e` dropped it without its other parts) + [Minimap](minimap.md)'s window scripts and three subsections (BetterMap 3.0, merged 3-way — [`../BUNDLE.md`](../BUNDLE.md) §3) |
+| `layout/popups/popup_settings.xml` | [4×3](aspect-ratio-4x3.md) + the Experimental Extended FOV slider (Maffinz, [`../BUNDLE.md`](../BUNDLE.md) §4; restored at the re-merge after `4bb5c0e` dropped it without its other parts). BetterMap left it at the runtime settings mount (upstream `5ac7816`): its section is created in the live window from the HUD, not overridden |
 | `layout/citadel_hud_and_db_overlay.xml` | [Minimap](minimap.md) — the credit line (BetterMap 3.2) |
 | `styles/hud_minimap.css` | [Minimap](minimap.md) |
 | `styles/notif.css` | [Event reminders](event-reminders.md) |

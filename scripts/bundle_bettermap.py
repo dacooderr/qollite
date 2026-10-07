@@ -63,10 +63,13 @@ FILES = {
     "bettermap_store_codec.js": "qollite_map_store_codec.js",
     "bettermap_store.js": "qollite_map_store.js",
     "bettermap_settings_bus.js": "qollite_map_settings_bus.js",
-    "bettermap.js": "qollite_map_bootstrap.js",
-    # Loaded by the settings window (popups/popup_settings.xml), not the HUD.
+    # Since upstream 5ac7816 the settings section is mounted into Valve's window from the HUD;
+    # the slider and popup modules moved from the settings window's context to the HUD's.
     "bettermap_slider.js": "qollite_map_slider.js",
     "bettermap_popup.js": "qollite_map_popup.js",
+    "bettermap_settings_nav.js": "qollite_map_settings_nav.js",
+    "bettermap_settings_mount.js": "qollite_map_settings_mount.js",
+    "bettermap.js": "qollite_map_bootstrap.js",
     # Loaded by the always-on overlay (citadel_hud_and_db_overlay.xml): the credit line.
     "bettermap_overlay.js": "qollite_map_overlay.js",
 }

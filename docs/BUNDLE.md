@@ -100,9 +100,29 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.2.2** (upstream CHANGELOG, 2026-10-07) at commit **`3ad1ca1`**
-  (`3ad1ca125f844c18cccd3aab716bad3628b9f240`, "Merge chore/rebase-6759: BetterMap 3.2.2 - game
-  build 6759, settings window crash"), upstream `main`. Bundled 2026-10-07.
+- **Bundled version:** BetterMap **3.2.2 plus the runtime settings mount** at commit **`5ac7816`**
+  (`5ac78165b13cb121b264f5362e9fe7b3dd013480`, "docs(release): 3.3 draft - store text, page
+  description and changelog"), upstream branch `feat/runtime-settings`, **not yet merged to upstream
+  `main`** and not a released BetterMap version (its CHANGELOG calls it a 3.3 draft). Bundled
+  2026-10-07 at the maintainer's request, so that QOL Lite stops overriding Valve's settings window
+  for BetterMap. The branch starts at `3ad1ca1` (3.2.2); re-bundle from `main` once it is merged.
+  - What the runtime settings mount changes for QOL Lite:
+    - BetterMap's settings are **its own section "Minimap" after Game**, with a sidebar entry and
+      three sub-entries, built into each settings window instance from the HUD with
+      `$.CreatePanel`. Valve's window is no longer overridden for BetterMap: its `<scripts>` block
+      and three subsections are gone from `popup_settings.xml`.
+    - Two new HUD scripts, `qollite_map_settings_mount.js` and `qollite_map_settings_nav.js`;
+      `qollite_map_slider.js` and `qollite_map_popup.js` moved from the settings window's context to
+      the HUD's (`hud.xml` includes all four before the bootstrap).
+    - Popup and HUD talk by direct calls (`QolLiteMapSettingsBus.request` / `subscribe`); the `"bm"`
+      payloads on `ClientUI_FireOutput` are gone.
+    - Under UMM nothing is built into the settings window.
+    - The window's search no longer finds BetterMap's rows.
+    - Upstream's in-game run 1 on 6759 (hideout) passed what it exercised; reopening, resets,
+      Show on Screen and UMM were not exercised (upstream spec
+      `docs/specs/2026-10-07-runtime-settings-injection.md` §6.5).
+  - Previously bundled: **`3ad1ca1`** (BetterMap 3.2.2, 2026-10-07, branch `feat/bettermap-3.2.2`,
+    PR #19, closed unmerged in favour of this bundle).
   - What 3.2.1 and 3.2.2 change for QOL Lite: only `qollite_map_poi_data.js` — crates, statues and
     tough crates follow game builds 6753 and 6759. Upstream's other 3.2.1 / 3.2.2 changes are its own
     rebases of `hud.vxml`, `hud_minimap.vcss` and `popup_settings.vxml` onto 6753 / 6759; QOL Lite's
@@ -142,10 +162,9 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `docs/specs`, "in-game run 3"). This bundle of it was not checked in game.
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_bettermap.py`
-- **Files:** `panorama/scripts/qollite_map_*.js` (23, readable source: 20 loaded by the HUD, 4 by
-  the settings window, `log` and `schema` by both, `overlay` by the overlay), `panorama/layout/hud.xml`
-  (shared), `panorama/layout/popups/popup_settings.xml` (shared with
-  [4×3](systems/aspect-ratio-4x3.md) and the FOV slider), `panorama/layout/citadel_hud_and_db_overlay.xml`
+- **Files:** `panorama/scripts/qollite_map_*.js` (25, readable source: 24 loaded by the HUD,
+  `overlay` by the overlay), `panorama/layout/hud.xml` (shared),
+  `panorama/layout/citadel_hud_and_db_overlay.xml`
   (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2), BetterMap's
   rules in `panorama/styles/hud.css`, `panorama/images/minimap/base/bm_vignette_png.*`
 - **Merge-layer files, compared by hand at `0237ebe`.** At 3.1 and 3.2 `popup_settings.xml` was
@@ -156,6 +175,12 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   `qollite_passive` include; `popup_settings.xml` is the 6759 rebase's file, unchanged, because
   upstream's 3.2.1 / 3.2.2 changes there are Valve's rows only; the overlay layout is unchanged, and
   Valve's `citadel_hud_and_db_overlay.xml` has not changed since 6711 (GameTracking-Deadlock).
+  At `5ac7816` (2026-10-07): `hud.xml` takes upstream's four new includes in upstream's order and
+  again differs from `hud.vxml` only by the script names and the `qollite_passive` include;
+  `popup_settings.xml` lost BetterMap's `<scripts>` block and three subsections and now differs from
+  Valve's 6759 file only by the decompiler header, the `.vcss_c` style includes, the 4×3 button and the
+  FOV row; `hud_minimap.css`, `hud.css` and the overlay did not change upstream. The two bullets
+  below on `popup_settings.xml` describe how it was merged up to 3.2.2.
   - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
     stylesheet and script names are QOL Lite's (`qollite_map_overlay.*`). The first line is the
     decompiler header every layout here starts with, which `scripts/rebase_overrides.py` expects,
@@ -177,9 +202,10 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   - `hud.css` takes upstream's 3.0 changes by 3-way merge: the removed Settings-button rules, two
     `hittest` lines, and the `#hudActivePlayerStats` lines the 6730 rebase had already brought in. It
     still carries QOL Lite's own rules (4×3, passives, `#objectives_health_friendly`).
-- **Re-bundling 3.0 or later:** run the bundler, then redo the three merges above against upstream's
-  files at the new commit. `popup_settings.xml` is generated upstream from `bettermap_schema.js`, so
-  any schema change upstream means it has to be merged again.
+- **Re-bundling:** run the bundler, then bring `hud.xml`, `hud_minimap.css`, `hud.css` and
+  `citadel_hud_and_db_overlay.xml` in line with upstream's files at the new commit. Since `5ac7816`
+  a schema change upstream needs no layout merge: the settings section is built from the schema at
+  runtime. `popup_settings.xml` holds nothing of BetterMap's.
 - **Docs:** [`systems/minimap.md`](systems/minimap.md)
 
 **Transformation** (the bundler's `FILES` table is the rule): `bettermap_<x>.js` →
@@ -188,8 +214,9 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
 `qollite_map_urn_data.js`. Globals `Bettermap<X>` → `QolLiteMap<X>`, `BettermapUmm` →
 `QolLiteMapUmmAdapter`, `POI_DATA` / `URN_DATA` → `QolLiteMapPoiData` / `QolLiteMapUrnData`. Kept
 verbatim, because CSS, layouts and saved settings match them: the `[BetterMap]` log prefix, UMM id
-`bettermap` and name `BetterMap`, `bm_*` / `Bm*` classes and ids, the `bettermap_*` subsection ids in
-`popup_settings.xml`, the `"bm"` bus payloads. Not minified. The bundler fails if upstream has a
+`bettermap` and name `BetterMap`, `bm_*` / `Bm*` classes and ids, the `bettermap_*` ids of the
+section (`bettermap_section`) and subsections the mount creates, the `bm_mount` attribute it puts on
+each window. Not minified. The bundler fails if upstream has a
 script `FILES` does not list, or `FILES` lists one upstream no longer has.
 
 **QOL Lite local delta — the credit text (since 3.2).** `citadel_hud_and_db_overlay.xml` says

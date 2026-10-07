@@ -1,29 +1,35 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 3ad1ca1, mod/panorama/scripts/bettermap_settings_bus.js
+// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_settings_bus.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// The HUD end of BetterMap's subsection in Valve's settings window. The popup
-// (qollite_map_popup.js) runs in its own context and cannot see QolLiteMapState: it
-// asks for the live values (`get` -> `state`), sends each change (`set`/`reset`;
+// The HUD end of BetterMap's section in Valve's settings window. qollite_map_popup.js,
+// in the same (HUD) context since docs/specs/2026-10-07-runtime-settings-injection.md,
+// calls request(): it asks for the live values (`get` -> `state`), sends each change (`set`/`reset`;
 // `reset` may name one group), asks for the on-screen preview (`peek`) and the
 // lifted minimap while our subsection is on screen (`lift`), and says when to
 // write (`flush`, on close).
 // Here a change is sanitised, applied and handed to the store, which writes it
 // on a flush or after its idle delay (D17). Protocol: spec docs/specs/2026-10-01-native-settings.md §4.3.
 var QolLiteMapSettingsBus = (function () {
-    var CHANNEL = "ClientUI_FireOutput";
-    var PROTOCOL = 1;
+    var _listeners = [];
 
     function _log(m) { QolLiteMapLog.log("bus: " + m); }
 
+    // Answers go out on the next frame, as the event dispatch they replace did: the popup's
+    // echo guards were proven in-game with an answer that was not synchronous.
     function _send(msg) {
-        msg.bm = PROTOCOL;
-        try { $.DispatchEvent(CHANNEL, JSON.stringify(msg)); }
-        catch (e) { QolLiteMapLog.error("bus: dispatch threw: " + (e && e.message ? e.message : e)); }
+        for (var i = 0; i < _listeners.length; i++) {
+            (function (fn) {
+                $.Schedule(0, function () {
+                    try { fn(msg); }
+                    catch (e) { QolLiteMapLog.error("bus: listener threw: " + (e && e.message ? e.message : e)); }
+                });
+            })(_listeners[i]);
+        }
     }
 
     function _sendState() {
@@ -68,11 +74,9 @@ var QolLiteMapSettingsBus = (function () {
         return true;
     }
 
-    function _onMessage(payload) {
-        if (typeof payload !== "string" || payload.indexOf("\"bm\"") === -1) { return; }
-        var msg;
-        try { msg = JSON.parse(payload); } catch (e) { return; }
-        if (!msg || msg.bm !== PROTOCOL) { return; }
+    // msg: { t: "get" | "set" | "reset" | "flush" | "peek" | "lift", ... } from qollite_map_popup.js.
+    function request(msg) {
+        if (!msg || typeof msg.t !== "string") { return; }
         if (msg.t === "get") {
             _sendState();
         } else if (msg.t === "set" || msg.t === "reset") {
@@ -97,8 +101,9 @@ var QolLiteMapSettingsBus = (function () {
         }
     }
 
-    function init() { $.RegisterForUnhandledEvent(CHANNEL, _onMessage); }
+    // fn(msg) receives every `state` answer (qollite_map_popup.js subscribes once).
+    function subscribe(fn) { _listeners.push(fn); }
 
     // broadcast: push the current state to the popup (the bootstrap calls it after a store load).
-    return { init: init, broadcast: _sendState };
+    return { request: request, subscribe: subscribe, broadcast: _sendState };
 })();

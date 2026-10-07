@@ -78,6 +78,7 @@ searches the whole tree; when its target does not exist it visits every panel be
 | `qollite_map_preview.js` → `_poll` | 0.25 s | 4 Hz | `JSON.stringify` of the state + 1 lookup + ancestor walk (new in BetterMap 2.1) | **No** |
 | `qollite_map_icons.js` → `_poll` | 0.5 s | 2 Hz | `#hud_minimap` lookup, two anchor searches (`useZoomedMinimap`, `dl_midtown`), 7 class checks; on `dl_midtown` also one `FindChildrenWithClassTraverse("tier1_shop")` under `#hud_minimap` for the stray-shop workaround. Replaced `qollite_map_player.js` → `_pollZoom` in BetterMap 3.0 | **No** |
 | `qollite_map_minimap.js` → `_probeClasses` | 0.5 s | — | DEBUG-only diagnostics | ✅ Never scheduled while `DEBUG = false` (as bundled) |
+| `qollite_map_settings_mount.js` → `_poll` | 0.25 s | 4 Hz | Looks for a `PopupSettings` child of `#PopupManager` (cached once found; one `IsValid` and a scan of its few children a tick); on a window it has not seen, one attribute read, then the mount. **If `#PopupManager` is not found, each tick searches the whole tree twice** (context, then top root) — it was found in upstream's runs; not measured in QOL Lite. New with the runtime settings mount (upstream `5ac7816`) | **No** — runs for the whole session, under UMM too, where it never mounts anything. See the note below |
 | `qollite_map_bootstrap.js` → `tryInit` | 0.05 s | — | `typeof` checks | ✅ Stops after init or 20 tries |
 | `qollite_map_store.js` | one-shot | — | Request timeouts (10 s), the 3 s idle save, page-load retries at 5 / 15 / 45 s, then every 45 s while the storage page is unreachable. New in BetterMap 3.0 | ✅ Without UMM only; under UMM it stops after the migration read (≤ 2 s) |
 | `qollite_passive.js` | — | — | no loop | ✅ |
@@ -98,15 +99,26 @@ BetterMap 3.2 (`a7b55cf`, 2026-10-04) cut the most expensive of them. The detail
 tree searches outside TAB, inferred from the intervals (not measured). It also added the credit
 line's 1 Hz loop in the overlay, below.
 
-### `popups/popup_settings.xml` — while the settings window is open
+**The settings mount's always-on poll, measured against the pillars.** Its work per tick is small
+when `#PopupManager` is found (a cached panel and a handful of children), so the cost while playing
+is low (inferred from the code, not measured). It still breaks "off means not running" in one case:
+**under UMM the mount never builds anything, yet the loop ticks for the whole session.** Proposal,
+upstream: decide UMM once at boot (after the adapter's handshake) and do not start the poll under
+UMM; separately, find whether the window's opening announces itself (an event would replace the
+poll, as `CitadelScoreboardToggle` replaced the TAB poll — no such event is known, it needs a probe).
+Recorded 2026-10-07 at the re-bundle; not fixed upstream at `5ac7816`.
+
+### Settings window — HUD context, while the window is open (since `5ac7816`)
+
+The settings scripts run in the HUD since the runtime settings mount; the window no longer loads
+scripts of BetterMap's. These loops start with each window instance and end with it.
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_map_popup.js` → `_liftTick` | 0.25 s | 4 Hz | Class checks on the window root; while BetterMap's rows are on screen, one `lift` message on `ClientUI_FireOutput` | ✅ Stops when the window closes. Under UMM it keeps ticking while the window is open but sends nothing |
-| `qollite_map_popup.js` → `_decorate` / `init` retries | 0.25 s | — | Waits for Valve's nav and rows to exist | ✅ Bounded (`RETRY_MAX`, 40) |
+| `qollite_map_settings_nav.js` → `_tick` | 0.03 s | ~33 Hz | `_sync`: which of our parts crosses a third of the viewport (`GetPositionWithinWindow` on our section and subsection titles), re-selects our sidebar entry when C++ takes the selection back (upstream run 3: 12 of 19 take-overs lost between 0.1 s ticks) | ✅ Only while our section exists in an open window; ends when the window or section is gone, or on a throw. Never runs under UMM (nothing mounted) |
+| `qollite_map_popup.js` → `_liftTick` | 0.25 s | 4 Hz | Class checks on the window root; while BetterMap's rows are on screen, one `lift` call on `QolLiteMapSettingsBus` | ✅ Stops when the window closes (one `flush` on the way out) |
 | `qollite_map_popup.js` → `_unpeekLater` | 0.25 s (a literal) | — | After Show on Screen: checks whether the 3 s peek is over, then restores the window | ✅ Ends with the peek |
-| `qollite_map_popup.js` → `_requestState` | 0.5 s | — | Re-asks the HUD for the values if it has not answered | ✅ Bounded (`GET_RETRIES`) |
-| `qollite_map_popup.js` → `_layoutReadBackLater` | one-shot, 1 s | — | Per colour row (4), once per window open: 3 `FindChildTraverse` and a log string. Commented "DEBUG" but scheduled with DEBUG off too; only the `_log` is gated. New in BetterMap 3.1 | ✅ One-shot. Upstream nit: gate the scheduling on `QolLiteMapLog.isDebug()` |
+| `qollite_map_popup.js` → read-backs (`_startReadBack`, `_rowResetReadBackLater`, `_layoutReadBackLater`) | one-shot, 1 s / 3 s | — | Per window open or per change: lookups and a log string. The logging is DEBUG-gated, the scheduling is not | ✅ One-shot. Upstream nit: gate the scheduling on `QolLiteMapLog.isDebug()` |
 
 ### `hud_quickbuy.xml` / `citadel_hud_hero_shop.xml` — every match
 
@@ -169,10 +181,11 @@ Loops in scripts no layout includes, so they never start (§4):
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Status: open — upstream BetterMap, still so at 3.2.2 (`3ad1ca1`); 3.2 fixed the
+**Severity: High. Status: open — upstream BetterMap, still so at `5ac7816`; 3.2 fixed the
 costliest one (proposal 1 below). Files:**
 `qollite_map_size.js` (two loops), `qollite_map_urn.js`, `qollite_map_poi.js`,
-`qollite_map_preview.js`, `qollite_map_icons.js`.
+`qollite_map_preview.js`, `qollite_map_icons.js`, and since `5ac7816` `qollite_map_settings_mount.js`
+(under UMM; [§2](#2-polling-budget)).
 
 The POI overlay and urn tracker default to **off** (`qollite_map_state.js`: `poiCratesEnabled`,
 `poiStatuesEnabled`, `poiToughEnabled`, `urnTrackerEnabled` all `false`). Their loops run anyway — the

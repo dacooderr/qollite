@@ -105,6 +105,22 @@ class BetterMapFiles(unittest.TestCase):
         self.assertNotIn("bettermap_settings.js", bb.FILES)
         self.assertNotIn("bettermap_player.js", bb.FILES)
 
+    def test_runtime_settings_modules(self):
+        # The settings section is mounted into Valve's window from the HUD (upstream 5ac7816).
+        self.assertEqual(bb.FILES["bettermap_settings_mount.js"], "qollite_map_settings_mount.js")
+        self.assertEqual(bb.FILES["bettermap_settings_nav.js"], "qollite_map_settings_nav.js")
+
+    def test_runtime_settings_globals_renamed(self):
+        src = ("if (BettermapUmm.isPresent()) { return; }\n"
+               "BettermapSettingsNav.mount(win, section, subs); BettermapPopup.start(win);\n"
+               "var BettermapSettingsMount = 1; BettermapSlider.bind(); BettermapSettingsBus.request(m);\n"
+               "// started by bettermap_settings_mount.js, sidebar in bettermap_settings_nav.js\n")
+        out = bb.transform("bettermap_settings_mount.js", src, "abc1234")
+        for name in ("QolLiteMapUmmAdapter.isPresent", "QolLiteMapSettingsNav.mount", "QolLiteMapPopup.start",
+                     "var QolLiteMapSettingsMount", "QolLiteMapSlider.bind", "QolLiteMapSettingsBus.request",
+                     "qollite_map_settings_mount.js", "qollite_map_settings_nav.js"):
+            self.assertIn(name, out)
+
     def test_unlisted_upstream_module_fails(self):
         listed = [f"{bb.UPSTREAM_DIR}/{up}" for up in bb.FILES]
         bb.check_listing(listed)
