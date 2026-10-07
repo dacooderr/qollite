@@ -384,6 +384,15 @@ exactly that file, with `ReticleCollapseGroup`, `SettingsDefaultViewRow` and `Su
 `hud_quickbuy_entry.css`, the mod's `.QuickbuyPreviewEntry .QuickbuyItem` rule right before the rule
 Valve rewrote for quickbuy's sell mode, resolved by keeping the mod's rule, then Valve's block.
 
+At 6759 (2026-10-07; `8c7cf4e` (6753) → `bde8015` (6759)): the settings window aborted again, now on
+`HeroSelectorSwitchButton`, added in 6757 together with `HeroSelectorSwitchIcon`. 84 files checked,
+11 changed: the settings window, the top-bar row and its four sheets, `hud.xml`, three post-game
+layouts, `citadel_base_styles.css`. One conflict, `post_game/citadel_db_post_game_team.xml`: the
+mod's `FriendsRankPostGameTeam` class on the root next to Valve dropping `particleonly="false"`;
+both kept. Check used: for every changed file, the Valve lines the mod leaves out are the same set
+against 6753 before the rebase and against 6759 after it — so the rebase kept exactly the mod's own
+edits and took every new Valve line.
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the

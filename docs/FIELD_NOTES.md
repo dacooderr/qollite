@@ -337,6 +337,7 @@ engine aborts on those was not tested.
 - Run the same-build check on every game build the tracker records, not only on large patches. It
   happened again on 2026-10-06: 6753 added `ReticleCollapseGroup` (and two more ids) to
   `popup_settings.xml`, and the settings window aborted the game while the pack was still on 6730.
+  And again a day later: 6757 added `HeroSelectorSwitchButton` and `HeroSelectorSwitchIcon`.
 - Prefer no override. With no file at the path the game loads Valve's own, current layout, and the
   question never arises.
 - An override of a Valve layout keeps **every** Valve id that `client_strings.txt` names, even where
