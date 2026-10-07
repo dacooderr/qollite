@@ -169,7 +169,7 @@ Loops in scripts no layout includes, so they never start (§4):
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Status: open — upstream BetterMap, still so at 3.2 (`a7b55cf`), which fixed the
+**Severity: High. Status: open — upstream BetterMap, still so at 3.2.2 (`3ad1ca1`); 3.2 fixed the
 costliest one (proposal 1 below). Files:**
 `qollite_map_size.js` (two loops), `qollite_map_urn.js`, `qollite_map_poi.js`,
 `qollite_map_preview.js`, `qollite_map_icons.js`.

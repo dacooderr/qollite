@@ -100,9 +100,15 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.2** (upstream CHANGELOG, 2026-10-04) at commit **`a7b55cf`**
-  (`a7b55cf95684ee90304181092fa5ece008331dd3`, "docs(release): 3.2 update text in the page's own
-  format"). Bundled 2026-10-04.
+- **Bundled version:** BetterMap **3.2.2** (upstream CHANGELOG, 2026-10-07) at commit **`3ad1ca1`**
+  (`3ad1ca125f844c18cccd3aab716bad3628b9f240`, "Merge chore/rebase-6759: BetterMap 3.2.2 - game
+  build 6759, settings window crash"), upstream `main`. Bundled 2026-10-07.
+  - What 3.2.1 and 3.2.2 change for QOL Lite: only `qollite_map_poi_data.js` — crates, statues and
+    tough crates follow game builds 6753 and 6759. Upstream's other 3.2.1 / 3.2.2 changes are its own
+    rebases of `hud.vxml`, `hud_minimap.vcss` and `popup_settings.vxml` onto 6753 / 6759; QOL Lite's
+    6753 / 6759 rebases already carry the same Valve lines.
+  - Previously bundled: **`a7b55cf`** (BetterMap 3.2, 2026-10-04, branch `feat/bettermap-3.2`, never
+    merged on its own: it sat on the 6746 rebase and was merged onto the 6759 rebase with 3.2.2).
   - What 3.2 changes for QOL Lite:
     - **A credit line** in a match, bottom right under Valve's match / build line. This means a new
       override, `panorama/layout/citadel_hud_and_db_overlay.xml`, a stylesheet and a script. The
@@ -145,6 +151,11 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
 - **Merge-layer files, compared by hand at `0237ebe`.** At 3.1 and 3.2 `popup_settings.xml` was
   merged again the same way, with base upstream's previous file; zero conflicts both times. At 3.2
   `hud_minimap.css` was taken verbatim again; `hud.vxml` and `hud.vcss` did not change upstream.
+  At 3.2.2 (2026-10-07), compared with upstream's files at `3ad1ca1`: `hud_minimap.css` equals
+  upstream's (line endings aside); `hud.xml` differs from `hud.vxml` only by the script names and the
+  `qollite_passive` include; `popup_settings.xml` is the 6759 rebase's file, unchanged, because
+  upstream's 3.2.1 / 3.2.2 changes there are Valve's rows only; the overlay layout is unchanged, and
+  Valve's `citadel_hud_and_db_overlay.xml` has not changed since 6711 (GameTracking-Deadlock).
   - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
     stylesheet and script names are QOL Lite's (`qollite_map_overlay.*`). The first line is the
     decompiler header every layout here starts with, which `scripts/rebase_overrides.py` expects,

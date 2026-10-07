@@ -3,9 +3,9 @@
 > Resizable, movable minimap with per-type icon sizes, an objective overlay, and settings inside the
 > game's own settings window.
 >
-> **Origin:** BetterMap 3.2 (`a7b55cf`) · **Runs in:** every match · **Off switch:** settings window or
+> **Origin:** BetterMap 3.2.2 (`3ad1ca1`) · **Runs in:** every match · **Off switch:** settings window or
 > UMM `bettermap` (partial — see [Known issues](#known-issues))
-> **Last verified:** 2026-10-04 against the BetterMap 3.2 re-bundle (branch `feat/bettermap-3.2`).
+> **Last verified:** 2026-10-07 against the BetterMap 3.2.2 re-bundle (branch `feat/bettermap-3.2.2`).
 
 The largest feature in the mod: 23 scripts, a full `hud.xml` override, three subsections spliced into
 Valve's `popup_settings.xml`, an override of the always-on overlay for the credit line, and
@@ -64,7 +64,7 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Layouts**
 
-- `panorama/layout/hud.xml` (406 lines). A **full override of Valve's HUD**, on build 6746, equal to
+- `panorama/layout/hud.xml` (405 lines). A **full override of Valve's HUD**, on build 6759, equal to
   BetterMap's `hud.vxml` apart from the bundled script names and the `qollite_passive` include. On top
   of the vanilla tree:
   - the 20 HUD script includes
@@ -89,8 +89,8 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Styles**
 
-- `panorama/styles/hud_minimap.css` (2,839 lines at 3.2): Valve's sheet, then BetterMap's appendix
-  from line 1890. Upstream's file verbatim. Lines 1988–2839 are generated upstream from the schema
+- `panorama/styles/hud_minimap.css` (2,827 lines at 3.2.2): Valve's sheet, then BetterMap's appendix
+  from line 1878. Upstream's file verbatim. Lines 1976–2827 are generated upstream from the schema
   (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class and, since 3.2, per
   `bm_mapsize_<px>` class.
 - `panorama/styles/qollite_map_overlay.css` (3.2): upstream's `bettermap_overlay.vcss`. Shows
