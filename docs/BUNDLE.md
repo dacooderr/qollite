@@ -100,11 +100,22 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.1** (upstream CHANGELOG, 2026-10-02) at commit **`8d87d86`**
-  (`8d87d86647134886ba660f431008397c9e67c082`, "docs(release): 3.1 GameBanana update text and
-  changelog"). The mod files are those of `4dca39d` ("Merge feat/healing-apples"); `8d87d86` changes
-  only upstream docs. Bundled 2026-10-02.
-  - What 3.1 adds over 3.0:
+- **Bundled version:** BetterMap **3.2** (upstream CHANGELOG, 2026-10-04) at commit **`a7b55cf`**
+  (`a7b55cf95684ee90304181092fa5ece008331dd3`, "docs(release): 3.2 update text in the page's own
+  format"). Bundled 2026-10-04.
+  - What 3.2 changes for QOL Lite:
+    - **A credit line** in a match, bottom right under Valve's match / build line. This means a new
+      override, `panorama/layout/citadel_hud_and_db_overlay.xml`, a stylesheet and a script. The
+      script polls at 1 Hz in the always-on overlay ([`TECH_DEBT.md`](TECH_DEBT.md) §2). Its text is
+      a QOL Lite delta (below).
+    - The 33 Hz detail-view poll is replaced by TAB / ability-menu events, a 2 Hz safety poll and a
+      33 Hz re-apply only while a view is open.
+    - Doorman's range circle keeps its true size at any Minimap Size: generated `bm_mapsize_*` rules
+      in `hud_minimap.css`.
+    - 3.0's stray-shop hide is reverted; the marker is a real shop.
+    - Rebased by upstream onto game build 6745: one crate moved, Valve's two new settings rows.
+  - Previously bundled: **`8d87d86`** (BetterMap 3.1, 2026-10-02).
+  - What 3.1 added over 3.0:
     - **Show Healing Apples** (36 markers, from 3:00, off by default).
     - A colour slider for crates, statues, tough crates and apples, in each toggle's row. The colours
       are not in UMM.
@@ -112,7 +123,7 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     - "Crates & Statues" renamed "Map Objects". Subsection ids and stored keys are unchanged.
     - Only the scripts and the generated `popup_settings.vxml` changed upstream; `hud.vxml` and both
       stylesheets are byte-equal to 3.0's.
-  - Previously bundled: **`0237ebe`** (BetterMap 3.0, 2026-10-01), **`ca29290`** (BetterMap 2.1,
+  - Earlier: **`0237ebe`** (BetterMap 3.0, 2026-10-01), **`ca29290`** (BetterMap 2.1,
     2026-09-30), and before that the closest
     upstream commit **`60fa437`** (2026-07-26) — **inferred** by comparing the old minified bundle's
     string literals against every upstream commit. That build had DEBUG on
@@ -125,13 +136,23 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `docs/specs`, "in-game run 3"). This bundle of it was not checked in game.
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_bettermap.py`
-- **Files:** `panorama/scripts/qollite_map_*.js` (22, readable source: 20 loaded by the HUD, 4 by
-  the settings window, `log` and `schema` by both), `panorama/layout/hud.xml` (shared),
-  `panorama/layout/popups/popup_settings.xml` (shared with [4×3](systems/aspect-ratio-4x3.md) and the
-  FOV slider), `panorama/styles/hud_minimap.css`, BetterMap's rules in `panorama/styles/hud.css`,
-  `panorama/images/minimap/base/bm_vignette_png.*`
-- **Merge-layer files, compared by hand at `0237ebe`** (at 3.1 only `popup_settings.xml`
-  changed upstream; it was merged again the same way, base upstream's `0237ebe` file, zero conflicts):
+- **Files:** `panorama/scripts/qollite_map_*.js` (23, readable source: 20 loaded by the HUD, 4 by
+  the settings window, `log` and `schema` by both, `overlay` by the overlay), `panorama/layout/hud.xml`
+  (shared), `panorama/layout/popups/popup_settings.xml` (shared with
+  [4×3](systems/aspect-ratio-4x3.md) and the FOV slider), `panorama/layout/citadel_hud_and_db_overlay.xml`
+  (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2), BetterMap's
+  rules in `panorama/styles/hud.css`, `panorama/images/minimap/base/bm_vignette_png.*`
+- **Merge-layer files, compared by hand at `0237ebe`.** At 3.1 and 3.2 `popup_settings.xml` was
+  merged again the same way, with base upstream's previous file; zero conflicts both times. At 3.2
+  `hud_minimap.css` was taken verbatim again; `hud.vxml` and `hud.vcss` did not change upstream.
+  - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
+    stylesheet and script names are QOL Lite's (`qollite_map_overlay.*`). The first line is the
+    decompiler header every layout here starts with, which `scripts/rebase_overrides.py` expects,
+    followed by a comment saying the file is not decompiled. Upstream's input is Valve's 6745 file,
+    byte-equal to 6746's apart from the header. `qollite_map_overlay.css` is upstream's
+    `bettermap_overlay.vcss`, with the script name in its comments renamed.
+  - Upstream's `tests/overlay_layout.test.js` "the committed override is the generator's output"
+    fails on this file by design; the structural tests of the same file pass.
   - `hud.xml` is upstream's `hud.vxml` with the bundled script names and the `qollite_passive`
     include, nothing else.
   - `popup_settings.xml` is a 3-way merge: base Valve 6730, ours (4×3 button, FOV row), theirs
@@ -160,7 +181,14 @@ verbatim, because CSS, layouts and saved settings match them: the `[BetterMap]` 
 `popup_settings.xml`, the `"bm"` bus payloads. Not minified. The bundler fails if upstream has a
 script `FILES` does not list, or `FILES` lists one upstream no longer has.
 
-**QOL Lite local deltas: none since 3.0.** The one delta, "Minimalist Map Opacity" (state key
+**QOL Lite local delta — the credit text (since 3.2).** `citadel_hud_and_db_overlay.xml` says
+**"QOL Lite Mod"** where upstream says "BetterMap by gfkm". It is labelled
+"QOL Lite local delta (not in upstream BetterMap)" in the layout. The bundled scripts carry no delta.
+Requested by BetterMap's author: first as "BetterMap for QOL Lite by gfkm" (2026-10-04), then
+replaced by "QOL Lite Mod", without an author (2026-10-07). The label keeps upstream's id,
+`#BetterMapCredit`, which `qollite_map_overlay.css` matches.
+
+**Dropped delta — "Minimalist Map Opacity" (3.0).** The delta, "Minimalist Map Opacity" (state key
 `minimalMapOpacity`, UMM slider `minimalMapOpacityPct`, in-HUD slider
 `#minimap_minimal_opacity_slider`), was dropped at the 3.0 re-bundle. Its only stated reason was to
 keep users' saved values applying, and 3.0 resets every UMM-saved BetterMap value anyway. The

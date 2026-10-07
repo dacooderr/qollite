@@ -70,7 +70,8 @@ searches the whole tree; when its target does not exist it visits every panel be
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_map_size.js` → `_pollDetailView` | 0.03 s | ~33 Hz | 8 `FindChildTraverse` (the `#minimap_persp` ancestor walk plus 7 ids) to decide whether the detail view is open; while TAB is held, also `applyCurrentSize` (6 lookups, 10 style writes). Moved here from the removed `qollite_map_settings.js` in BetterMap 3.0, unchanged | **No** |
+| `qollite_map_size.js` → `_pollDetailView` | 0.5 s | 2 Hz | Safety net since BetterMap 3.2: the same 8 `FindChildTraverse` (`#minimap_persp` ancestor walk plus 7 ids). TAB and the ability menu are caught by `CitadelScoreboardToggle` / `CitadelMinimapToggle` events. Was 33 Hz until 3.2 | **No** |
+| `qollite_map_size.js` → `_holdTick` | 0.03 s | ~33 Hz | `_keepNormalSize` (the size re-apply that keeps Valve's TAB rescale off the map). New in 3.2 | ✅ **Only while TAB or the ability menu is open** |
 | `qollite_map_size.js` → `_pollMapTargeting` | 0.06 s | ~17 Hz | One anchor lookup plus an ancestor walk for `.map_targeting`, only if `ultLargeMapEnabled` — which **defaults to on** | Loop always runs; lookup gated |
 | `qollite_map_urn.js` → `_poll` | 0.15 s | ~7 Hz | `#GameTime`, then up to 6 `FindChildrenWithClassTraverse` **from the root** (`idol_spawn` + 5 live classes) | **No** — runs with the tracker off (it keeps observing the urn side) |
 | `qollite_map_poi.js` → `_pollLevel` | 0.25 s | 4 Hz | 3 anchor lookups (underground, tunnels, inverted) + `#GameTime` | **No** — runs with every POI layer off |
@@ -92,6 +93,11 @@ BetterMap 3.0 (`0237ebe`, 2026-10-01) kept the same six. The 33 Hz poll moved fr
 `qollite_map_player.js` at the same 2 Hz with a little more work per tick. 3.0 removed no loop and
 added no recurring HUD loop apart from the storage retries above.
 
+BetterMap 3.2 (`a7b55cf`, 2026-10-04) cut the most expensive of them. The detail-view poll went from
+33 Hz to a 2 Hz safety net, and the 33 Hz work now runs only while a view is open — roughly 16× fewer
+tree searches outside TAB, inferred from the intervals (not measured). It also added the credit
+line's 1 Hz loop in the overlay, below.
+
 ### `popups/popup_settings.xml` — while the settings window is open
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
@@ -109,6 +115,12 @@ added no recurring HUD loop apart from the storage retries above.
 | `qollite_quickbuy.js` → `C()` | 0.1 s | 10 Hz | ~12–15 `FindChildTraverse`, a recursive walk of `#QuickbuyQueue` + `#QuickbuySellQueue`, and a `FindChildTraverse("CurrentGoldAmount")` **at every ancestor level** until one contains it | **No** — re-arms unconditionally; UMM `enabled` only affects display |
 | `qollite_recent_purchases.js` → `ja()` | 0.1 s | 10 Hz | Class searches over the recent-purchases container; in one of its internal states (minified, not decoded further) also `FindChildrenWithClassTraverse("HeroNameHidden")` over the **whole UI** | ✅ Stops when UMM `enabled` is false (default **true**) |
 | `qollite_recent_purchases.js` → `na()` | 1 s | 1 Hz | `FindChildTraverse("Hud")` from the root | ✅ Same gate |
+
+### `citadel_hud_and_db_overlay.xml` — always (every screen)
+
+| Loop | Interval | Rate | Work per tick | Stops when off? |
+|---|---:|---:|---|---|
+| `qollite_map_overlay.js` → `_tick` | 1 s | 1 Hz | `FindChildTraverse("ClientServerDebugStats")` in the overlay (a small tree; size at runtime not measured), its ancestor walk, one `SetHasClass` on the root. BetterMap 3.2's credit line | **No** — a credit has no setting. Upstream: "no event for the label's text is known" |
 
 ### `base_hud_and_db_overlay.xml` — match and dashboard
 
@@ -157,7 +169,8 @@ Loops in scripts no layout includes, so they never start (§4):
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Status: open — upstream BetterMap, still so at 3.0 (`0237ebe`). Files:**
+**Severity: High. Status: open — upstream BetterMap, still so at 3.2 (`a7b55cf`), which fixed the
+costliest one (proposal 1 below). Files:**
 `qollite_map_size.js` (two loops), `qollite_map_urn.js`, `qollite_map_poi.js`,
 `qollite_map_preview.js`, `qollite_map_icons.js`.
 
@@ -184,8 +197,8 @@ function setEnabled(on) {
 
 Proposals recorded at the re-bundle, in order of expected win:
 
-1. `size._pollDetailView` (33 Hz, 8 searches a tick, forever) — cache the panels once
-   (`IsValid()`-checked) and/or react to the existing `GlobalClassListener` classes.
+1. ~~`size._pollDetailView` (33 Hz, 8 searches a tick, forever)~~ — **done upstream in 3.2**: events,
+   a 2 Hz safety poll, 33 Hz only while a view is open.
 2. `urn._poll` — do not schedule while `urnTrackerEnabled` is false (re-seed on enable), or search from
    `#hud_minimap` instead of the context root.
 3. `poi._pollLevel` — stop with all POI layers off; `QolLiteMapMinimap.anchor()` re-searches the tree

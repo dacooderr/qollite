@@ -2669,4 +2669,159 @@
 	pre-transform-scale2d: 2;
 }
 
+#hud_minimap.bm_mapsize_200 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_mapsize_220 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.81818;
+}
+
+#hud_minimap.bm_mapsize_240 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.66667;
+}
+
+#hud_minimap.bm_mapsize_260 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.53846;
+}
+
+#hud_minimap.bm_mapsize_280 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.42857;
+}
+
+#hud_minimap.bm_mapsize_300 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.33333;
+}
+
+#hud_minimap.bm_mapsize_320 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.25;
+}
+
+#hud_minimap.bm_mapsize_340 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.17647;
+}
+
+#hud_minimap.bm_mapsize_360 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.11111;
+}
+
+#hud_minimap.bm_mapsize_380 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 1.05263;
+}
+
+#hud_minimap.bm_mapsize_420 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.952381;
+}
+
+#hud_minimap.bm_mapsize_440 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.909091;
+}
+
+#hud_minimap.bm_mapsize_460 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.869565;
+}
+
+#hud_minimap.bm_mapsize_480 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.833333;
+}
+
+#hud_minimap.bm_mapsize_500 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_mapsize_520 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.769231;
+}
+
+#hud_minimap.bm_mapsize_540 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.740741;
+}
+
+#hud_minimap.bm_mapsize_560 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.714286;
+}
+
+#hud_minimap.bm_mapsize_580 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.689655;
+}
+
+#hud_minimap.bm_mapsize_600 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.666667;
+}
+
+#hud_minimap.bm_mapsize_620 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.645161;
+}
+
+#hud_minimap.bm_mapsize_640 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.625;
+}
+
+#hud_minimap.bm_mapsize_660 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.606061;
+}
+
+#hud_minimap.bm_mapsize_680 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.588235;
+}
+
+#hud_minimap.bm_mapsize_700 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.571429;
+}
+
+#hud_minimap.bm_mapsize_720 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.555556;
+}
+
+#hud_minimap.bm_mapsize_740 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.540541;
+}
+
+#hud_minimap.bm_mapsize_750 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.533333;
+}
+
+#hud_minimap.bm_mapsize_760 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.526316;
+}
+
+#hud_minimap.bm_mapsize_780 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.512821;
+}
+
+#hud_minimap.bm_mapsize_800 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.5;
+}
+
 /* END GENERATED: bettermap icon sizes */
