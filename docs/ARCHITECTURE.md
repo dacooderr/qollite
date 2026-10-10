@@ -408,6 +408,21 @@ both kept. Check used: for every changed file, the Valve lines the mod leaves ou
 against 6753 before the rebase and against 6759 after it — so the rebase kept exactly the mod's own
 edits and took every new Valve line.
 
+At 6774 (2026-10-10; `bde8015` (6759) → `2d87734` (6774), new hero ChessMaster in 6769): no crash —
+the same-build check against 6774 found no `engine-ids` on `fc68184` or on `main` — but the shipped
+copies hid Valve's new rules. 85 files checked, 7 changed, no conflicts. `hud_ability_icon.css` and its
+`base/` copy: 139 lines of Valve's, mostly the new hero's ability-icon rules (`subcast_chessmaster_*`)
+and `.is_trigger` split out of the active-button rule; without them the new hero's ability icons in
+the HUD have no styles of their own (inferred from the rules; the owner reported the new heroes'
+ability display broken on 2026-10-10, not yet re-checked with this rebase). The raw `#…` texts in the
+ability tooltip of that report are not ours: the pack overrides no tooltip layout and ships no
+localization file, and the keys are in Valve's 6769 English file. The settings window: Valve's new
+`#InstantPingBinder` row (not looked up by the engine, so its absence hid the row rather than
+crashing). `hud.css` and `base/hud.css`: the build-editing rules gained `.spec_mode.player_selected`.
+`base/citadel_hud_top_bar_chat.css`: the repeated-ping margins. `citadel_base_styles.css`:
+`SyncedFontSizeLabel` next to `Label`. Same check as at 6759: per file, the Valve lines the mod leaves
+out and the lines only the mod has are the same sets before (against 6759) and after (against 6774).
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the
