@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_minimap.js
+// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_minimap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -57,7 +57,7 @@ var QolLiteMapMinimap = (function () {
 
     // Which engine .map_button markers exist, grouped by panel type + id, and
     // whether Panorama exposes any entity API - the two ways crates could be
-    // tracked natively (see docs/knowledge/build_6722_changes.md).
+    // tracked natively (see docs/knowledge/panorama_notes.md "No live world-entity state").
     function _probeCensus() {
         var hud = _panel("hud_minimap");
         if (!hud) { QolLiteMapLog.log("probe: no #hud_minimap"); return; }

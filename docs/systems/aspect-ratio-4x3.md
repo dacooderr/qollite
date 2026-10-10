@@ -21,8 +21,8 @@ halves of one feature:
 
 ## Files
 
-**The option** — `panorama/layout/popups/popup_settings.xml` (`#AspectRatioPanel`, line 758 after the
-6730 rebase and the BetterMap 3.0 merge, which shares the file; the same file also carries the Experimental Extended FOV slider, `#BetterFOVAspectRatio`,
+**The option** — `panorama/layout/popups/popup_settings.xml` (`#AspectRatioPanel`, line 745 on the 6759 rebase,
+after BetterMap left the file at the runtime settings mount; the same file also carries the Experimental Extended FOV slider, `#BetterFOVAspectRatio`,
 which 6711's new `citadel_settings_camera` subsection forced to be re-placed after `#CameraFOV`):
 
 ```xml

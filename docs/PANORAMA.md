@@ -446,9 +446,16 @@ function safeInit(name, fn) {
 - **Composite settings controls normally bind to a convar**, which is how the game's own settings
   persist. A mod **can** add rows and whole subsections to the game's settings window by overriding
   `popups/popup_settings.xml`. The C++ builds its registry from that layout when the window loads, so
-  added `PopupSettingsSettingsSubsection`s get native navigation, search and hover. BetterMap 3.0
-  does this. That is upstream's in-game finding (BetterMap `docs/knowledge/native_settings_injection.md`,
-  four probe runs on 6722–6728), not re-measured here. Controls without a convar persist nothing on
+  added `PopupSettingsSettingsSubsection`s get native navigation, search and hover. BetterMap 3.0–3.2
+  did this. That is upstream's in-game finding (BetterMap `docs/knowledge/native_settings_injection.md`,
+  four probe runs on 6722–6728), not re-measured here. **The override's cost:** every build that adds
+  an id the C++ looks up in that window crashes it until the override is rebased (6728, 6753, 6757).
+  Since upstream `5ac7816` BetterMap does not override the window: a HUD module creates its section
+  in each live window instance with `$.CreatePanel`, after checking `BHasLayoutSnippet` for every
+  snippet the created types need. Such a section gets no search and no C++ navigation (the module
+  builds its own sidebar entries). A C++ settings type inside a layout file of the mod's own is fatal
+  ("Unable to load snippet SettingsSubsection") — upstream spec
+  `docs/specs/2026-10-07-runtime-settings-injection.md` §6, probe runs on 6759, not re-measured here. Controls without a convar persist nothing on
   their own: BetterMap binds them in JS and saves through UMM or its own store
   ([minimap](systems/minimap.md)). The cost is that the override is a full copy of Valve's layout,
   shared by every feature that adds to it, and it goes stale on every patch that touches it.

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap.js
+// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -42,7 +42,9 @@
                 QolLiteMapLog.log("settings applied from " + source);
             }, function (values) { QolLiteMapUmmAdapter.seed(values); });
         });
-        _run("settings-bus", function () { QolLiteMapSettingsBus.init(); });
+        _run("popup", function () { QolLiteMapPopup.init(); });
+        // Last: it builds our section into the settings window, which the modules above serve.
+        _run("settings-mount", function () { QolLiteMapSettingsMount.init(); });
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("boot: init() complete"); }
     }
 
@@ -57,7 +59,8 @@
             Poi: typeof QolLiteMapPoi, Minimal: typeof QolLiteMapMinimal, Icons: typeof QolLiteMapIcons,
             Preview: typeof QolLiteMapPreview, Urn: typeof QolLiteMapUrn, Umm: typeof QolLiteMapUmmAdapter,
             Apply: typeof QolLiteMapApply, StoreCodec: typeof QolLiteMapStoreCodec, Store: typeof QolLiteMapStore,
-            SettingsBus: typeof QolLiteMapSettingsBus
+            SettingsBus: typeof QolLiteMapSettingsBus, Slider: typeof QolLiteMapSlider, Popup: typeof QolLiteMapPopup,
+            SettingsNav: typeof QolLiteMapSettingsNav, SettingsMount: typeof QolLiteMapSettingsMount
         };
         for (var k in need) { if (need[k] === "undefined") { m.push(k); } }
         return m;

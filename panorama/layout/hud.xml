@@ -30,6 +30,10 @@
 		<include src="s2r://panorama/scripts/qollite_map_store_codec.js" />
 		<include src="s2r://panorama/scripts/qollite_map_store.js" />
 		<include src="s2r://panorama/scripts/qollite_map_settings_bus.js" />
+		<include src="s2r://panorama/scripts/qollite_map_slider.js" />
+		<include src="s2r://panorama/scripts/qollite_map_popup.js" />
+		<include src="s2r://panorama/scripts/qollite_map_settings_nav.js" />
+		<include src="s2r://panorama/scripts/qollite_map_settings_mount.js" />
 		<include src="s2r://panorama/scripts/qollite_map_bootstrap.js" />
 		<include src="s2r://panorama/scripts/qollite_passive.vjs_c" />
 	</scripts>
@@ -296,7 +300,6 @@
 			</Panel>
 			<CitadelHudSandboxTutorial id="hud_sandbox_tutorial" hittest="false" />
 			<CitadelPaused id="PausedInfo" />
-			<CitadelChatWheel id="ChatWheel" />
 			<CitadelHudSubtitles id="HudSubtitles" />
 			<Panel id="CheaterVoteBox">
 				<GlobalClassListener classes="gScoreboardOpen" />

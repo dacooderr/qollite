@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 8d87d86, mod/panorama/scripts/bettermap_schema.js
+// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_schema.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -11,7 +11,7 @@
 // docs/specs/2026-10-01-minimap-icon-sizes.md §3). The order here is the row order
 // in Valve's settings window. Everything else derives from this list:
 // QolLiteMapState defaults, the UMM manifest, the settings-window subsections and rows
-// (pipeline/build_popup_settings.py renders them through pipeline/schema_dump.js),
+// (qollite_map_settings_mount.js builds them at runtime),
 // the icon-size rules in hud_minimap.vcss (pipeline/build_minimap_styles.py), the
 // popup bindings, and validation of stored and received values. A setting is
 // added or changed here and nowhere else.
@@ -21,8 +21,11 @@
 // shown = stored * scale.
 var QolLiteMapSchema = (function () {
     // Not player settings: limits that other modules read through QolLiteMapState.DEFAULTS.
+    // minimapSizeNativePx: Valve's own minimap size (hud.css #minimap_container 400px).
+    // minimapUltLargePx: the minimap size while a map ability is aimed (Mirage Traveler).
     var LIMITS = {
         minimapSizeMinPx: 200, minimapSizeMaxPx: 800, minimapSizeStepPx: 20,
+        minimapSizeNativePx: 400, minimapUltLargePx: 750,
         iconScaleMinPct: 50, iconScaleMaxPct: 200, iconScaleStepPct: 10
     };
     var MAP = "Minimap";
@@ -31,13 +34,18 @@ var QolLiteMapSchema = (function () {
     var OBJECTS = "Map Objects";
 
     // One subsection of Valve's settings window per group, in this order (spec I5).
-    // C++ titles a subsection "#<id>" (no token exists, D7), so the popup sets `title`;
-    // `sfx` names the subsection's show / reset rows (build_popup_settings.py).
+    // C++ titles a subsection "#<id>" (no token exists, D7), so the mount sets `title`;
+    // `sfx` names the subsection's show / reset rows (qollite_map_settings_mount.js).
     var GROUPS = [
         { name: MAP, id: "bettermap_minimap", sfx: "minimap", title: "Minimap (BetterMap by gfkm)" },
         { name: ICONS, id: "bettermap_icons", sfx: "icons", title: "Minimap Icons (BetterMap)" },
         { name: OBJECTS, id: "bettermap_objects", sfx: "objects", title: "Map Objects (BetterMap)" }
     ];
+
+    // Our own section in Valve's settings window, after Game (spec
+    // docs/specs/2026-10-07-runtime-settings-injection.md R2, R3). C++ does not know it, so the
+    // title is set from JS, as the subsections' are.
+    var SECTION = { id: "bettermap_section", title: "Minimap" };
 
     // A per-type icon size (spec §4). `icon` drives qollite_map_icons.js and the generated
     // rules: `cls` + pct is the class on #hud_minimap, `engine` the Valve marker
@@ -72,7 +80,16 @@ var QolLiteMapSchema = (function () {
         { key: "minimapSizePx", group: MAP, type: "slider", label: "Minimap Size", def: 400,
           min: LIMITS.minimapSizeMinPx, max: LIMITS.minimapSizeMaxPx, step: LIMITS.minimapSizeStepPx,
           unit: "px", scale: 1, umm: "ms",
-          tooltip: "Width and height of the minimap on screen." },
+          tooltip: "Width and height of the minimap on screen.",
+          // C++ sizes an ability's range circle (#CastRange, inline width in % of its
+          // marker) from the drawn map's size as if the marker kept Valve's size, so the
+          // circle grows with the map twice over (probe run 2, 2026-10-04, build 6745:
+          // 21.42 / 42.84 / 59.96 / 85.68 % at 200 / 400 / 560 / 800 px). qollite_map_size.js
+          // puts `cls` + the applied size on #hud_minimap; the generated rule scales
+          // `engine` back by native / size. `extra` sizes are applied off the slider grid.
+          mapScale: { cls: "bm_mapsize_", native: LIMITS.minimapSizeNativePx,
+                      extra: [LIMITS.minimapUltLargePx],
+                      engine: [".map_button.ability_castrange #CastRange"] } },
         { key: "minimapOffsetX", group: MAP, type: "slider", label: "Horizontal Offset", def: 0,
           min: -100, max: 100, step: 5, unit: "%", scale: 100, umm: "ox",
           tooltip: "Moves the minimap left from the bottom-right corner. 100% reaches the left edge; negative values push it past the right edge, at most halfway." },
@@ -169,6 +186,7 @@ var QolLiteMapSchema = (function () {
 
     function list() { return SETTINGS; }
     function groups() { return GROUPS; }
+    function section() { return SECTION; }
     function iconEntries() { _index(); return _icons; }
     function byKey(key) { _index(); return _own(_byKey, key) ? _byKey[key] : null; }
     function byUmmId(id) { _index(); return _own(_byUmm, id) ? _byUmm[id] : null; }
@@ -211,7 +229,7 @@ var QolLiteMapSchema = (function () {
     }
 
     return {
-        LIMITS: LIMITS, list: list, groups: groups, iconEntries: iconEntries, byKey: byKey,
+        LIMITS: LIMITS, list: list, groups: groups, section: section, iconEntries: iconEntries, byKey: byKey,
         byUmmId: byUmmId, isRanged: isRanged, defaults: defaults, toShown: toShown, fromShown: fromShown,
         sanitize: sanitize
     };
