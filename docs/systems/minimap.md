@@ -3,22 +3,20 @@
 > Resizable, movable minimap with per-type icon sizes, an objective overlay, and its own section in
 > the game's settings window.
 >
-> **Origin:** BetterMap 3.2.2 + runtime settings mount (`5ac7816`, upstream branch
-> `feat/runtime-settings`) · **Runs in:** every match · **Off switch:** settings window or UMM
-> `bettermap` (partial — see [Known issues](#known-issues))
-> **Last verified:** 2026-10-07 against the re-bundle at `5ac7816` (branch
-> `feat/bettermap-runtime-settings`).
+> **Origin:** BetterMap 3.3 (`a9f121a`) · **Runs in:** every match · **Off switch:** settings window or
+> UMM `bettermap` (partial — see [Known issues](#known-issues))
+> **Last verified:** 2026-10-14 against the BetterMap 3.3 re-bundle (branch `feat/bettermap-3.3`).
 
-The largest feature in the mod: 25 scripts, a full `hud.xml` override, a section built into Valve's
-settings window at runtime (no override of that window for BetterMap), an override of the always-on
-overlay for the credit line, and BetterMap's rules in three stylesheets. The scripts are **generated**
-from upstream BetterMap by `scripts/bundle_bettermap.py`. Change them upstream and re-bundle, never
-the bundled copy ([`../BUNDLE.md`](../BUNDLE.md) §3).
+The largest feature in the mod: 26 scripts, loaded from a small entry layout (`hud_data_feed.xml`),
+which build their minimap structure into Valve's own HUD and their section into Valve's own settings
+window at runtime — **no override of `hud.xml`, `hud.css` or the settings window for BetterMap**. Its
+only stylesheet is `hud_minimap.css`; the always-on overlay is overridden for the credit line. The
+scripts are **generated** from upstream BetterMap by `scripts/bundle_bettermap.py`. Change them
+upstream and re-bundle, never the bundled copy ([`../BUNDLE.md`](../BUNDLE.md) §3).
 
 Nothing on this page has been checked in game with the QOL Lite bundle. BetterMap's author checked
-the runtime settings mount standalone on game build 6759, in the hideout (upstream spec
-`docs/specs/2026-10-07-runtime-settings-injection.md` §6.5; reopening, resets, Show on Screen and UMM
-were not exercised there).
+3.3 standalone on game build 6779 — hideout, bot matches, TAB / Alt, POI markers, death, the Sapphire
+side, a release build with DEBUG off (upstream spec `docs/specs/2026-10-07-hud-runtime-entry.md` §9).
 
 ---
 
@@ -28,7 +26,7 @@ were not exercised there).
 |---|---|
 | Resize the minimap, 200–800 px in 20 px steps | 400 px |
 | Move it with two offsets from the bottom-right corner: 100 % reaches the opposite edge, negative values push it past its own edge, at most halfway | 0 / 0 |
-| Map opacity, 10–100 % (markers keep their own) | 95 % |
+| Map opacity, 10–100 % — fades the whole map, BetterMap's markers included (3.3) | 95 % |
 | "Minimalist" mode — strips the frame and decorations, keeps the map and its markers | off |
 | Enlarge to 750 px while a map-targeted ability is aimed (Mirage's Traveler) | **on** |
 | Full-Width HUD — lift Valve's 21:9 clamp on ultrawide screens | off |
@@ -37,7 +35,7 @@ were not exercised there).
 | A colour per marker type, picked on Valve's colour track in the settings window (3.1; not in UMM) | crates blue, statues yellow, tough crates green, apples red |
 | Urn spawn-location tracker with countdown | off |
 | Live preview of the real minimap: in the escape menu for 4 s after a change, and over the settings window while BetterMap's rows are on screen | — |
-| Settings in Valve's settings window: its own section **Minimap** after Game, three subsections, a sidebar entry with three sub-entries; saved automatically | — |
+| Settings in Valve's settings window: its own section **Minimap** at the bottom, three subsections, a sidebar entry with three sub-entries; saved automatically | — |
 | Credit line "QOL Lite Mod" in a match, bottom right under Valve's match / build line, in Valve's font (3.2; the text is a QOL Lite delta) | always, no switch |
 | Ability range circles (Doorman's doorway) keep their true size at any Minimap Size (3.2) | — |
 
@@ -52,8 +50,8 @@ Two mutually exclusive front ends, decided at HUD load:
 
 | | Without UMM | With UMM installed |
 |---|---|---|
-| UI | Settings → **Minimap** (after Game) → **Minimap (BetterMap by gfkm)**, **Minimap Icons (BetterMap)**, **Map Objects (BetterMap)** ("Crates & Statues" before 3.1), each with Preview on Screen and Reset to Defaults, plus Valve's per-row reset. The window's search does not find them: C++ indexes the window before our section exists | UMM's window, id `bettermap`, three groups. Nothing is built into the settings window |
-| Saving | `qollite_map_store.js`: a hidden `CitadelHTMLPanel` keeps the settings in the embedded browser's `localStorage` behind `gfkm.github.io/bettermap-storage/` ([`../BUNDLE.md`](../BUNDLE.md) §4, Third-party services) | UMM. The store does one read at HUD load for a one-time migration into UMM, then deletes its panel |
+| UI | Settings → **Minimap** (the last section) → **Minimap**, **Minimap Icons**, **Map Objects** ("Crates & Statues" before 3.1), each with Preview on Screen and Reset to Defaults, plus Valve's per-row reset. The window's search does not find them: C++ indexes the window before our section exists | UMM's window, id `bettermap`, three groups. Nothing is built into the settings window |
+| Saving | `qollite_map_store.js`: a hidden `CitadelHTMLPanel` keeps the settings in the embedded browser's `localStorage` behind `gfkm.github.io/bettermap-storage/` ([`../BUNDLE.md`](../BUNDLE.md) §4, Third-party services) | UMM. The store reads once at HUD load to seed UMM, then mirrors every value UMM sends, so the next launch can seed UMM again (since 3.3; if the read fails it stays off and writes nothing) |
 
 **Upgrading from the 2.1 bundle resets every UMM-saved BetterMap value once.** 3.0 gave every widget
 a two-character id ([`../UMM.md`](../UMM.md) §4), so UMM no longer finds the old ones. This is
@@ -68,46 +66,40 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Layouts**
 
-- `panorama/layout/hud.xml` (409 lines). A **full override of Valve's HUD**, on build 6759, equal to
-  BetterMap's `hud.vxml` apart from the bundled script names and the `qollite_passive` include. On top
-  of the vanilla tree:
-  - the 24 HUD script includes
-  - `#minimap_ui_clamp_container`: Valve's `.clamp_width` panel with a mod id
-  - `#minimap_persp_wrapper` inside it
-  - `#minimap_overlay_root` → `#minimap_markers`, `#minimap_urn_host`: overlay hosts, siblings of the
-    C++ map, never its children
-- BetterMap has **nothing** in `panorama/layout/popups/popup_settings.xml` any more (since the
-  re-bundle at `5ac7816`). Its section is created in the live window by
-  `qollite_map_settings_mount.js` ([The settings window](#the-settings-window)). QOL Lite still
-  overrides that file for its own [4×3](aspect-ratio-4x3.md) button and the Extended FOV row, so the
-  crash risk below remains for that file until those two move as well.
-
-> ⚠️ **Owning `hud.xml` means owning it forever.** New Valve elements reach our users only after a
-> rebase onto the current build ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9). A missing id the
-> engine reads aborts the game ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10). The same holds for
-> `popup_settings.xml` while QOL Lite overrides it: 6728, 6753 and 6757 each added such ids there.
+- `panorama/layout/hud_data_feed.xml` — the HUD entry (3.3): Valve's 9-line `hud_data_feed.xml`, kept
+  verbatim, plus a `<scripts>` block with BetterMap's 25 HUD scripts and the
+  [passives](passives.md) script. Upstream generates it from Valve's file; here it is merged by hand
+  ([`../BUNDLE.md`](../BUNDLE.md) §3). Its `HudDataFeed#DataFeed` hangs directly under `CitadelHud`,
+  loads once per session and survives hideout → match (upstream probe E1).
+- The pack ships **no `hud.xml`** since 3.3. `qollite_map_hud.js` builds into Valve's HUD what the
+  override used to declare ([How it works](#wrap-never-integrate)).
+- BetterMap has **nothing** in `panorama/layout/popups/popup_settings.xml` (since `5ac7816`). Its
+  section is created in the live window by `qollite_map_settings_mount.js`
+  ([The settings window](#the-settings-window)). QOL Lite still overrides that file for its own
+  [4×3](aspect-ratio-4x3.md) button and the Extended FOV row, so a Valve build that adds an id the
+  engine looks up there can still crash Settings until those two move as well.
 
 **Styles**
 
-- `panorama/styles/hud_minimap.css` (2,827 lines at 3.2.2): Valve's sheet, then BetterMap's appendix
-  from line 1878. Upstream's file verbatim. Lines 1976–2827 are generated upstream from the schema
-  (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class and, since 3.2, per
+- `panorama/styles/hud_minimap.css` (2,869 lines at 3.3): upstream's file verbatim, generated in full
+  by upstream from Valve's 6779 sheet, then BetterMap's block (from line 1880: the overlay and urn
+  marker, now inside `#hud_minimap`, Minimalist layers, the vignette), then lines 2018–2869 generated
+  from the schema (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class and per
   `bm_mapsize_<px>` class.
 - `panorama/styles/qollite_map_overlay.css` (3.2): upstream's `bettermap_overlay.vcss`. Shows
   `#BetterMapCredit` under `.BmCreditShown`, in Valve's font for `#ClientServerDebugStats`, and lifts
   Valve's line by one line meanwhile (21 px, which upstream marks as not measured).
-- `panorama/styles/hud.css`: BetterMap's rules — `#minimap_persp` noclip and sizing under
-  `gDetailView` / `gScoreboardOpen`, `#HudMinimapContainer` z-order, hit-testing, the neutral-icon
-  rules, and `.bm_preview_live` at the end of the file. That last rule must stay after Valve's
-  `.ShowEscapeMenu .HudCore`.
+- `panorama/styles/hud.css`: **nothing of BetterMap's since 3.3.** What those rules did is inline
+  (`qollite_map_hud.js`, `qollite_map_minimal.js`, `qollite_map_preview.js`), moved into
+  `hud_minimap.css`, or dropped as dead (upstream spec `2026-10-07-hud-runtime-entry.md` §4).
 
 **Textures**
 
 - `panorama/images/minimap/base/bm_vignette_png.png` / `.vtex`: the underground vignette mask for
   Minimalist mode.
-- Not used by anything: `panorama/images/minimap/qollite_tunnels.*` and, inert,
-  `panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*`
-  ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
+- Not used by anything: `panorama/images/minimap/qollite_tunnels.*`
+  ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4). The neutral-camp images went with their dead rules at
+  the 3.3 re-bundle.
 
 - `panorama/layout/citadel_hud_and_db_overlay.xml` (3.2). Valve's always-on overlay — the layer that
   draws the match / build line, toasts and tooltips in every screen — plus `#BetterMapCredit`, our
@@ -115,8 +107,10 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
   ([`../BUNDLE.md`](../BUNDLE.md) §3). The label's text, "QOL Lite Mod" (upstream: "BetterMap by gfkm"),
   is the QOL Lite delta.
 
-**Scripts.** Two JS contexts. The HUD loads 24 scripts through `hud.xml`, in this order, including
-the four that build and run the settings section. The overlay loads one, `qollite_map_overlay.js`.
+**Scripts.** Two JS contexts. The HUD entry loads 25 scripts through `hud_data_feed.xml`, in this
+order, including the four that build and run the settings section. Its context panel is
+`HudDataFeed#DataFeed`, not the HUD root, so every module finds panels through `QolLiteMapHud.root()`.
+The overlay loads one, `qollite_map_overlay.js`.
 
 | Script | Context | Global | Role |
 |---|---|---|---|
@@ -124,6 +118,7 @@ the four that build and run the settings section. The overlay loads one, `qollit
 | `qollite_map_poi_data.js` | HUD | `QolLiteMapPoiData` | Generated crate / tough crate / statue coordinates and spawn times |
 | `qollite_map_urn_data.js` | HUD | `QolLiteMapUrnData` | Urn spawn coordinates |
 | `qollite_map_schema.js` | HUD | `QolLiteMapSchema` | **The one list of settings.** Key, type, range, default, label, tooltip, UMM id, group, icon metadata. Defaults, the UMM manifest, the settings section (`section()`: id `bettermap_section`, title "Minimap") and its rows, and validation all derive from it |
+| `qollite_map_hud.js` | HUD | `QolLiteMapHud` | The HUD structure `hud.vxml` used to declare (3.3): `root()`, the wrapper around Valve's `#minimap_persp`, the overlay inside `#hud_minimap`, the inline styles outside the minimap. Rebuilds on `CitadelGameStateChanged`, with a 2 s safety poll over cached panels |
 | `qollite_map_state.js` | HUD | `QolLiteMapState` | The in-memory settings object; `DEFAULTS` built from the schema |
 | `qollite_map_draw.js` | HUD | `QolLiteMapDraw` | Shared drawing rules: margins from the offsets, POI colours |
 | `qollite_map_minimap.js` | HUD | `QolLiteMapMinimap` | The anchor (`#MinimapBackgroundTest`), `hasClassAbove()`, DEBUG-only probes |
@@ -142,7 +137,7 @@ the four that build and run the settings section. The overlay loads one, `qollit
 | `qollite_map_slider.js` | HUD | `QolLiteMapSlider` | Binds a convar-less `CitadelSettingsSlider`; accepts values only during real interaction |
 | `qollite_map_popup.js` | HUD | `QolLiteMapPopup` | Per window instance (`start(win)`): binds the controls, purple "new" marks, Show on Screen, Reset, per-row reset, lift heartbeat, flush on close; hides our part if it finds UMM |
 | `qollite_map_settings_nav.js` | HUD | `QolLiteMapSettingsNav` | Our sidebar entry and sub-entries, stamped from Valve's snippets; keeps them selected while our section is current; a click scrolls the title to the top |
-| `qollite_map_settings_mount.js` | HUD | `QolLiteMapSettingsMount` | Polls for a new settings window; checks UMM, anchors and snippets; builds our section after Game with `$.CreatePanel`; then starts nav and popup. Once per window instance |
+| `qollite_map_settings_mount.js` | HUD | `QolLiteMapSettingsMount` | Polls for a new settings window; checks UMM, anchors and snippets; builds our section at the bottom of the window with `$.CreatePanel`; then starts nav and popup. Once per window instance |
 | `qollite_map_bootstrap.js` | HUD | — | Waits for all modules, then `init()`s each in isolation |
 | `qollite_map_overlay.js` | overlay | `QolLiteMapOverlay` | The credit line: puts `BmCreditShown` on the overlay root while Valve's `#ClientServerDebugStats` shows its match line (not in the hideout, not in Valve's detailed mode). Polls at 1 Hz |
 
@@ -152,9 +147,10 @@ the four that build and run the settings section. The overlay loads one, `qollit
 
 ### Bootstrap
 
-`qollite_map_bootstrap.js` polls every 0.05 s (at most 20 tries) until the 21 modules it needs are
+`qollite_map_bootstrap.js` polls every 0.05 s (at most 20 tries) until the 22 modules it needs are
 present. It then calls each module's `init()` in its **own** `try`/`catch`: the features first, then
-UMM, the store, the popup, and last the settings mount. The two data tables are not waited on. One module
+UMM, the store, the popup, and last the settings mount; each time `QolLiteMapHud` reports the minimap
+built, it re-applies every feature. The two data tables are not waited on. One module
 throwing cannot take the others down ([`../PANORAMA.md`](../PANORAMA.md) §7).
 
 ### The settings window
@@ -165,14 +161,14 @@ Valve's settings window is **not** overridden for BetterMap. C++ builds the wind
 C++ has filled the sidebar, and then, once per instance:
 
 1. under UMM, builds nothing;
-2. checks the anchors (`#SettingsBody`, `#SettingsNavigationButtonsContainer`,
-   `#citadel_settings_game`) and that the window has every snippet a created panel needs
+2. checks the anchors (`#SettingsBody`, `#SettingsNavigationButtonsContainer`) and that the window has every snippet a created panel needs
    (`BHasLayoutSnippet`). If one is missing it logs one error and builds nothing: a Valve change can
    hide our section but not crash the window. A C++ settings type whose snippet is missing is fatal to
    the game, and so is such a type inside a layout file of our own ("Unable to load snippet
    SettingsSubsection", upstream probe run 1), which is why every panel is made with `$.CreatePanel`;
-3. creates `PopupSettingsSettingsSection#bettermap_section` after Game, then one subsection per
-   schema group with its rows and controls;
+3. creates `PopupSettingsSettingsSection#bettermap_section` at the bottom of the window, before
+   Valve's `#SettingsFooter` (3.3; it was after Game), then one subsection per schema group with its
+   rows and controls;
 4. starts `QolLiteMapSettingsNav` (the sidebar) and `QolLiteMapPopup.start(win)` (the binding).
 
 The controls have no convar; `qollite_map_slider.js` and `qollite_map_popup.js` bind them in JS.
@@ -188,23 +184,25 @@ when the window is gone.
 
 ### Wrap, never integrate
 
-`HudMinimap` is compiled C++. Everything here works on the panels *around* it:
+`HudMinimap` is compiled C++. Everything here works on the panels *around* it. Valve's own
+`hud.xml` declares the tree; `QolLiteMapHud` (3.3) adds the two marked parts at HUD load and again
+after a rebuild:
 
 ```
-#minimap_ui_clamp_container (.clamp_width)
+Panel.clamp_width                        (Valve's; no id)
 ├── CitadelHudDamageSummary#hud_damage_summary
-├── #minimap_persp_wrapper              ← position: margins from the offsets
-│   ├── GlobalClassListener (gDetailView gScoreboardOpen)
-│   └── #minimap_persp                  ← size: width/height in px (a GlobalClassListener)
+├── #minimap_persp_wrapper               ← ours, made around Valve's persp, same index;
+│   │                                      position: margins from the offsets
+│   └── #minimap_persp                   ← size: width/height in px (a GlobalClassListener)
 │       ├── #minimap_hints
 │       ├── #minimap_container
 │       │   ├── #minimap_blur
 │       │   ├── #minimap_frame
-│       │   ├── #HudMinimapContainer         ← opacity
-│       │   │   └── HudMinimap#hud_minimap   ◀── C++, untouchable; drawn at a fixed 360 px
-│       │   └── #minimap_overlay_root        ← our markers live here
-│       │       ├── #minimap_markers         ← POIs
-│       │       └── #minimap_urn_host        ← urn marker
+│       │   └── #HudMinimapContainer          ← opacity (fades our markers too since 3.3)
+│       │       └── HudMinimap#hud_minimap    ◀── C++, untouchable; drawn at a fixed 360 px
+│       │           └── #minimap_overlay_root.bm_overlay   ← ours, inside the map so
+│       │               ├── #minimap_markers     hud_minimap.css styles it
+│       │               └── #minimap_urn_host
 │       ├── #minimap_location
 │       └── #MinimapRevealNotif
 └── CitadelHudModifiers#hud_aura_modifiers
@@ -306,15 +304,18 @@ listed and are stored as fractions where the unit is %.
   safety poll; the 33 Hz re-apply runs only while one of them is open.
 - **The credit line costs a 1 Hz loop in the overlay** in every screen, with no switch (one lookup
   and an ancestor walk a tick). It is a credit, not a feature, so it has no setting.
-- **With UMM, every HUD load still opens the storage page once** (read from `_init` in
-  `qollite_map_store.js`, not measured). It is a one-off cost at load, not per frame, plus a request
-  to GitHub Pages. Most QOL Lite users have UMM. Since 3.1 that read is load-bearing: the marker
+- **With UMM, every HUD load still opens the storage page** (read from `_init` in
+  `qollite_map_store.js`, not measured), and since 3.3 the store writes UMM's values back to it after
+  each change (3 s idle). A one-off cost at load plus one write per settled change, not per frame,
+  each a request to GitHub Pages. Most QOL Lite users have UMM. Since 3.1 that read is load-bearing: the marker
   colours are not in UMM, so under UMM it is their only source (`seed()` in
   `qollite_map_umm_adapter.js`). Skipping it would reset them to defaults. Under UMM the colours
   cannot be changed either — they stay as last set without UMM.
 - Options are English-only (upstream: the build tools cannot ship translations).
-- `hud.xml` needs a rebase after every patch that touches it, and so does `popup_settings.xml` while
-  QOL Lite keeps the 4×3 button and FOV row there ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9).
+- `popup_settings.xml` needs a rebase after every patch that touches it while QOL Lite keeps the 4×3
+  button and FOV row there ([`../ARCHITECTURE.md`](../ARCHITECTURE.md) §9). `hud_data_feed.xml` is
+  Valve's 9-line file plus our scripts; it too follows Valve's file when that changes (it last
+  changed in 6711).
 - **The settings mount polls every 0.25 s for the whole session, under UMM too**, where it never
   builds anything ([`../TECH_DEBT.md`](../TECH_DEBT.md) §2).
 - The settings window's search does not find our rows.

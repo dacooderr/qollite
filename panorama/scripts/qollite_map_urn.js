@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_urn.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_urn.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -64,8 +64,8 @@ var QolLiteMapUrn = (function () {
     var _descentStartT = null;        // clock (s) the current urn spawned (descent start)
     var _descentUV = null;            // where to draw the descent marker (the fresh urn's spawn point)
 
-    function _ctx() { return $.GetContextPanel(); }
-    function _panel(id) { var c = _ctx(); return c ? c.FindChildTraverse(id) : null; }
+    function _ctx() { return QolLiteMapHud.root(); }
+    function _panel(id) { return QolLiteMapHud.find(id); }
     function _log(msg) { if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("urn: " + msg); } }
     function _info(msg) { if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.info("urn: " + msg); } }
     function _other(side) { return side === "left" ? "right" : "left"; }
@@ -228,7 +228,7 @@ var QolLiteMapUrn = (function () {
     // Urn Icon Size (spec docs/specs/2026-10-01-minimap-icon-sizes.md §5.4): the tracker's
     // marker takes the same class as the game's urn markers, from QolLiteMapIcons, so both
     // follow one slider. The rule `.bm_urn.<cls><pct>` is generated into hud_minimap.vcss,
-    // which hud.vxml includes too (our host lives there).
+    // which reaches our host: it lives inside #hud_minimap (qollite_map_hud.js).
     function _applySize(m) {
         if (!m || !m.root) { return; }
         var want = QolLiteMapIcons.className("urnIconScalePct");

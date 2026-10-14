@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_size.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_size.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -18,8 +18,9 @@ var QolLiteMapSize = (function () {
     var MAP_TO_CONTAINER = 360 / 400;
     var MT_POLL_SEC = 0.06;
     // TAB (scoreboard) and Alt (ability menu / detail view) open and close
-    // events. Probe run 1 (2026-10-04, build 6745), in this hud.vxml context: each
-    // fires on every open and close with one boolean, true = open; the global
+    // events. Probe run 1 (2026-10-04, build 6745, then in our hud.vxml context): each
+    // fires on every open and close with one boolean, true = open (they reached the
+    // context of another of Valve's layouts too: entry probe E6, 2026-10-07); the global
     // class (gScoreboardOpen / gDetailView) follows 2-33 ms later, so the handler
     // trusts the argument instead of reading a class that has not flipped yet.
     // QOL Lock listens to the same TAB event (ql_app.js).
@@ -37,8 +38,10 @@ var QolLiteMapSize = (function () {
     // ticks in a row. Two, because the class trails the event by up to 33 ms and a
     // single tick can land inside that gap.
     var STALE_OPEN_TICKS = 2;
+    // Valve's GlobalClassListeners for the view classes (hud.xml). Our wrapper is no listener and is
+    // not listed (its old hud.vxml copy held one).
     var DETAIL_STATE_IDS = [
-        "minimap_persp", "minimap_persp_wrapper", "context_action_container", "AbilitiesContainer",
+        "minimap_persp", "context_action_container", "AbilitiesContainer",
         "cast_failed_box", "CheaterVoteBox", "DamageReportGlobalClassListener"
     ];
     var _ultActive = false;
@@ -47,10 +50,7 @@ var QolLiteMapSize = (function () {
     var _holding = false;        // the 0.03 s re-apply loop is scheduled
     var _staleTicks = 0;
 
-    function _panel(id) {
-        var ctx = $.GetContextPanel();
-        return ctx ? ctx.FindChildTraverse(id) : null;
-    }
+    function _panel(id) { return QolLiteMapHud.find(id); }
 
     // The class that selects the generated #CastRange counter-scale (schema
     // minimapSizePx.mapScale). None in the zoomed minimap, where Valve sizes the map.
@@ -71,9 +71,10 @@ var QolLiteMapSize = (function () {
         var frame = _panel("minimap_frame");
         if (frame) { frame.style.width = size; frame.style.height = size; }
 
-        // The POI/urn overlay must cover exactly the drawn map. In the zoomed
-        // minimap mode Valve sizes #hud_minimap itself (HudMinimapSize5..11) and
-        // pans it, so we hand the size back to its CSS there.
+        // The map image scales with the container. In the zoomed minimap mode Valve
+        // sizes #hud_minimap itself (HudMinimapSize5..11) and pans it, so we hand the
+        // size back to its CSS there. Our POI/urn overlay lives inside #hud_minimap at
+        // 100 % of it (bettermap.vcss), so it follows the map in both modes.
         var mapSize = Math.round(px * MAP_TO_CONTAINER) + "px";
         var zoomed = QolLiteMapMinimap.hasClassAbove("useZoomedMinimap");
         var map = _panel("hud_minimap");
@@ -82,8 +83,6 @@ var QolLiteMapSize = (function () {
             map.style.height = zoomed ? null : mapSize;
             _setMapSizeClass(map, zoomed ? null : px);
         }
-        var overlay = _panel("minimap_overlay_root");
-        if (overlay) { overlay.style.width = mapSize; overlay.style.height = mapSize; }
     }
 
     function _sanitizeSize(value) {
@@ -111,12 +110,13 @@ var QolLiteMapSize = (function () {
     // max-width 1920px). Full-Width HUD lifts it; off hands control back to
     // Valve's CSS (null clears the inline value - Valve idiom, dota play.js).
     function applyClampWidth() {
-        var clamp = _panel("minimap_ui_clamp_container");
+        var clamp = QolLiteMapHud.clamp();
         if (!clamp) { return; }
         clamp.style.maxWidth = QolLiteMapState.get().hudFullWidth ? (FULL_WIDTH_PX + "px") : null;
     }
 
-    // Opacity of the map image layer only; markers sit in #minimap_overlay_root.
+    // Opacity of the whole map layer: the engine's markers and our overlay (inside
+    // #hud_minimap) fade with it (owner 2026-10-07, spec H13).
     function applyMapOpacity() {
         var layer = _panel("HudMinimapContainer");
         if (layer) { layer.style.opacity = String(QolLiteMapState.get().mapOpacity); }
@@ -149,8 +149,7 @@ var QolLiteMapSize = (function () {
             var panel = _panel(DETAIL_STATE_IDS[i]);
             if (panel && (panel.BHasClass("gDetailView") || panel.BHasClass("gScoreboardOpen"))) { return true; }
         }
-        var ctx = $.GetContextPanel();
-        return !!(ctx && (ctx.BHasClass("gDetailView") || ctx.BHasClass("gScoreboardOpen")));
+        return false;
     }
 
     // Idempotent: every value it sets is the same on each call.

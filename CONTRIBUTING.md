@@ -17,7 +17,7 @@ different rules. [`docs/BUNDLE.md`](docs/BUNDLE.md) is the authoritative list.
 
 | Tier | What it covers | What you may do |
 |---|---|---|
-| **Merge layer** | `hud.xml`, `citadel_hud_top_bar.xml`, the `base/` stylesheet pattern, 4×3 support, path arbitration | Ours, no upstream. Change it. |
+| **Merge layer** | `hud_data_feed.xml` (the HUD entry), `citadel_hud_top_bar.xml`, the `base/` stylesheet pattern, 4×3 support, path arbitration | Ours, no upstream. Change it. |
 | **First-party mods** | `qollite_map_*`, `qollite_notifications_*` | Change **upstream**, then re-bundle with `scripts/bundle_bettermap.py` / `scripts/bundle_mer.py`. Editing the bundled copy is lost on the next build. |
 | **Vendored** | Everything else under `panorama/scripts/` | Read-only. Report bugs to the original author. |
 
@@ -44,7 +44,7 @@ faithful record of what ships, not as pristine authored code.
 | Risk | Work | Notes |
 |---|---|---|
 | 🟢 Low | Documentation, stylesheet additions in override files, removing dead files | Additive and easy to revert |
-| 🟡 Medium | Layout edits in the merge layer | `hud.xml` and `hud_escape_menu.xml` are **full overrides of Valve's layouts** — and so is almost every other file under a Valve path. After a game patch they must be rebased onto the new markup ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §9), or newly added Valve HUD elements silently disappear for our users. |
+| 🟡 Medium | Layout edits in the merge layer | `hud_escape_menu.xml` and almost every other file under a Valve path are **full overrides of Valve's layouts** (`hud.xml` was one until 2026-10-14). After a game patch they must be rebased onto the new markup ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §9), or newly added Valve HUD elements silently disappear for our users. |
 | 🔴 High | Anything under `panorama/scripts/` | See above |
 
 **Adding a file under a Valve path?** Check the ownership map in

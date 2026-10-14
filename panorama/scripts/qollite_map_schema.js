@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_schema.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_schema.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -34,15 +34,16 @@ var QolLiteMapSchema = (function () {
     var OBJECTS = "Map Objects";
 
     // One subsection of Valve's settings window per group, in this order (spec I5).
-    // C++ titles a subsection "#<id>" (no token exists, D7), so the mount sets `title`;
+    // C++ titles a subsection "#<id>" (no token exists, D7), so the mount sets `title`. Plain titles, as
+    // Valve's own (owner 2026-10-07: "so that in the settings they look native");
     // `sfx` names the subsection's show / reset rows (qollite_map_settings_mount.js).
     var GROUPS = [
-        { name: MAP, id: "bettermap_minimap", sfx: "minimap", title: "Minimap (BetterMap by gfkm)" },
-        { name: ICONS, id: "bettermap_icons", sfx: "icons", title: "Minimap Icons (BetterMap)" },
-        { name: OBJECTS, id: "bettermap_objects", sfx: "objects", title: "Map Objects (BetterMap)" }
+        { name: MAP, id: "bettermap_minimap", sfx: "minimap", title: "Minimap" },
+        { name: ICONS, id: "bettermap_icons", sfx: "icons", title: "Minimap Icons" },
+        { name: OBJECTS, id: "bettermap_objects", sfx: "objects", title: "Map Objects" }
     ];
 
-    // Our own section in Valve's settings window, after Game (spec
+    // Our own section in Valve's settings window, at its bottom (spec
     // docs/specs/2026-10-07-runtime-settings-injection.md R2, R3). C++ does not know it, so the
     // title is set from JS, as the subsections' are.
     var SECTION = { id: "bettermap_section", title: "Minimap" };
@@ -98,7 +99,7 @@ var QolLiteMapSchema = (function () {
           tooltip: "Moves the minimap up from the bottom-right corner. 100% reaches the top edge; negative values push it past the bottom edge, at most halfway." },
         { key: "mapOpacity", group: MAP, type: "slider", label: "Map Opacity", def: 0.95,
           min: 10, max: 100, step: 5, unit: "%", scale: 100, umm: "mo",
-          tooltip: "Opacity of the minimap image. Markers keep their own opacity." },
+          tooltip: "Opacity of the minimap, its markers included." },
         { key: "minimalMap", group: MAP, type: "toggle", label: "Minimalist Minimap", def: false,
           umm: "mm",
           tooltip: "Hides the minimap frame and decorations and keeps only the map and its markers." },

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_apply.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_apply.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -15,6 +15,14 @@ var QolLiteMapApply = (function () {
     // again after ~0.35 s), so the clamp width's effect on the travel bounds is
     // only visible then.
     var LAYOUT_SETTLE_SEC = 0.35;
+    // At most one size / position re-apply per this interval while a slider is dragged: Valve
+    // animates every size change of #minimap_persp and #minimap_container over 0.15 s (hud.css
+    // transition-duration, build 6759), so a new size never starts while one is still animating.
+    // In-game 2026-10-07 a drag to the maximum sent 14 size changes in one second and the GPU's
+    // texture memory went over budget right after (spec 2026-10-07-hud-runtime-entry, Task 0 run 1).
+    var PLACE_MIN_SEC = 0.15;
+    var _placeCooling = false;
+    var _placeSkipped = 0;            // changes that arrived during the cool-down
 
     function all() {
         QolLiteMapSize.applyClampWidth();
@@ -27,7 +35,23 @@ var QolLiteMapApply = (function () {
         // QolLiteMapUrn and the Traveler enlargement read state in their own polls.
     }
 
-    function _place() { QolLiteMapSize.apply(); }   // also re-places via QolLiteMapPosition.apply
+    // The first change applies at once; changes during the cool-down are folded into one trailing
+    // apply, which reads the latest state.
+    function _place() {
+        if (_placeCooling) { _placeSkipped++; return; }
+        QolLiteMapSize.apply();            // also re-places via QolLiteMapPosition.apply
+        _placeCooling = true;
+        $.Schedule(PLACE_MIN_SEC, _placeCooled);
+    }
+
+    function _placeCooled() {
+        _placeCooling = false;
+        if (_placeSkipped === 0) { return; }
+        QolLiteMapLog.log("apply: placement re-applied once for " + _placeSkipped + " folded change(s)");
+        _placeSkipped = 0;
+        _place();
+    }
+
     function _mapOpacity() { QolLiteMapSize.applyMapOpacity(); }
     function _fullWidth() {
         QolLiteMapSize.applyClampWidth();

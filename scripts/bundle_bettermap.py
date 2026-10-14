@@ -41,13 +41,15 @@ UPSTREAM_DIR = "mod/panorama/scripts"
 OUT_PREFIX = "qollite_map_"
 
 # Upstream file -> bundled file. Not a mechanical rule (umm -> umm_adapter,
-# bettermap.js -> bootstrap); the table is the rule. Order follows BetterMap's
-# hud.xml script order, then the settings window's; it only affects reporting.
+# bettermap.js -> bootstrap); the table is the rule. Order roughly follows the script
+# order of BetterMap's entry layout (hud_data_feed since 3.3); it only affects reporting.
 FILES = {
     "bettermap_log.js": "qollite_map_log.js",
     "poi_data.js": "qollite_map_poi_data.js",
     "urn_data.js": "qollite_map_urn_data.js",
     "bettermap_schema.js": "qollite_map_schema.js",
+    # 3.3: builds at runtime the minimap structure hud.vxml used to declare; loaded from hud_data_feed.
+    "bettermap_hud.js": "qollite_map_hud.js",
     "bettermap_state.js": "qollite_map_state.js",
     "bettermap_draw.js": "qollite_map_draw.js",
     "bettermap_minimap.js": "qollite_map_minimap.js",

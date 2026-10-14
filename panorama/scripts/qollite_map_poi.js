@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_poi.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_poi.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -15,6 +15,7 @@ var QolLiteMapPoi = (function () {
     var DEFAULT_SPAWN_SEC = 180;        // data without a per-POI `s` (pre-6722 dumps): 3:00
 
     var _markers = [];                  // { panel, t, small, under, spawn }
+    var _host = null;                   // the #minimap_markers the markers were drawn into
     var _underground = false;
     var _inTunnels = false;
     var _inverted = false;              // invert_map at the last placement (team 2's rotated map)
@@ -24,10 +25,7 @@ var QolLiteMapPoi = (function () {
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("poi: " + msg); }
     }
 
-    function _panel(id) {
-        var ctx = $.GetContextPanel();
-        return ctx ? ctx.FindChildTraverse(id) : null;
-    }
+    function _panel(id) { return QolLiteMapHud.find(id); }
 
     // Build 6722 has three minimap views on #hud_minimap: surface, `is_underground`
     // (mid tunnels) and `in_tunnels` (the new rat-tunnel layer). z splits surface /
@@ -102,9 +100,12 @@ var QolLiteMapPoi = (function () {
 
     function _renderMarkers() {
         var host = _panel("minimap_markers");
-        if (!host) { _log("#minimap_markers not found, skip render"); return; }
-        while (host.GetChildCount() > 0) { host.GetChild(0).DeleteAsync(0); }
+        _host = host;
         _markers = [];
+        if (!host) { _log("#minimap_markers not found, skip render"); return; }
+        // Counted once: DeleteAsync may leave a child attached until the next frame, so a loop on
+        // GetChildCount() could spin forever (review 2026-10-10).
+        for (var k = host.GetChildCount() - 1; k >= 0; k--) { host.GetChild(k).DeleteAsync(0); }
 
         var data = (typeof QolLiteMapPoiData !== "undefined") ? QolLiteMapPoiData[MAP_NAME] : null;
         if (!data || !data.pois) { _log("no QolLiteMapPoiData for map " + MAP_NAME); return; }
@@ -180,8 +181,10 @@ var QolLiteMapPoi = (function () {
         }
     }
 
-    // Re-apply everything from QolLiteMapState (QolLiteMapApply.all).
+    // Re-apply everything from QolLiteMapState (QolLiteMapApply.all). QolLiteMapHud rebuilds the
+    // overlay when the HUD replaces the minimap; the markers then go into the fresh host.
     function refresh() {
+        if (!_host || !_host.IsValid()) { _renderMarkers(); return; }
         _applyVisibility();
         _applyAllStyles();
     }

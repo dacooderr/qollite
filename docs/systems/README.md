@@ -52,7 +52,8 @@ table** — two features cannot both ship the same path.
 
 | Valve path | Owned by |
 |---|---|
-| `layout/hud.xml` | [Minimap](minimap.md) (+ [passives](passives.md) script include; Valve's `CitadelHudHeroTesting` instance) |
+| `layout/hud.xml` | **not shipped** since 2026-10-14 (BetterMap 3.3 builds its minimap structure at runtime); Valve's own `hud.xml` loads |
+| `layout/hud_data_feed.xml` | [Minimap](minimap.md)'s entry layout (+ [passives](passives.md) script include) — Valve's file plus a `<scripts>` block |
 | `layout/base_hud_and_db_overlay.xml` | [Event reminders](event-reminders.md) |
 | `layout/citadel_hud_top_bar.xml` | [Top bar](top-bar.md), [event reminders](event-reminders.md) bridges |
 | `layout/citadel_hud_top_bar_player.xml` | [Top bar](top-bar.md) (per-player row: script, `SpentSoulDisplay`, `.HeroNameHidden` label used by [recent purchases](recent-purchases.md)) |
