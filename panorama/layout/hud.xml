@@ -193,10 +193,16 @@
 								<Label class="zipline_express" text="#Citadel_LaneExpress" />
 							</Panel>
 						</Panel>
-						<Label class="light action_binding" text="#Citadel_Hud_RideZipLine" html="true" />
+						<Panel class="zipline_binding_stack">
+							<Label class="light action_binding" text="#Citadel_Hud_RideZipLine" html="true" />
+						</Panel>
 						<Panel id="zipline_cooldown_indicator">
 							<Label class="zipline_cooldown_value" text="#Citadel_Hud_RideZipLineOnCooldownValue" html="true" />
 							<Label class="zipline_cooldown_label" text="#Citadel_Hud_RideZipLineOnCooldown" html="true" />
+						</Panel>
+						<Panel id="zipline_disabled">
+							<Panel class="disabled_bg" />
+							<Label id="zipline_unhold_required" text="#Citadel_Hud_RideZipLineUnHoldRequired" html="true" />
 						</Panel>
 					</Panel>
 					<Panel class="action_upgrade context_action">
@@ -238,7 +244,9 @@
 						<GlobalClassListener classes="gDetailView gScoreboardOpen" />
 						<GlobalClassListener id="minimap_persp" class="DisableBigMapScaleOnTab" hittest="false" hittestchildren="true" classes="gDetailView gScoreboardOpen">
 							<Panel id="minimap_hints">
-								<Label html="true" text="#Minimap_HintControls" />
+								<Label id="MinimapTip1" html="true" text="#Minimap_HintControls_MinimapPing" />
+								<Label id="MinimapTip2" html="true" text="#Minimap_HintControls_MinimapRadialMenu" />
+								<Label id="MinimapTip3" html="true" text="#Minimap_HintControls_MinimapDrawing" />
 							</Panel>
 							<Panel id="minimap_container" hittest="false">
 								<Panel id="minimap_blur" class="minimap_map_layer minimap_map_layer_blur" hittest="false" />
@@ -405,5 +413,6 @@
 			<CitadelRadialCommsWheel />
 		</Panel>
 		<HudPerfStatsBasics hittest="false" />
+		<Panel id="LoadInFadeCover" hittest="false" hittestchildren="false" />
 	</CitadelHud>
 </root>

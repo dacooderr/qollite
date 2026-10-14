@@ -423,6 +423,19 @@ crashing). `hud.css` and `base/hud.css`: the build-editing rules gained `.spec_m
 `SyncedFontSizeLabel` next to `Label`. Same check as at 6759: per file, the Valve lines the mod leaves
 out and the lines only the mod has are the same sets before (against 6759) and after (against 6774).
 
+At 6779 (2026-10-14; `2d87734` (6774) → `0c38f9d` (6779), another new hero): **the game crashed at
+start-up without an error dialog** (maintainer, 2026-10-14). The same-build check on `main` (`3e38070`)
+against 6779 names the cause: `engine-ids 1 missing, LoadInFadeCover` in `hud.xml` — Valve added
+`<Panel id="LoadInFadeCover" />` at the end of the HUD root and the client looks it up by name
+(`client_strings.txt`). The rebase run itself did not flag it, because it checks the merged result,
+which already carries the id; only the same-build check on the shipped tree shows it. 85 files checked,
+3 changed. `hud.xml`: the id above, a zipline "unhold required" block (`#zipline_disabled`), and three
+minimap hint labels (`#MinimapTip1`–`3`) replacing the one `#Minimap_HintControls` label. One
+conflict, in the minimap hints: BetterMap's `#minimap_persp_wrapper` sits around Valve's
+`#minimap_persp`, so Valve's new labels went in one level deeper, inside the wrapper. `hud.css` and
+`base/hud.css`: 87 Valve lines. Check: the same sets as at 6774, comparing lines with indentation
+stripped (the wrapper indents the minimap subtree by one tab).
+
 ### 3. Resolve conflicts, then check every result
 
 Resolve markers by hand, then for each file: no markers left; CSS braces balance; XML parses; the
