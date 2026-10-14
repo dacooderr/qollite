@@ -3940,10 +3940,3 @@ CitadelHudSoulAPContainer.ShowGoldAndAPOnHud
 
 
 
-
-/* QOL Lite: the top bar stays visible in the hideout, but not over the shop and its build editor.
-   #TopBar carries gShopOpen from the GlobalClassListener inside citadel_hud_top_bar.xml. */
-.InHideout #TopBar.gShopOpen
-{
-	visibility: collapse;
-}

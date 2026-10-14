@@ -209,8 +209,8 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   `qollite_passive.vjs_c` after the bootstrap; its body equals Valve's 6779 `hud_data_feed.xml` (the
   header and the `.vcss_c` form aside). `hud.css` lost every BetterMap block, classified rule by rule
   against BetterMap's last `hud.vcss` (`5ac7816`) and Valve's 6779 sheet: what stays is Valve's 6779
-  sheet, every line of it, plus seven QOL Lite rules (passives ×3, 4×3 ×2,
-  `#objectives_health_friendly`, `.InHideout #TopBar.gShopOpen`). `hud_minimap.css` is upstream's
+  sheet, every line of it, plus QOL Lite's own rules (passives ×3, 4×3 ×2,
+  `#objectives_health_friendly`). `hud_minimap.css` is upstream's
   verbatim. The overlay did not change upstream. The three `neutral_*_custom_png` images went with
   the `.dmm_custom_*` rules that were their only reference (upstream dropped both, spec H8).
   - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
