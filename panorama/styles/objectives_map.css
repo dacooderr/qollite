@@ -40,3 +40,12 @@
 	opacity: 1;
 }
 
+.gShopOpen #ObjectivesMap
+{
+    opacity: 0;
+}
+
+.gShopOpen.gScoreboardOpen #ObjectivesMap
+{
+    opacity: 1;
+}
