@@ -1,4 +1,4 @@
-/* Prettified by Source 2 Viewer 19.2.0.0 - https://valveresourceformat.github.io */
+/* Prettified by Source 2 Viewer 20.0.0.0 - https://valveresourceformat.github.io */
 
 @define ColorEnemy: #ff410d;
 @define ColorEnemyHigh: #FF8D6E;
@@ -1875,72 +1875,113 @@
 	background-color: rgba(200, 50, 50, 0.5);
 }
 
-/* ===== BetterMap: Wrapper for drag positioning (immune to gDetailView CSS) ===== */
+/* ======================================================================== */
+/* ===== BetterMap - everything below Valve's hud_minimap.css is ours. ===== */
+/* Source: pipeline/minimap_styles/bettermap.vcss. build_minimap_styles.py    */
+/* writes Valve's file, then this block, then the generated icon sizes.      */
+/* These rules reach only panels inside the C++ HudMinimap (#hud_minimap and  */
+/* below), whose layout loads this sheet; panels outside it are styled from   */
+/* the scripts with inline values (spec 2026-10-07-hud-runtime-entry, §4).    */
+/* ======================================================================== */
 
-#minimap_persp_wrapper
+/* ===== BetterMap: the overlay (bettermap_hud.js creates it inside #hud_minimap) ===== */
+/* 100 % of #hud_minimap is exactly the drawn map image (probe E3: 752 x 752 at
+   the map's own place), above every engine marker. */
+.bm_overlay
 {
-	width: fit-children;
+	width: 100%;
+	height: 100%;
+	horizontal-align: center;
+	vertical-align: center;
+	z-index: 1001;
+}
+
+/* Team 2 sees Valve flip the whole map panel (.invert_map.HudMinimap { transform:
+   scaleY(-1) scaleX(-1) }), our overlay with it. The same transform here undoes that,
+   so the overlay stays upright and BettermapMinimap.toScreen keeps mirroring the
+   positions, as it did when the overlay lived outside the map (spec H12). */
+.invert_map .bm_overlay
+{
+	transform: scaleY(-1) scaleX(-1);
+}
+
+#minimap_markers
+{
+	width: 100%;
+	height: 100%;
+}
+
+/* ===== BetterMap: urn spawn tracker marker (mid-boss style) ===== */
+#minimap_urn_host
+{
+	width: 100%;
+	height: 100%;
+}
+
+.bm_urn
+{
+	width: 32px;
+	height: 32px;
+	horizontal-align: left;
+	vertical-align: top;
+	transform: translateX(-16px) translateY(-16px);
+	z-index: 30;
+}
+
+.bm_urn_backer
+{
+	width: 100%;
+	height: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	background-color: rgba(0, 0, 0, 0.55);
+	border-radius: 50%;
+	border: 3px solid shardColor&30;
+}
+
+/* Progress ring: a gold-bordered circle whose visible arc is driven from JS via
+   clip: radial(50% 50%, 0deg, <progress>deg) - same mechanism as the game's own
+   CircularProgressBar (a clipped bordered circle), done by hand so we control it. */
+.bm_urn_ring
+{
+	width: 100%;
+	height: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	border-radius: 50%;
+	border: 3px solid shardColor;
+}
+
+/* descent ring: white base so the wash-color animation shows pure red/yellow/green */
+.bm_urn_descent_ring
+{
+	border-color: #ffffff;
+}
+
+.bm_urn_icon
+{
+	width: 64%;
+	height: 64%;
+	horizontal-align: center;
+	vertical-align: middle;
+	background-image: url("s2r://panorama/images/minimap/soul_jar_marker_psd.vtex");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	opacity: 0.95;
+}
+
+.bm_urn_timer
+{
+	width: 100%;
 	height: fit-children;
-	vertical-align: bottom;
-	horizontal-align: right;
-	flow-children: down;
-	margin-bottom: 15px;
-	overflow: noclip;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 12px;
+	color: white;
+	text-shadow: 0px 0px 4px 3.0 #000000cc;
+	visibility: collapse;
 }
-
-#minimap_persp_wrapper #minimap_persp
-{
-	width: 400px;
-	height: 400px;
-	vertical-align: top;
-	horizontal-align: left;
-	margin-bottom: 0px;
-	margin-right: 0px;
-}
-
-#minimap_persp_wrapper #minimap_container,
-#minimap_persp_wrapper #minimap_frame
-{
-	width: 400px;
-	height: 400px;
-}
-
-/* Build 6722 pushes the container 80px down (room for #minimap_hints inside a
-   520px-tall #minimap_persp). Our persp is exactly the container size (the size
-   slider sets both), so the offset would push the map out of its own box. */
-#minimap_persp_wrapper #minimap_container
-{
-	margin-top: 0px;
-}
-
-.gDetailView #minimap_persp,
-.gScoreboardOpen #minimap_persp
-{
-	width: 400px;
-	height: 400px;
-	vertical-align: top;
-	horizontal-align: left;
-	opacity: 1;
-}
-
-.gDetailView #minimap_persp #minimap_container,
-.gScoreboardOpen #minimap_persp #minimap_container,
-.gDetailView #minimap_persp #minimap_frame,
-.gScoreboardOpen #minimap_persp #minimap_frame
-{
-	width: 400px;
-	height: 400px;
-}
-
-/* Prevent engine opacity:.5 on TAB. */
-#minimap_persp_wrapper.gDetailView #minimap_persp,
-#minimap_persp_wrapper.gScoreboardOpen #minimap_persp,
-#minimap_persp.gDetailView,
-#minimap_persp.gScoreboardOpen
-{
-	opacity: 1;
-}
-
 
 /* ===== BetterMap: Minimalist minimap (BmMinimalMap) - keep only the map layers ===== */
 #hud_minimap.BmMinimalMap
@@ -1952,7 +1993,8 @@
 /* Edge vignette (native opacity-mask). Only when the minimap shows the UNDERGROUND
    (build 6722 sets is_underground on #hud_minimap itself - same class our POI code reads).
    Masks the whole viewport (#hud_minimap), NOT the panned image layer - masking that
-   misaligns with the view and hides it. Surface view is untouched.
+   misaligns with the view and hides it. Surface view is untouched. Our overlay lives inside
+   #hud_minimap, so its markers fade at the edges with the engine's own.
    (The rule that hid Valve's decorative inner layers - flat background, zipline lanes,
    neutral/upper overlays - is gone with those layers: 6722 draws the map as three
    plain images, backgroundImage1..3, which ARE the map.) */
@@ -1966,8 +2008,8 @@
 
 /* ===== BetterMap: keep the mid-boss tracker above player markers ===== */
 /* Valve puts Midboss at z-index 4, players at 11-24, so a crowded mid lane
-   hides the boss tracker. Lift it clear above every player marker. The urn
-   tracker (own overlay) sits at the same level. */
+   hides the boss tracker. Lift it clear above every player marker. Our overlay
+   (urn tracker, POI markers) sits above all engine markers (.bm_overlay). */
 .map_button.mid_boss
 {
 	z-index: 30;

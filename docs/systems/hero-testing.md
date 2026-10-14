@@ -9,9 +9,9 @@
 > ### This feature is no longer in the pack
 > Its four files are deleted on branch `fix/remerge-6722` (staged, not yet committed on 2026-09-30).
 > With no file at `panorama/layout/hud_hero_testing.xml` the game loads Valve's own layout and
-> stylesheet. What is left in the tree — `<CitadelHudHeroTesting id="hud_hero_testing" />` in
-> `hud.xml` and the `#hud_hero_testing` rules in `hud.css` / `base/hud.css` — is Valve's own markup and
-> stays. The page is kept so the reason, and the crash behind it, stay findable.
+> stylesheet. `<CitadelHudHeroTesting id="hud_hero_testing" />` sits in Valve's own `hud.xml` (the pack
+> ships no `hud.xml` since 2026-10-14), and the `#hud_hero_testing` rules in `hud.css` /
+> `base/hud.css` are Valve's. The page is kept so the reason, and the crash behind it, stay findable.
 
 ## Today: Valve's own testing menu, shown in the hideout
 

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_settings_nav.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_settings_nav.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -9,8 +9,9 @@
 // BetterMap's entries in the sidebar of Valve's settings window, and what C++ does for its own
 // sections but cannot do for ours, which it does not know (spec
 // docs/specs/2026-10-07-runtime-settings-injection.md R5; probe runs 2-3):
-//   - a section entry after Game's pair, then our own sub-navigation with one entry per
-//     subsection, stamped from Valve's snippets (C++ clips anything added to its own, run 2);
+//   - a section entry at the end of the sidebar, as our section ends the body (owner 2026-10-07),
+//     then our own sub-navigation with one entry per subsection, stamped from Valve's snippets
+//     (C++ clips anything added to its own, run 2);
 //   - while our section is current (it crosses CURRENT_LINE of the viewport) our entry and the
 //     current subsection's entry are selected, our sub-navigation is open and the one C++ opened
 //     is collapsed. C++ keeps selecting the section it thinks current (run 3: 12 of 19 take-overs
@@ -24,8 +25,6 @@
 var QolLiteMapSettingsNav = (function () {
     var NAV_ID = "SettingsNavigationButtonsContainer";
     var BODY_ID = "SettingsBody";
-    var GAME_LABEL_TOKEN = "#citadel_settings_game";
-    var LABEL_CLASS = "SettingsNavigationButtonText";
     var SECTION_RADIO_CLASS = "SettingsNavigationButton";        // the RadioButton of SettingsSectionNavigationButton
     var SUBNAV_CLASS = "SettingsSectionSubNavigationContainer";
     var SECTION_SNIPPET = "SettingsSectionNavigationButton";
@@ -63,12 +62,6 @@ var QolLiteMapSettingsNav = (function () {
         return null;
     }
 
-    function _gameHolder(nav) {
-        var want = $.Localize(GAME_LABEL_TOKEN), labels = nav.FindChildrenWithClassTraverse(LABEL_CLASS);
-        for (var i = 0; i < labels.length; i++) { if (labels[i].text === want) { return _holder(nav, labels[i]); } }
-        return null;
-    }
-
     function _stamp(parent, id, snippet) {
         var p = $.CreatePanel("Panel", parent, id);
         p.BLoadLayoutSnippet(snippet);
@@ -90,10 +83,7 @@ var QolLiteMapSettingsNav = (function () {
         var gen = ++_gen;
         _s = null;
         var nav = win.FindChildTraverse(NAV_ID), body = win.FindChildTraverse(BODY_ID);
-        var game = _gameHolder(nav);
-        if (!game) { QolLiteMapLog.error("nav: no Game entry in the sidebar - our entries go last"); }
         var entry = _stamp(nav, "bm_nav_section", SECTION_SNIPPET);
-        if (game) { nav.MoveChildAfter(entry, _subnavAfter(nav, game) || game); }
         entry.SetDialogVariable("section_name", QolLiteMapSchema.section().title);
         var icon = entry.FindChildTraverse(ICON_ID);
         if (icon) { icon.SetImage(ICON); }
@@ -170,7 +160,20 @@ var QolLiteMapSettingsNav = (function () {
         _log("current: Valve's section again");
     }
 
+    // Our entry and sub-navigation stay the sidebar's last two children. In a match Valve's Game
+    // entry was not found when we mounted (in-game 2026-10-07), so C++ may still be filling the
+    // sidebar then; whatever it adds later goes above ours.
+    function _keepLast() {
+        var nav = _s.nav, n = nav.GetChildCount();
+        if (n >= 2 && nav.GetChild(n - 2) === _s.entry && nav.GetChild(n - 1) === _s.subnav) { return; }
+        var last = nav.GetChild(n - 1);
+        if (last !== _s.subnav) { nav.MoveChildAfter(_s.subnav, last); }
+        nav.MoveChildBefore(_s.entry, _s.subnav);
+        _log("our entries moved back to the end of the sidebar");
+    }
+
     function _sync() {
+        _keepLast();
         var bodyTop = _s.body.GetPositionWithinWindow().y, line = _s.body.actuallayoutheight * CURRENT_LINE;
         var top = _top(_s.section, bodyTop);
         var current = top <= line && top + _s.section.actuallayoutheight > line;

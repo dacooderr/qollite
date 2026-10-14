@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_store.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_store.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -12,8 +12,11 @@
 // They are reached through a hidden CitadelHTMLPanel: requests go out as the URL
 // fragment, and answers come back as the page title (the HTMLTitle event).
 // HUD-only: the HUD exists whenever Settings can open and outlives the settings
-// window, so it is the only writer. When UMM is present it only reads once, for
-// UMM's first register (spec §8.1), and never writes - UMM owns saving.
+// window, so it is the only writer. When UMM is present UMM owns the settings: the
+// store reads once, for UMM's first register (spec §8.1), and then mirrors every value
+// UMM sends (spec 2026-10-14-umm-mirror M1), so the next launch's seed is the last known
+// state - UMM's own token keeps only values that differ from their default, and is lost
+// when UMM changes its storage. It mirrors only after a successful read (M3).
 //
 // Measured in-game (settings probe runs 3-4, docs/knowledge/panorama_notes.md "Browser storage channel"):
 // every request reloads the page (a fresh "ready" each time), every answer
@@ -47,12 +50,13 @@ var QolLiteMapStore = (function () {
     var _seq = 0;
     var _failures = 0;
     var _onLoaded = null;
-    var _seeding = false;     // UMM is installed: one read-only get for its first register (spec §8.1)
+    var _seeding = false;     // UMM is installed: one get for its first register (spec §8.1)
     var _onSeed = null;
+    var _mirror = false;      // UMM is installed and the seed read succeeded: saves mirror UMM's values
 
     function _own(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
     function _log(m) { QolLiteMapLog.log("store: " + m); }
-    function _root() { var r = $.GetContextPanel(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
+    function _root() { return QolLiteMapHud.root(); }
     function _retryDelay() { return RETRY_SEC[Math.min(Math.max(_failures - 1, 0), RETRY_SEC.length - 1)]; }
     function _hasDirty() { for (var k in _dirty) { if (_own(_dirty, k)) { return true; } } return false; }
     function _encodeNow() { return QolLiteMapStoreCodec.encode(QolLiteMapState.values(), _extra); }
@@ -76,13 +80,26 @@ var QolLiteMapStore = (function () {
         if (_onLoaded) { _guard("onLoaded", _onLoaded)(source); }
     }
 
-    // Hands the stored values (or null) to the UMM adapter once, then the store is off.
-    function _finishSeed(values) {
+    // Hands the stored values (or null) to the UMM adapter once. ok: the read succeeded (empty
+    // storage included) - the store then mirrors UMM's values (M1) with the stored record as its
+    // base; otherwise it is off for the session, so a good record is never overwritten (M3).
+    function _finishSeed(values, ok, extra) {
         if (!_seeding) { return; }
         _seeding = false;
         var cb = _onSeed;
         _onSeed = null;
-        disable("UMM is installed", true);
+        // UMM owns the values: no session cache of ours may be applied later (a HUD re-init
+        // under UMM seeds again; the mirror rewrites the cache on its first save).
+        _root().SetAttributeString(CACHE_ATTR, "");
+        _root().SetAttributeString(UNSAVED_ATTR, "");
+        if (ok) {
+            _mirror = true;
+            _loaded = true;
+            _extra = extra || {};
+            _log("mirroring UMM's values");
+        } else {
+            disable("UMM is installed and our stored settings could not be read", true);
+        }
         if (cb) { _guard("onSeed", cb)(values); }
     }
 
@@ -133,7 +150,7 @@ var QolLiteMapStore = (function () {
             var s = QolLiteMapStoreCodec.decode(raw);
             var seed = s.ok && !s.empty ? s.values : null;
             _log(seed ? "read for UMM's first register" : "nothing usable stored for UMM (" + (s.ok ? "empty" : s.reason) + ")");
-            _finishSeed(seed);
+            _finishSeed(seed, s.ok, s.ok ? s.extra : null);
             return;
         }
         var d = QolLiteMapStoreCodec.decode(raw);
@@ -199,10 +216,11 @@ var QolLiteMapStore = (function () {
     }
 
     function _openBridge() {
-        var ctx = $.GetContextPanel();
-        var old = ctx.FindChildTraverse(PANEL_ID);
+        // Under the top root, not under the context panel: that is Valve's HudDataFeed (spec H6).
+        var root = _root();
+        var old = root.FindChildTraverse(PANEL_ID);
         if (old) { old.DeleteAsync(0); }
-        _bridge = $.CreatePanel("CitadelHTMLPanel", ctx, PANEL_ID);
+        _bridge = $.CreatePanel("CitadelHTMLPanel", root, PANEL_ID);
         if (!_bridge) { QolLiteMapLog.error("store: CreatePanel(CitadelHTMLPanel) returned null - no saving this session"); return false; }
         _bridge.hittest = false;
         _bridge.style.width = "0px";
@@ -221,8 +239,8 @@ var QolLiteMapStore = (function () {
         if (_disabled || (typeof QolLiteMapUmmAdapter !== "undefined" && QolLiteMapUmmAdapter.isPresent())) { return; }
         _onLoaded = onLoaded;
         if (_root().FindChildTraverse(UMM_ROOT_ID)) {
-            // One read-only get, so UMM's first register can carry the standalone
-            // values (one-time migration). Nothing is written while UMM is installed.
+            // One get, so UMM's first register can carry our values; after it the store
+            // mirrors UMM's (M1), or stays off if the read failed (M3).
             _seeding = true;
             _onSeed = onSeed || null;
             _log("UMM is installed - one read-only get to seed it");
@@ -312,7 +330,16 @@ var QolLiteMapStore = (function () {
 
     var disable = _guard("disable", _disable);
 
+    // A UMM core answered. A store that is seeding (the answer decides) or already mirroring
+    // keeps going; one that runs standalone - no #UmmRoot when it started, so it never seeded -
+    // turns off and drops its cache, as before the mirror (M4).
+    function _ummPresent() {
+        if (_seeding || _mirror || _disabled) { return; }
+        _disable("UMM core answered", true);
+    }
+    var ummPresent = _guard("ummPresent", _ummPresent);
+
     function isActive() { return !_disabled; }
 
-    return { init: init, save: save, flush: flush, disable: disable, isActive: isActive };
+    return { init: init, save: save, flush: flush, disable: disable, ummPresent: ummPresent, isActive: isActive };
 })();

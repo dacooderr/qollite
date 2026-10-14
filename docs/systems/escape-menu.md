@@ -72,7 +72,7 @@ Labels use `#token` localization, so the added buttons appear in the player's la
 
 ## Known issues
 
-- `hud_escape_menu.xml` is a **full override**. Like `hud.xml`, it must be rebased when Valve changes
+- `hud_escape_menu.xml` is a **full override**. Like every full override, it must be rebased when Valve changes
   the escape menu, or new options will silently disappear
   ([`../PANORAMA.md`](../PANORAMA.md) §1). Worth checking after any patch that touches the menu.
 - `.FeedbackRow #Unstick` in Valve's own sheet no longer matches anything (Unstick left `FeedbackRow` in

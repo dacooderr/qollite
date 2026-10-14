@@ -51,9 +51,11 @@ paints its own sibling panels on top inside `#minimap_overlay_root`. Every QOL L
 this shape.
 
 **Corollary:** a missing or renamed C++ panel type renders **nothing, silently** — there is no load
-failure. Since QOL Lite overrides `hud.xml` wholesale, that override must be **rebased onto the
-current game build** after significant patches, or newly added Valve HUD elements will simply vanish
-for our users with no error anywhere.
+failure. Until 2026-10-14 QOL Lite overrode `hud.xml` wholesale, and that override had to be
+**rebased onto the current game build** after significant patches, or newly added Valve HUD elements
+would vanish for our users with no error — or, when the engine looked one up, crash the game (6722,
+6779). Since BetterMap 3.3 the pack ships no `hud.xml`; the same holds for every other full override
+it still ships.
 
 ---
 

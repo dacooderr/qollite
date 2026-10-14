@@ -22,7 +22,7 @@ work (see [Known issues](#known-issues)).
 
 | Path | Role |
 |---|---|
-| `panorama/scripts/qollite_passive.js` | 2 lines minified — UMM manifest and two class toggles |
+| `panorama/scripts/qollite_passive.js` | 2 lines minified — UMM manifest and two class toggles. Loaded from `hud_data_feed.xml` since 2026-10-14 (before, `hud.xml`); it climbs to the top root either way, so the classes land on the same panel |
 | `panorama/styles/hud_ability_icon_passive.css` | **231 lines** — imports the baseline, adds our rules; since `9935d0c` a second, ungated copy of the rules sits at the top of the file |
 | `panorama/styles/base/hud_ability_icon_passive.css` | 1,322 lines, pristine Valve baseline |
 | `panorama/styles/hud_abilities.css` / `base/hud_abilities.css` | Same pattern — the override is only the `@import` plus rules (17 lines), so Valve's changes arrive through `base/` |

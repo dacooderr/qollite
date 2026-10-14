@@ -138,9 +138,11 @@ CHANGELOG.
 
 - Removed: `minimapCorner`, `poiLevelAuto`, `playerIconScalePct` (split into `is` / `ia` / `ie`).
 - Removed: the QOL Lite delta `minimalMapOpacityPct` ([`BUNDLE.md`](BUNDLE.md) §3).
-- One-time seed: with UMM installed, the adapter's first register waits up to 2 s for values
-  BetterMap's own store had saved without UMM, so a player who adds UMM keeps them. Nothing is
-  written to the store while UMM is present.
+- Seed and mirror: with UMM installed, the adapter's first register waits up to 2 s for values
+  BetterMap's own store holds, so a player who adds UMM keeps them. Since BetterMap 3.3 the store also
+  mirrors every value UMM sends (upstream spec `2026-10-14-umm-mirror`), so the next launch seeds UMM
+  again even after UMM's own storage was reset. If the seed read fails, the store stays off for the
+  session and writes nothing.
 - With UMM present, BetterMap builds nothing into the game's settings window
   (`qollite_map_settings_mount.js`), so there is only one UI. If UMM appears after the section was
   built, `qollite_map_popup.js` hides it.

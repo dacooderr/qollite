@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_icons.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_icons.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -26,10 +26,7 @@ var QolLiteMapIcons = (function () {
     var _applied = {};          // key -> the class currently on #hud_minimap, or null
     var _pollErrLogged = false; // one error line, not one every ZOOM_POLL_SEC
 
-    function _hud() {
-        var ctx = $.GetContextPanel();
-        return ctx ? ctx.FindChildTraverse(HUD_ID) : null;
-    }
+    function _hud() { return QolLiteMapHud.find(HUD_ID); }
 
     function _pct(e) {
         var v = QolLiteMapSchema.sanitize(e.key, QolLiteMapState.get()[e.key]);

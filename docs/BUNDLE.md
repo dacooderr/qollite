@@ -56,7 +56,7 @@ that combines them exists only here and has no upstream:
 
 | What | Files |
 |---|---|
-| The merged HUD | `panorama/layout/hud.xml` — carries Valve's tree plus panels from several features at once |
+| The HUD entry | `panorama/layout/hud_data_feed.xml` — BetterMap's script list plus the `qollite_passive` include. Until 2026-10-14 the merged HUD was a full `hud.xml` override; it is no longer shipped |
 | The merged top bar | `panorama/layout/citadel_hud_top_bar.xml` — hosts Top Bar Plus and the two Map Event Reminders bridges |
 | The `base/` pattern | `panorama/styles/base/**`, `topbar_rank_base/**` and the overrides that import them ([`ARCHITECTURE.md`](ARCHITECTURE.md) § The `base/` pattern) |
 | Path arbitration | Deciding which feature owns which Valve path ([`systems/README.md`](systems/README.md) § Ownership map) |
@@ -100,13 +100,35 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.2.2 plus the runtime settings mount** at commit **`5ac7816`**
-  (`5ac78165b13cb121b264f5362e9fe7b3dd013480`, "docs(release): 3.3 draft - store text, page
-  description and changelog"), upstream branch `feat/runtime-settings`, **not yet merged to upstream
-  `main`** and not a released BetterMap version (its CHANGELOG calls it a 3.3 draft). Bundled
-  2026-10-07 at the maintainer's request, so that QOL Lite stops overriding Valve's settings window
-  for BetterMap. The branch starts at `3ad1ca1` (3.2.2); re-bundle from `main` once it is merged.
-  - What the runtime settings mount changes for QOL Lite:
+- **Bundled version:** BetterMap **3.3** (upstream CHANGELOG, 2026-10-14) at commit **`a9f121a`**
+  (`a9f121acc63469690339f3c5325a97d99e1368ac`, "Merge feat/hud-runtime-entry: BetterMap 3.3 - no
+  replaced HUD or settings window, game build 6779"), upstream `main`. Bundled 2026-10-14.
+  - What 3.3 changes for QOL Lite:
+    - **BetterMap no longer overrides `hud.xml` or `hud.css`.** Its scripts load from an entry
+      layout, `panorama/layout/hud_data_feed.xml` (Valve's 9-line `hud_data_feed.xml` + the script
+      list), and the new `qollite_map_hud.js` (`QolLiteMapHud`) builds at runtime what `hud.vxml`
+      used to declare: `#minimap_persp_wrapper` (Valve's `#minimap_persp` moved into it), the overlay
+      `#minimap_overlay_root` inside `#hud_minimap`, and the inline styles BetterMap's `hud.vcss`
+      rules gave panels outside the minimap. **QOL Lite drops its `hud.xml` override with it**: the
+      file held nothing else of QOL Lite's but the `qollite_passive` include, which moved to
+      `hud_data_feed.xml`. The game loads Valve's own `hud.xml` again, so a HUD id the engine looks
+      up can no longer be missing from an override of ours (6722, 6779).
+    - BetterMap's rules leave `hud.css` (27 blocks and the global `Button` reset, back to Valve's
+      values); `hud.css` keeps only QOL Lite's own rules. `hud_minimap.css` is upstream's, now
+      generated in full from Valve's 6779 sheet plus BetterMap's block.
+    - The settings section moves to the **bottom** of the window; its subsections carry plain titles
+      ("Minimap", "Minimap Icons", "Map Objects").
+    - **Under UMM, BetterMap's own store now writes**: it mirrors every value UMM sends (upstream
+      spec `docs/specs/2026-10-14-umm-mirror.md`), so settings survive UMM's new storage. Before 3.3 it
+      only read once; the network disclosure (§4, README) changes with it.
+    - Map Opacity fades BetterMap's markers too; Minimap Size applies at most every 0.15 s while
+      dragged; map objects for game build 6779.
+    - Upstream's author checked it in game on 6779 — hideout, bot matches, TAB / Alt, POI markers,
+      death, the Sapphire side, a release build with DEBUG off (upstream spec
+      `docs/specs/2026-10-07-hud-runtime-entry.md` §9). This bundle of it was not checked in game.
+  - Previously bundled: **`5ac7816`** (3.2.2 plus the runtime settings mount, upstream branch
+    `feat/runtime-settings`, 2026-10-07; merged upstream into 3.3).
+  - What the runtime settings mount changed for QOL Lite:
     - BetterMap's settings are **its own section "Minimap" after Game**, with a sidebar entry and
       three sub-entries, built into each settings window instance from the HUD with
       `$.CreatePanel`. Valve's window is no longer overridden for BetterMap: its `<scripts>` block
@@ -162,11 +184,12 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `docs/specs`, "in-game run 3"). This bundle of it was not checked in game.
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_bettermap.py`
-- **Files:** `panorama/scripts/qollite_map_*.js` (25, readable source: 24 loaded by the HUD,
-  `overlay` by the overlay), `panorama/layout/hud.xml` (shared),
-  `panorama/layout/citadel_hud_and_db_overlay.xml`
-  (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2), BetterMap's
-  rules in `panorama/styles/hud.css`, `panorama/images/minimap/base/bm_vignette_png.*`
+- **Files:** `panorama/scripts/qollite_map_*.js` (26, readable source: 25 loaded by the HUD entry
+  layout, `overlay` by the overlay), `panorama/layout/hud_data_feed.xml` (3.3, the HUD entry layout,
+  shared with the `qollite_passive` include), `panorama/layout/citadel_hud_and_db_overlay.xml`
+  (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2),
+  `panorama/images/minimap/base/bm_vignette_png.*`. Since 3.3 nothing of BetterMap's is in
+  `hud.xml` (no longer shipped) or `hud.css`.
 - **Merge-layer files, compared by hand at `0237ebe`.** At 3.1 and 3.2 `popup_settings.xml` was
   merged again the same way, with base upstream's previous file; zero conflicts both times. At 3.2
   `hud_minimap.css` was taken verbatim again; `hud.vxml` and `hud.vcss` did not change upstream.
@@ -181,6 +204,15 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   Valve's 6759 file only by the decompiler header, the `.vcss_c` style includes, the 4×3 button and the
   FOV row; `hud_minimap.css`, `hud.css` and the overlay did not change upstream. The two bullets
   below on `popup_settings.xml` describe how it was merged up to 3.2.2.
+  At `a9f121a` (3.3, 2026-10-14): `hud.xml` is deleted. `hud_data_feed.xml` is upstream's generated
+  file with the script names renamed by the bundler's table and one QOL Lite line,
+  `qollite_passive.vjs_c` after the bootstrap; its body equals Valve's 6779 `hud_data_feed.xml` (the
+  header and the `.vcss_c` form aside). `hud.css` lost every BetterMap block, classified rule by rule
+  against BetterMap's last `hud.vcss` (`5ac7816`) and Valve's 6779 sheet: what stays is Valve's 6779
+  sheet, every line of it, plus seven QOL Lite rules (passives ×3, 4×3 ×2,
+  `#objectives_health_friendly`, `.InHideout #TopBar.gShopOpen`). `hud_minimap.css` is upstream's
+  verbatim. The overlay did not change upstream. The three `neutral_*_custom_png` images went with
+  the `.dmm_custom_*` rules that were their only reference (upstream dropped both, spec H8).
   - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
     stylesheet and script names are QOL Lite's (`qollite_map_overlay.*`). The first line is the
     decompiler header every layout here starts with, which `scripts/rebase_overrides.py` expects,
@@ -189,11 +221,9 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `bettermap_overlay.vcss`, with the script name in its comments renamed.
   - Upstream's `tests/overlay_layout.test.js` "the committed override is the generator's output"
     fails on this file by design; the structural tests of the same file pass.
-  - `hud.xml` is upstream's `hud.vxml` with the bundled script names and the `qollite_passive`
-    include, nothing else — **except since 2026-10-14**: QOL Lite rebased it onto game build 6779
-    before upstream did (a start-up crash, [`ARCHITECTURE.md`](ARCHITECTURE.md) §9), so it also carries
-    Valve's 6779 additions (`#LoadInFadeCover`, `#zipline_disabled`, `#MinimapTip1`–`3`). Upstream's
-    next rebase should bring the same; the next re-bundle compares against it.
+  - `hud.xml` (until 3.3, deleted at `a9f121a`) was upstream's `hud.vxml` with the bundled script
+    names and the `qollite_passive` include, plus, for one day, Valve's 6779 additions QOL Lite took
+    before upstream (`#LoadInFadeCover` and others, [`ARCHITECTURE.md`](ARCHITECTURE.md) §9).
   - `popup_settings.xml` is a 3-way merge: base Valve 6730, ours (4×3 button, FOV row), theirs
     upstream's generated `popup_settings.vxml` with its four script names renamed. Zero conflicts. The
     result differs from upstream's only by our two hunks, and from ours only by upstream's `<scripts>`
@@ -205,10 +235,11 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   - `hud.css` takes upstream's 3.0 changes by 3-way merge: the removed Settings-button rules, two
     `hittest` lines, and the `#hudActivePlayerStats` lines the 6730 rebase had already brought in. It
     still carries QOL Lite's own rules (4×3, passives, `#objectives_health_friendly`).
-- **Re-bundling:** run the bundler, then bring `hud.xml`, `hud_minimap.css`, `hud.css` and
-  `citadel_hud_and_db_overlay.xml` in line with upstream's files at the new commit. Since `5ac7816`
-  a schema change upstream needs no layout merge: the settings section is built from the schema at
-  runtime. `popup_settings.xml` holds nothing of BetterMap's.
+- **Re-bundling:** run the bundler, then bring `hud_data_feed.xml` (upstream's script list, renamed,
+  plus the `qollite_passive` line), `hud_minimap.css` (verbatim) and `citadel_hud_and_db_overlay.xml`
+  in line with upstream's files at the new commit. A schema change upstream needs no layout merge:
+  the settings section is built from the schema at runtime. Neither `popup_settings.xml` nor
+  `hud.css` holds anything of BetterMap's.
 - **Docs:** [`systems/minimap.md`](systems/minimap.md)
 
 **Transformation** (the bundler's `FILES` table is the rule): `bettermap_<x>.js` →
@@ -219,7 +250,8 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
 verbatim, because CSS, layouts and saved settings match them: the `[BetterMap]` log prefix, UMM id
 `bettermap` and name `BetterMap`, `bm_*` / `Bm*` classes and ids, the `bettermap_*` ids of the
 section (`bettermap_section`) and subsections the mount creates, the `bm_mount` attribute it puts on
-each window. Not minified. The bundler fails if upstream has a
+each window, the ids `QolLiteMapHud` gives the panels it builds (`#minimap_persp_wrapper`,
+`#minimap_overlay_root`, `#minimap_markers`, `#minimap_urn_host`, class `bm_overlay`). Not minified. The bundler fails if upstream has a
 script `FILES` does not list, or `FILES` lists one upstream no longer has.
 
 **QOL Lite local delta — the credit text (since 3.2).** `citadel_hud_and_db_overlay.xml` says
@@ -349,7 +381,7 @@ rows; the Statlocker buttons send nothing until clicked:
 |---|---|---|---|
 | Friends Rank ([§5](#5-unattributed)) | `api.deadlock-api.com/v1/players` | Automatically, as rank-badge image requests when the profile page or a profile card resolves a player (`friends_rank.js`; the post-game scripts only link to Statlocker) — the exact triggers were not audited | The resolved account id |
 | Friends Rank's Statlocker buttons ([Statlocker](systems/statlocker.md)) | `statlocker.gg/profile` | Only when the user clicks | The profile's account id |
-| Minimap's standalone saving ([minimap](systems/minimap.md); BetterMap's own page, repo `gfkm/bettermap-storage`) | `gfkm.github.io/bettermap-storage/` | **Without UMM:** a hidden `CitadelHTMLPanel` loads the page at every HUD load, and again for each save. Saves happen when the settings window closes or 3 s after the last change. Retries at 5 / 15 / 45 s while the page is unreachable, then every 45 s. **With UMM:** at every HUD load, one page load and one read for a one-time migration into UMM; the panel is deleted when that read answers or the adapter stops waiting (`SEED_WAIT_SEC`, 2 s), and nothing is written (`qollite_map_store.js`, `qollite_map_umm_adapter.js`) | Nothing is sent as a request body: the settings record travels in the URL fragment and stays in the embedded browser's `localStorage` for that origin. The page load itself is an ordinary request to GitHub Pages |
+| Minimap's standalone saving ([minimap](systems/minimap.md); BetterMap's own page, repo `gfkm/bettermap-storage`) | `gfkm.github.io/bettermap-storage/` | **Without UMM:** a hidden `CitadelHTMLPanel` loads the page at every HUD load, and again for each save. Saves happen when the settings window closes or 3 s after the last change. Retries at 5 / 15 / 45 s while the page is unreachable, then every 45 s. **With UMM (since BetterMap 3.3, 2026-10-14):** at every HUD load, one page load and one read, which seeds UMM's first register; if that read succeeds, the panel stays and every value UMM sends is written back to the page — the same 3 s idle save — so the next launch can seed UMM again (UMM keeps only non-default values and lost them when it changed its storage). If the read fails, the store turns off for the session and writes nothing (`qollite_map_store.js`, `qollite_map_umm_adapter.js`) | Nothing is sent as a request body: the settings record travels in the URL fragment and stays in the embedded browser's `localStorage` for that origin. The page load itself is an ordinary request to GitHub Pages |
 
 Show Rank, which requested badges for every player in every match, was removed in `ecdacbb`. The
 Friends Rank requests need the same disclosure in the README and an opt-out — see
@@ -367,7 +399,7 @@ files:
 | [Leaderboard search](systems/leaderboard-search.md) | Not listed in the README either |
 | [Escape menu queuing](systems/escape-menu.md) | README: "Menu (for queuing while in Custom Servers or Hideout)" |
 | 4×3 option and fix | Plausibly first-party; treated as merge-layer in [§2](#2-first-party--the-merge-layer) pending confirmation |
-| Minimap texture replacements | Neutral-camp icons and the tunnels overlay. The tunnels overlay is QOL Lite-only (not in upstream BetterMap) and has been referenced by nothing since the 6722 update; the neutral icons' `dmm_custom_*` rules match nothing, here or upstream ([`TECH_DEBT.md`](TECH_DEBT.md) §4). BetterMap's own texture, `base/bm_vignette_png`, is recorded in [§3](#3-first-party--our-own-mods) |
+| Minimap texture replacements | The tunnels overlay: QOL Lite-only (not in upstream BetterMap) and referenced by nothing since the 6722 update ([`TECH_DEBT.md`](TECH_DEBT.md) §4). The neutral-camp icons were deleted with their `dmm_custom_*` rules at the BetterMap 3.3 re-bundle (2026-10-14). BetterMap's own texture, `base/bm_vignette_png`, is recorded in [§3](#3-first-party--our-own-mods) |
 | Vindicta Scope Downscale | `panorama/images/hud/crosshair/scope_common_psd.png` plus its entry in `panorama/image_compiler.vdata`, re-added in `fb74e00` ("re-added Vindicta Scope Downscale"). Author not recorded |
 | **Friends Rank** ("Show Player/Friends Ranks") | Added in `27087ae`, updated in `ac24ca8`. `friends_rank*.js` (readable, `version: 16`), `friends_rank*.css`, `images/friends_rank/`, and edits to `citadel_db_page_profile.xml`, `profile_card.xml` and both post-game layouts. Its `post_game/citadel_db_post_game_team.xml` edits (the MVP-card button) carry an open crash risk, cause unknown ([`TECH_DEBT.md`](TECH_DEBT.md) D17). Calls `api.deadlock-api.com` (§4 Third-party services). **No author, upstream or license recorded, and no page under `systems/` yet** |
 | `panorama/styles/hud_event_indicator.css` | Damage-number / floating-indicator restyle: `.WindowRoot` offset (`margin-left: 50px; margin-top: -100px`), `.batched` numbers at 80 px red with a 20 px yellow glow, fountain keyframes rising straight up (every `translateX` → 0), `pop` dropped from the cumulative animation. Present since the `959f80e` import; no doc, README entry or commit message names it, no script references its classes. Rebased onto 6722 edit by edit (Valve's longer lifetimes kept) |

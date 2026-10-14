@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_umm.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_umm.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -9,8 +9,11 @@
 // Universal Mod Manager (UMM) adapter.
 //
 // When a UMM core is present it hosts BetterMap's settings as a tab in its shared
-// window AND owns persistence: our standalone store and our subsection in Valve's
-// settings window step aside (spec docs/specs/2026-10-01-native-settings.md D5).
+// window AND owns persistence: our subsection in Valve's settings window steps aside
+// (spec docs/specs/2026-10-01-native-settings.md D5). Our own store keeps a mirror of
+// every value UMM sends (spec docs/specs/2026-10-14-umm-mirror.md M1): it seeds the
+// next launch's first register, so values UMM did not save - its v2 token keeps only
+// non-default values, and an update of UMM lost every saved token - come back.
 // Standalone is unaffected: without UMM this module never hears back.
 //
 // Protocol, verified against the decompiled core
@@ -21,9 +24,9 @@
 //   core -> mod   {umm:1, t:"set", id, key, value}
 // Right after a register the core replays its session values as `set`; a returning
 // player's saved values arrive later, in its restore, as `set` too - only for mods
-// registered by then (umm_core.js:1365-1389). We just apply what we're told. With
-// UMM installed the first register waits up to SEED_WAIT_SEC for our stored values
-// (one-time migration, spec §8.1).
+// registered by then (umm_core.js:1365-1389; the 2026-10 UMM: adoptPreserved). We just
+// apply what we're told. With UMM installed the first register waits up to SEED_WAIT_SEC
+// for our stored values (the seed, spec §8.1), which the mirror keeps current.
 // The manifest is built from QolLiteMapSchema; widget values are in shown units.
 var QolLiteMapUmmAdapter = (function () {
     var CHANNEL = "ClientUI_FireOutput";
@@ -43,7 +46,7 @@ var QolLiteMapUmmAdapter = (function () {
     var _present = false;
     var _waitingSeed = false;
 
-    function _root() { var r = $.GetContextPanel(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
+    function _root() { return QolLiteMapHud.root(); }
 
     function _send(payload) {
         try { $.DispatchEvent(CHANNEL, JSON.stringify(payload)); } catch (e) {}
@@ -88,15 +91,18 @@ var QolLiteMapUmmAdapter = (function () {
         QolLiteMapState.patch(patch);
         // Only what this key affects: a UMM slider drag sends a set per step.
         QolLiteMapApply.key(e.key);
+        // The mirror (M1): the store coalesces a drag into one write after its idle delay.
+        QolLiteMapStore.save([e.key]);
         QolLiteMapLog.log("umm: set " + id + " = " + value);
     }
 
     function _markPresent() {
         if (_present) { return; }
         _present = true;
-        QolLiteMapLog.info("umm: core present - settings and saving go through UMM");
-        // While the seed read runs, the store turns itself off when it answers.
-        if (!_waitingSeed) { QolLiteMapStore.disable("UMM core answered", true); }
+        QolLiteMapLog.info("umm: core present - settings and saving go through UMM, mirrored by our store");
+        // The store decides: it keeps mirroring after a successful seed read, and turns off
+        // if it ran standalone (no #UmmRoot at init, so no seed was read - M4).
+        QolLiteMapStore.ummPresent();
     }
 
     function _onMessage(payload) {
@@ -128,8 +134,8 @@ var QolLiteMapUmmAdapter = (function () {
         _endSeed("no stored values within " + SEED_WAIT_SEC + " s");
     }
 
-    // Spec §8.1 (one-time migration): the standalone values become the first
-    // register's `values`. UMM still prefers what it saved itself: its restore
+    // Spec §8.1: our stored values (mirrored from UMM, spec 2026-10-14-umm-mirror) become
+    // the first register's `values`. UMM still prefers what it saved itself: its restore
     // overrides them, and a value already in its session beats a register
     // (umm_core.js:1810-1811). values: sanitised stored values, or null.
     // The seed runs on every HUD init while UMM is installed, not once. For the colours
