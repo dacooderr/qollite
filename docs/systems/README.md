@@ -61,7 +61,8 @@ table** — two features cannot both ship the same path.
 | `layout/hud_escape_menu.xml` | [Escape menu](escape-menu.md) |
 | `layout/citadel_hud_hero_shop.xml`, `styles/citadel_hud_hero_shop.css` | [Recent purchases](recent-purchases.md) (the stylesheet also carries [4×3](aspect-ratio-4x3.md) rules) |
 | `layout/hud_quickbuy.xml`, `hud_quickbuy_entry.xml` | [Quickbuy](quickbuy.md) |
-| `layout/hud_hero_testing.xml`, `styles/hero_testing_menu.css` | **not shipped** — Valve's own files load since [hero testing](hero-testing.md) was removed; an override here must keep every id the engine reads ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10) |
+| `layout/hud_hero_testing.xml` | **not shipped** — Valve's own layout loads since [hero testing](hero-testing.md) was removed; an override here must keep every id the engine reads ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §10) |
+| `styles/hero_testing_menu.css` | Valve's testing menu shown in the hideout ([hero testing](hero-testing.md) § Today) — Valve's stylesheet with QOL Lite rules, since `d2d43a5` |
 | `layout/citadel_db_page_training.xml` | unattributed — the Resources-page grid |
 | `layout/citadel_hud_koth.xml` | added in `5adefb4` ("potential fix for lingering rift pop-up"); no feature page |
 | `layout/popups/citadel_popup_global_leaderboard.xml` | [Leaderboard search](leaderboard-search.md) |
