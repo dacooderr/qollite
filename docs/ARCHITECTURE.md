@@ -114,7 +114,7 @@ Quick Commend, `b2c12cc`) are not in the table yet:
 
 | Layout | Scripts | Feature |
 |---|---|---|
-| `hud.xml` | `qollite_map_*` ×24 — four of them build and run BetterMap's section in Valve's settings window from the HUD (runtime settings mount, upstream `5ac7816`, 2026-10-07) — and `qollite_passive` | [minimap](systems/minimap.md), [passives](systems/passives.md) |
+| `hud_data_feed.xml` | `qollite_map_*` ×25 — BetterMap's HUD modules, `QolLiteMapHud` among them, which builds the minimap structure at runtime, and the four that run its section in Valve's settings window — and `qollite_passive` (BetterMap 3.3, 2026-10-14; before it, `hud.xml`, no longer shipped) | [minimap](systems/minimap.md), [passives](systems/passives.md) |
 | `citadel_hud_and_db_overlay.xml` | `qollite_map_overlay` — Valve's always-on overlay, its own context (BetterMap 3.2, 2026-10-04) | [minimap](systems/minimap.md) |
 | `base_hud_and_db_overlay.xml` | `qollite_notifications_*` ×9 | [event reminders](systems/event-reminders.md) |
 | `citadel_hud_top_bar.xml` | `qollite_topbar`, `qollite_notifications_clock_bridge`, `qollite_notifications_urn_detector` | [top bar](systems/top-bar.md), [event reminders](systems/event-reminders.md) |
@@ -321,7 +321,7 @@ anchor no longer matches exactly once. `--check` compares without writing (exit 
 Offline tests: `python scripts/test_bundle.py`, `python scripts/test_rebase_overrides.py`.
 
 **What the bundlers do not touch:** the layouts and stylesheets a first-party mod also needs —
-`hud.xml`'s script list, `citadel_hud_and_db_overlay.xml`, `hud_minimap.css`, the BetterMap rules in `hud.css`,
+`hud_data_feed.xml`'s script list, `citadel_hud_and_db_overlay.xml`, `hud_minimap.css`,
 `base_hud_and_db_overlay.xml`, `notif.css`. Those live in the merge layer and are updated by hand
 against upstream's own copies; [`BUNDLE.md`](BUNDLE.md) §3 records what was compared.
 
@@ -500,8 +500,8 @@ two of them polled for it at ~17 Hz and 4 Hz. Fixed upstream in BetterMap, then 
 ### 8. Re-bundle the first-party mods
 
 Pull the upstream commits that target the new build and run `bundle_bettermap.py` /
-`bundle_mer.py` (§8), then bring the merge-layer files (`hud.xml`, `citadel_hud_and_db_overlay.xml`,
-`hud_minimap.css`, `hud.css`) in line with upstream's own copies by hand ([`BUNDLE.md`](BUNDLE.md) §3
+`bundle_mer.py` (§8), then bring the merge-layer files (`hud_data_feed.xml`,
+`citadel_hud_and_db_overlay.xml`, `hud_minimap.css`) in line with upstream's own copies by hand ([`BUNDLE.md`](BUNDLE.md) §3
 says how each one is merged). Record the new commits in [`BUNDLE.md`](BUNDLE.md) §3.
 
 ### 9. Trap: a local tree pasted over a merged one reverts it silently
@@ -597,3 +597,12 @@ compiles them:** `panorama/scripts/qollite_map_settings_nav.js` and
 switches off all of BetterMap (`boot: gave up after 20 attempts`). `popup_settings.xml` must be
 recompiled too: an old compiled copy still loads BetterMap's former window scripts and carries the
 old subsections next to the mounted section (inferred, not tried).
+
+**BetterMap 3.3 (2026-10-14) — files to compile and to clean out of the build output.** Compile the
+new `panorama/layout/hud_data_feed.xml` and `panorama/scripts/qollite_map_hud.js` (the bootstrap
+waits for `QolLiteMapHud`; without it all of BetterMap is off). `panorama/layout/hud.xml` and the
+three `panorama/images/minimap/base/neutral_*_custom_png.*` images are deleted: **remove their compiled
+copies from the build output too** (`hud.vxml_c`, `neutral_*_custom_png.vtex_c`). A stale
+`hud.vxml_c` would keep overriding Valve's HUD with the old static wrapper and overlay, which
+`QolLiteMapHud` would then wrap a second time (inferred, not tried), and it would bring back the
+start-up crash class of 6722 / 6779.

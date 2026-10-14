@@ -42,8 +42,7 @@ models/
 particles/abilities/engineer/                      7 .vpcf replacements
 
 panorama/images/minimap/
-├── qollite_tunnels.png / .vtex                    1024², 780 KB — referenced by nothing
-└── base/neutral_{large,medium,vault}_custom_png.*  rules match nothing
+└── qollite_tunnels.png / .vtex                    1024², 780 KB — referenced by nothing
 
 panorama/images/hud/crosshair/scope_common_psd.png   Vindicta scope
 panorama/image_compiler.vdata                        lists it for compilation
@@ -92,9 +91,10 @@ same principle.
 
 ### Minimap textures
 
-`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*` were meant to restyle
-neutral-camp markers, but they are referenced only by `.dmm_custom_neutral_*_icon` rules in `hud.css`,
-and nothing sets a `dmm_custom_*` class. `materials/minimap/neutral_vault.png` is referenced by nothing.
+`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*`, meant to restyle
+neutral-camp markers, were deleted on 2026-10-14 together with the `.dmm_custom_neutral_*_icon` rules,
+their only reference, which nothing ever activated (BetterMap 3.3 re-bundle).
+`materials/minimap/neutral_vault.png` is referenced by nothing.
 `qollite_tunnels.png` was the tunnel overlay for the minimap's minimalist mode; its rule targeted
 Valve's `.map_button.shop_tunnel`, a class 6711 removed, and was dropped at the 6722 rebase — so the
 single largest file in `panorama/` (1024², 780 KB) now ships unused
@@ -119,8 +119,8 @@ single largest file in `panorama/` (1024², 780 KB) now ships unused
 - **These files go stale silently.** If Valve updates the wall model or the vault materials, our
   replacements keep overriding with the old version and users see outdated art with no error. Add an
   after-patch check.
-- `qollite_tunnels.png` (780 KB) and the neutral-icon textures ship unused — delete, or restore a
-  6722 equivalent for the tunnels overlay ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
+- `qollite_tunnels.png` (780 KB) ships unused — delete, or restore a 6722 equivalent for the
+  tunnels overlay ([`../TECH_DEBT.md`](../TECH_DEBT.md) §4).
 
 ---
 

@@ -1,13 +1,13 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_settings_mount.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_settings_mount.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
 // comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Mounts BetterMap's settings into Valve's settings window at runtime: our own section after
-// Game, one subsection per schema group, its rows and controls built from the schema (spec
+// Mounts BetterMap's settings into Valve's settings window at runtime: our own section at the
+// bottom (owner 2026-10-07: its place depends on no Valve section), one subsection per schema group, its rows and controls built from the schema (spec
 // docs/specs/2026-10-07-runtime-settings-injection.md). Valve's window is not overridden, so
 // a game update that changes it cannot crash it through us: at worst our section is missing (R6).
 // Every panel is made with $.CreatePanel from this (HUD) context: a C++ settings type in our own
@@ -21,7 +21,7 @@ var QolLiteMapSettingsMount = (function () {
     var POPUP_MANAGER_ID = "PopupManager";
     var BODY_ID = "SettingsBody";
     var NAV_ID = "SettingsNavigationButtonsContainer";
-    var GAME_SECTION_ID = "citadel_settings_game";
+    var FOOTER_ID = "SettingsFooter";    // the body's last child in Valve's layout (6759); ours goes before it
     var FIRST_COLUMN_ID = "SettingsSubsectionFirstColumn";
     var ROW_CONTENT_ID = "SettingsRowContent";
     // Snippets of Valve's popup_settings.xml: loaded by the types created here
@@ -44,11 +44,9 @@ var QolLiteMapSettingsMount = (function () {
     function _error(m) { QolLiteMapLog.error("mount: " + m); }
     function _msg(e) { return e && e.message ? e.message : String(e); }
 
-    function _topRoot() { var r = $.GetContextPanel(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
-
     function _window() {
         if (!_manager || !_manager.IsValid()) {
-            _manager = $.GetContextPanel().FindChildTraverse(POPUP_MANAGER_ID) || _topRoot().FindChildTraverse(POPUP_MANAGER_ID);
+            _manager = QolLiteMapHud.find(POPUP_MANAGER_ID);
             if (!_manager) { return null; }
         }
         for (var i = 0; i < _manager.GetChildCount(); i++) {
@@ -142,7 +140,7 @@ var QolLiteMapSettingsMount = (function () {
     }
 
     function _missing(win) {
-        var out = [], anchors = [BODY_ID, NAV_ID, GAME_SECTION_ID], i;
+        var out = [], anchors = [BODY_ID, NAV_ID], i;
         for (i = 0; i < anchors.length; i++) { if (!win.FindChildTraverse(anchors[i])) { out.push("#" + anchors[i]); } }
         for (i = 0; i < SNIPPETS.length; i++) { if (!win.BHasLayoutSnippet(SNIPPETS[i])) { out.push("snippet " + SNIPPETS[i]); } }
         return out;
@@ -156,7 +154,8 @@ var QolLiteMapSettingsMount = (function () {
         var body = win.FindChildTraverse(BODY_ID), section = null, subs = [];
         try {
             section = $.CreatePanel("PopupSettingsSettingsSection", body, QolLiteMapSchema.section().id);
-            body.MoveChildAfter(section, win.FindChildTraverse(GAME_SECTION_ID));
+            var footer = body.FindChildTraverse(FOOTER_ID);
+            if (footer && footer.GetParent() === body) { body.MoveChildBefore(section, footer); }
             section.SetDialogVariable("section_name", QolLiteMapSchema.section().title);
             var groups = QolLiteMapSchema.groups();
             for (var i = 0; i < groups.length; i++) { subs.push({ group: groups[i], panel: _subsection(section, groups[i]) }); }

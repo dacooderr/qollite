@@ -66,7 +66,7 @@ A lookup that runs from the **root** (`$.GetContextPanel()` walked to the top, o
 searches the whole tree; when its target does not exist it visits every panel before returning
 ([`FIELD_NOTES.md`](FIELD_NOTES.md) §8).
 
-### `hud.xml` — every match
+### `hud_data_feed.xml` (the HUD entry, since BetterMap 3.3; before it `hud.xml`) — every match
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
@@ -78,6 +78,7 @@ searches the whole tree; when its target does not exist it visits every panel be
 | `qollite_map_preview.js` → `_poll` | 0.25 s | 4 Hz | `JSON.stringify` of the state + 1 lookup + ancestor walk (new in BetterMap 2.1) | **No** |
 | `qollite_map_icons.js` → `_poll` | 0.5 s | 2 Hz | `#hud_minimap` lookup, two anchor searches (`useZoomedMinimap`, `dl_midtown`), 7 class checks; on `dl_midtown` also one `FindChildrenWithClassTraverse("tier1_shop")` under `#hud_minimap` for the stray-shop workaround. Replaced `qollite_map_player.js` → `_pollZoom` in BetterMap 3.0 | **No** |
 | `qollite_map_minimap.js` → `_probeClasses` | 0.5 s | — | DEBUG-only diagnostics | ✅ Never scheduled while `DEBUG = false` (as bundled) |
+| `qollite_map_hud.js` → `_poll` | 2 s | 0.5 Hz | Safety net (BetterMap 3.3): the minimap structure is rebuilt on `CitadelGameStateChanged`; the poll only re-checks its cached panels (`IsValid` / `GetParent`, no tree search, per the module's own comment) for a rebuild the event missed | **No** — whole session, by design: the structure must exist whenever the minimap does |
 | `qollite_map_settings_mount.js` → `_poll` | 0.25 s | 4 Hz | Looks for a `PopupSettings` child of `#PopupManager` (cached once found; one `IsValid` and a scan of its few children a tick); on a window it has not seen, one attribute read, then the mount. **If `#PopupManager` is not found, each tick searches the whole tree twice** (context, then top root) — it was found in upstream's runs; not measured in QOL Lite. New with the runtime settings mount (upstream `5ac7816`) | **No** — runs for the whole session, under UMM too, where it never mounts anything. See the note below |
 | `qollite_map_bootstrap.js` → `tryInit` | 0.05 s | — | `typeof` checks | ✅ Stops after init or 20 tries |
 | `qollite_map_store.js` | one-shot | — | Request timeouts (10 s), the 3 s idle save, page-load retries at 5 / 15 / 45 s, then every 45 s while the storage page is unreachable. New in BetterMap 3.0 | ✅ Without UMM only; under UMM it stops after the migration read (≤ 2 s) |
@@ -306,9 +307,9 @@ repo holds decompiled output and an import could in principle have been flattene
 
 ### Referenced, but inert
 
-`panorama/images/minimap/base/neutral_{large,medium,vault}_custom_png.*` are referenced only by
-`.dmm_custom_neutral_*_icon` rules in `hud.css`. No script or layout, here or in upstream BetterMap,
-ever sets a `dmm_custom_*` class, so the rules never match.
+Resolved 2026-10-14: the `neutral_{large,medium,vault}_custom_png.*` images and the
+`.dmm_custom_neutral_*_icon` rules that alone referenced them (and that nothing ever activated) were
+deleted at the BetterMap 3.3 re-bundle.
 
 ### Overrides with no mod change
 
@@ -406,7 +407,7 @@ second `@import`, leaving the gated ones.
 
 **Severity: Low. Verified by reading; effect unknown.** `mercurial_magnum_notifier.js` calls
 `FindChildTraverse("abilitiesContainer")`. In `hud.xml` the id is `AbilitiesContainer` and
-`abilitiesContainer` is its **class** (`hud.xml:558`), the same before and after the patch. Whether
+`abilitiesContainer` is its **class** (Valve's `hud.xml`; the pack's own copy, line 558, is gone since 2026-10-14), the same before and after the patch. Whether
 Panorama's id lookup is case-insensitive is unknown; if it is not, Blood Tribute detection never
 worked, and the failed lookup is a whole-tree search every 0.5 s. Vendored — report upstream.
 
@@ -418,7 +419,7 @@ removed at the maintainer's request ([hero testing](systems/hero-testing.md),
 `qollite_hero_testing.js`, so nothing of the mod loads in a match. Valve's own layout still loads with
 every HUD, as it does without the pack. The original entry:
 
-**Severity: Medium. Inferred, unmeasured.** `hud.xml:486` instantiates
+**Severity: Medium. Inferred, unmeasured.** `hud.xml:486` (the pack's copy until 2026-10-14; Valve's own file now) instantiates
 `<CitadelHudHeroTesting id="hud_hero_testing" />` unconditionally, as Valve's own `hud.xml` does, so
 `hud_hero_testing.xml` (1,409 lines) and `qollite_hero_testing.js` load with every HUD unless the C++
 defers loading — which is unknown. On load the script runs a one-time walk of the whole tool tree,

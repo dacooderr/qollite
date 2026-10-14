@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_popup.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_popup.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -96,7 +96,7 @@ var QolLiteMapPopup = (function () {
 
     function _ctx() { return _win; }
     function _find(id) { return _ctx().FindChildTraverse(id); }
-    function _root() { var r = _ctx(); while (r && r.GetParent()) { r = r.GetParent(); } return r; }
+    function _root() { return QolLiteMapHud.root(); }
     function _log(m) { QolLiteMapLog.log("popup: " + m); }
     function _groups() { return QolLiteMapSchema.groups(); }
 

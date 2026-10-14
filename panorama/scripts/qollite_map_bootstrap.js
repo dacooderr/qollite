@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -21,8 +21,23 @@
         }
     }
 
+    // Set once every feature module has run its init: until then a minimap build needs no
+    // re-apply, because each feature's own init applies the settings.
+    var _featuresStarted = false;
+
+    // Every build of the minimap structure (QolLiteMapHud: first sight, a rebuilt HUD, a vanished
+    // overlay) re-applies all features, so fresh panels get our sizes, classes and markers (spec H5).
+    function _onHudBuild(n) {
+        if (!_featuresStarted) { return; }
+        try { QolLiteMapApply.all(); }
+        catch (e) { QolLiteMapLog.error("apply after hud build #" + n + " threw: " + (e && e.message ? e.message : e)); }
+    }
+
     function init() {
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.info("boot: initializing modules"); }
+        // First: the features find their panels through the structure it builds. The callback is
+        // registered before init, which may build at once.
+        _run("hud", function () { QolLiteMapHud.onReady(_onHudBuild); QolLiteMapHud.init(); });
         _run("minimap", function () { QolLiteMapMinimap.init(); });
         _run("size", function () { QolLiteMapSize.init(); });
         _run("position", function () { QolLiteMapPosition.init(); });
@@ -31,6 +46,7 @@
         _run("icons", function () { QolLiteMapIcons.init(); });
         _run("preview", function () { QolLiteMapPreview.init(); });
         _run("urn", function () { QolLiteMapUrn.init(); });
+        _featuresStarted = true;
         _run("umm", function () { QolLiteMapUmmAdapter.init(); });
         // After the features: a load re-applies all of them.
         _run("store", function () {
@@ -54,7 +70,8 @@
     function _missing() {
         var m = [];
         var need = {
-            Log: typeof QolLiteMapLog, Schema: typeof QolLiteMapSchema, State: typeof QolLiteMapState, Draw: typeof QolLiteMapDraw,
+            Log: typeof QolLiteMapLog, Schema: typeof QolLiteMapSchema, Hud: typeof QolLiteMapHud,
+            State: typeof QolLiteMapState, Draw: typeof QolLiteMapDraw,
             Minimap: typeof QolLiteMapMinimap, Size: typeof QolLiteMapSize, Position: typeof QolLiteMapPosition,
             Poi: typeof QolLiteMapPoi, Minimal: typeof QolLiteMapMinimal, Icons: typeof QolLiteMapIcons,
             Preview: typeof QolLiteMapPreview, Urn: typeof QolLiteMapUrn, Umm: typeof QolLiteMapUmmAdapter,

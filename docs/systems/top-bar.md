@@ -112,6 +112,14 @@ the log.
 
 ## Known issues
 
+- **Top Bar Plus over the shop** (fixed 2026-10-14, not yet checked in game). Valve hides its own
+  top-bar items while the shop is open (`.gShopOpen #GradientBacker, … .GameClock, … { opacity: 0 }`,
+  back with the scoreboard), but Top Bar Plus's panels (`#UrnTracker`, `#BuffHUD`, `#RejuvHUD`,
+  `#Buff`, `#Rejuv`, `#RejuvBuff`) stayed on top of it — the maintainer saw them over the build
+  editor in a sandbox match. The same rule for them sits at the end of `citadel_hud_top_bar.css`.
+  A rule in `hud.css` (`.InHideout #TopBar.gShopOpen`) did nothing in game: `#TopBar` loads its own
+  layout file, and the rule did not reach it (inferred from that run, not measured).
+
 - **No off switch** — [`../TECH_DEBT.md`](../TECH_DEBT.md) §3. Always-on, always costing.
 - **Per-row script copies** — one copy of `qollite_topbar.js` per player row
   ([`../FIELD_NOTES.md`](../FIELD_NOTES.md) §5). Unmeasured.

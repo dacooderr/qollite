@@ -4243,3 +4243,17 @@ CitadelHudTopBarPlayer:not(.HealthVisible) #HeroContents
 	
 }
 
+
+/* QOL Lite: Top Bar Plus's own panels follow Valve's rule for its top-bar items (.gShopOpen
+   #GradientBacker, .GameClock, ... { opacity: 0 }, shown again with the scoreboard): hidden while the
+   shop is open, in every mode. The #RejuvBuff / .TopbarRankRejuvBuff selectors carry one class more
+   than Top Bar Plus's .TopbarRankRejuvBuffVisible rule in topbar_rank_topbar.css, which loads later. */
+.gShopOpen #UrnTracker,.gShopOpen #BuffHUD,.gShopOpen #RejuvHUD,.gShopOpen #Buff,.gShopOpen #Rejuv,.gShopOpen #RejuvBuff,.gShopOpen #RejuvBuff.TopbarRankRejuvBuffVisible,.gShopOpen .TopbarRankRejuvBuff.TopbarRankRejuvBuffVisible
+{
+	opacity: 0;
+}
+
+.gShopOpen.gScoreboardOpen #UrnTracker,.gShopOpen.gScoreboardOpen #BuffHUD,.gShopOpen.gScoreboardOpen #RejuvHUD,.gShopOpen.gScoreboardOpen #Buff,.gShopOpen.gScoreboardOpen #Rejuv,.gShopOpen.gScoreboardOpen #RejuvBuff.TopbarRankRejuvBuffVisible,.gShopOpen.gScoreboardOpen .TopbarRankRejuvBuff.TopbarRankRejuvBuffVisible
+{
+	opacity: 1;
+}

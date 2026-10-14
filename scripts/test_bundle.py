@@ -110,6 +110,12 @@ class BetterMapFiles(unittest.TestCase):
         self.assertEqual(bb.FILES["bettermap_settings_mount.js"], "qollite_map_settings_mount.js")
         self.assertEqual(bb.FILES["bettermap_settings_nav.js"], "qollite_map_settings_nav.js")
 
+    def test_hud_runtime_entry_module(self):
+        # 3.3: BettermapHud builds at runtime what hud.vxml used to declare (upstream a9f121a).
+        self.assertEqual(bb.FILES["bettermap_hud.js"], "qollite_map_hud.js")
+        out = bb.transform("bettermap_hud.js", "var BettermapHud = 1; BettermapHud.root();\n", "abc1234")
+        self.assertIn("var QolLiteMapHud = 1; QolLiteMapHud.root();", out)
+
     def test_runtime_settings_globals_renamed(self):
         src = ("if (BettermapUmm.isPresent()) { return; }\n"
                "BettermapSettingsNav.mount(win, section, subs); BettermapPopup.start(win);\n"

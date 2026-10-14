@@ -9,9 +9,9 @@
 > ### This feature is no longer in the pack
 > Its four files are deleted on branch `fix/remerge-6722` (staged, not yet committed on 2026-09-30).
 > With no file at `panorama/layout/hud_hero_testing.xml` the game loads Valve's own layout and
-> stylesheet. What is left in the tree — `<CitadelHudHeroTesting id="hud_hero_testing" />` in
-> `hud.xml` and the `#hud_hero_testing` rules in `hud.css` / `base/hud.css` — is Valve's own markup and
-> stays. The page is kept so the reason, and the crash behind it, stay findable.
+> stylesheet. `<CitadelHudHeroTesting id="hud_hero_testing" />` sits in Valve's own `hud.xml` (the pack
+> ships no `hud.xml` since 2026-10-14), and the `#hud_hero_testing` rules in `hud.css` /
+> `base/hud.css` are Valve's. The page is kept so the reason, and the crash behind it, stay findable.
 
 ## Today: Valve's own testing menu, shown in the hideout
 
@@ -24,10 +24,11 @@ with QOL Lite rules, and **no** `hud_hero_testing.xml`, so the layout and its en
   hideout and the new-player sandbox.
 - That `visible` rule has the same specificity as Valve's `.connectedToHeroTesting
   .gShopOpen.hud_hero_testing_root { collapse }` and comes later, so it also showed the menu over the
-  shop and its build editor. Since 2026-10-14 a four-class rule hides it again while the shop is open,
-  and `.InHideout #TopBar.gShopOpen` in `hud.css` does the same for the top bar, which the pack keeps
-  visible in the hideout. Both rely on `gShopOpen`, which the panels' own `GlobalClassListener`s carry
-  (`hud_hero_testing.xml`, `citadel_hud_top_bar.xml`); not checked in game.
+  shop and its build editor. Since 2026-10-14 a four-class rule hides it again while the shop is open
+  (the maintainer confirmed it in a sandbox match, 2026-10-14). It relies on `gShopOpen`, which the
+  menu's own `GlobalClassListener` carries. Top Bar Plus over the shop is handled in the top bar's own
+  sheet ([top bar](top-bar.md) § Known issues); a first attempt, `.InHideout #TopBar.gShopOpen` in
+  `hud.css`, had no effect in game and was removed.
 - `#hero_testing_stub` (the menu's panel) has `margin: 120px` since 2026-10-14, at the maintainer's
   request.
 

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ 5ac7816, mod/panorama/scripts/bettermap_minimap.js
+// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_minimap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -18,10 +18,7 @@
 var QolLiteMapMinimap = (function () {
     var ANCHOR_ID = "MinimapBackgroundTest";
 
-    function _panel(id) {
-        var ctx = $.GetContextPanel();
-        return ctx ? ctx.FindChildTraverse(id) : null;
-    }
+    function _panel(id) { return QolLiteMapHud.find(id); }
 
     function anchor() { return _panel(ANCHOR_ID); }
 
@@ -37,9 +34,10 @@ var QolLiteMapMinimap = (function () {
     // Team 2 (Sapphire / Archmother) sees the minimap turned 180deg: Valve sets
     // `invert_map` on #hud_minimap and flips the whole panel with
     // `.invert_map.HudMinimap { transform: scaleY(-1) scaleX(-1) }`, while the
-    // engine keeps placing markers in world orientation. Our overlay lives outside
-    // that panel, so every mod marker must be mirrored the same way - positions
-    // only, never the marker itself (a flipped panel would render text upside down).
+    // engine keeps placing markers in world orientation. Our overlay lives inside
+    // that panel but is flipped back (`.invert_map .bm_overlay`, bettermap.vcss), so
+    // every mod marker is mirrored here instead - positions only, never the marker
+    // itself (a flipped panel would render text upside down).
     function isInverted() { return hasClassAbove("invert_map"); }
 
     // World-oriented minimap u/v (0..1, pipeline data) -> where it is drawn now.
