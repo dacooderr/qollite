@@ -86,6 +86,16 @@ One `<root>` per layout, instantiating exactly one top-level panel:
 - **Styles are per-layout, not global.** Nearly every layout re-includes `citadel_base_styles.vcss_c`
   (the shared design-token and control library) plus its own sheets. The cascade is assembled from
   whichever layout owns the panel; there is no single global stylesheet. **Later includes win.**
+- **A panel that loads its own layout file is styled by that file's sheets, not by its parent's.**
+  C++ panel types such as `CitadelHudTopBar` (`citadel_hud_top_bar.xml`), `CitadelObjectivesMap`
+  (`objectives_map.xml`) and `CitadelHudHeroTesting` (`hud_hero_testing.xml`) are declared in
+  `hud.xml` or another layout but load their own. A rule for such a panel goes in **its own**
+  stylesheet. Seen in game on 2026-10-14 (maintainer's runs, build 6779): `.InHideout
+  #TopBar.gShopOpen` in `hud.css` did nothing to the top bar, while rules placed in the panels' own
+  sheets — `hero_testing_menu.css` for the testing menu, `objectives_map.css` for
+  `#ObjectivesMap` — worked. Descendant selectors still see classes on ancestors from other
+  layouts: those working rules match `.gShopOpen`, `.connectedToHideout` and
+  `.connectedToHeroTesting` set higher up. (Inferred from those runs, not a dump of the cascade.)
 - **Scripts run in that layout's context.** Two layouts share no globals — see §3.
 
 **HUD entry chain.** `base_hud.xml` → `<CitadelHud id="Hud">`, whose layout is `hud.xml` — the

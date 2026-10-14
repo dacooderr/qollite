@@ -293,7 +293,7 @@ Roughly 2.5 MB of the repo is not UI. These are performance and visual fixes tha
 | `particles/abilities/engineer/*.vpcf` | Replacement particle systems for the wall |
 | `models/props_gameplay/sinners_sacrifice_vault/materials/*` | Sinner's Sacrifice lighting fix |
 | `materials/default/*.png` | **1×1, 86-byte stub textures.** Referenced by the overridden materials in place of real AO / normal / mask maps — the standard trick for removing a texture's cost without breaking the shader's inputs |
-| `materials/minimap/`, `panorama/images/minimap/` | Minimap textures: BetterMap's underground vignette (`base/bm_vignette_png`), neutral-camp icons, and the tunnels overlay — the last two are referenced by nothing that runs since the 6722 update ([`TECH_DEBT.md`](TECH_DEBT.md) §4) |
+| `materials/minimap/`, `panorama/images/minimap/` | Minimap textures: BetterMap's underground vignette (`base/bm_vignette_png`) and the tunnels overlay (the neutral-camp icons were deleted 2026-10-14) — the last two are referenced by nothing that runs since the 6722 update ([`TECH_DEBT.md`](TECH_DEBT.md) §4) |
 | `panorama/images/hud/crosshair/scope_common_psd.png` + `panorama/image_compiler.vdata` | Vindicta scope downscale (re-added in `fb74e00`) |
 
 Documented per feature in [`systems/assets.md`](systems/assets.md).
