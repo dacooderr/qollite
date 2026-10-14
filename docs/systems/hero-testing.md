@@ -13,6 +13,24 @@
 > `hud.xml` and the `#hud_hero_testing` rules in `hud.css` / `base/hud.css` — is Valve's own markup and
 > stays. The page is kept so the reason, and the crash behind it, stay findable.
 
+## Today: Valve's own testing menu, shown in the hideout
+
+Since `d2d43a5` (PR #16, 2026-10-03, "enabled testing tools in hideout") the pack ships
+`panorama/styles/hero_testing_menu.css` again — Valve's stylesheet (unchanged by Valve since 6726),
+with QOL Lite rules, and **no** `hud_hero_testing.xml`, so the layout and its engine ids stay Valve's:
+
+- Valve collapses `.hud_hero_testing_root` under `.connectedToHeroTesting.connectedToHideout` and
+  `.connectedToNewPlayerSandbox`; the pack sets both to `visible`, so the testing menu shows in the
+  hideout and the new-player sandbox.
+- That `visible` rule has the same specificity as Valve's `.connectedToHeroTesting
+  .gShopOpen.hud_hero_testing_root { collapse }` and comes later, so it also showed the menu over the
+  shop and its build editor. Since 2026-10-14 a four-class rule hides it again while the shop is open,
+  and `.InHideout #TopBar.gShopOpen` in `hud.css` does the same for the top bar, which the pack keeps
+  visible in the hideout. Both rely on `gShopOpen`, which the panels' own `GlobalClassListener`s carry
+  (`hud_hero_testing.xml`, `citadel_hud_top_bar.xml`); not checked in game.
+- `#hero_testing_stub` (the menu's panel) has `margin: 120px` since 2026-10-14, at the maintainer's
+  request.
+
 ---
 
 ## What it was

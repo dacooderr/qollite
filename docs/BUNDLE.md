@@ -190,7 +190,10 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   - Upstream's `tests/overlay_layout.test.js` "the committed override is the generator's output"
     fails on this file by design; the structural tests of the same file pass.
   - `hud.xml` is upstream's `hud.vxml` with the bundled script names and the `qollite_passive`
-    include, nothing else.
+    include, nothing else — **except since 2026-10-14**: QOL Lite rebased it onto game build 6779
+    before upstream did (a start-up crash, [`ARCHITECTURE.md`](ARCHITECTURE.md) §9), so it also carries
+    Valve's 6779 additions (`#LoadInFadeCover`, `#zipline_disabled`, `#MinimapTip1`–`3`). Upstream's
+    next rebase should bring the same; the next re-bundle compares against it.
   - `popup_settings.xml` is a 3-way merge: base Valve 6730, ours (4×3 button, FOV row), theirs
     upstream's generated `popup_settings.vxml` with its four script names renamed. Zero conflicts. The
     result differs from upstream's only by our two hunks, and from ours only by upstream's `<scripts>`

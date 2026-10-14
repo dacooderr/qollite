@@ -288,6 +288,14 @@
 	visibility: visible;
 }
 
+/* QOL Lite: the rule above shows the testing menu in the hideout, which also undid Valve's hiding it
+   while the shop (and the build editor in it) is open - same specificity, later in the file. Four
+   classes outrank both, so the shop hides it again. */
+.connectedToHeroTesting.connectedToHideout .gShopOpen.hud_hero_testing_root
+{
+	visibility: collapse;
+}
+
 .nav_menu_item.small_text .InlineGlyph
 {
 	width: 25px;
@@ -351,6 +359,7 @@
 	vertical-align: top;
 	width: 400px;
 	z-index: 98;
+	margin: 120px;
 }
 
 .hero_testing_tab
