@@ -715,6 +715,7 @@
 {
 	width: 80px;
 	height: 80px;
+	overflow: render;
 }
 
 .map_button.boss_buildingzip
@@ -1018,13 +1019,16 @@
 	background-repeat: no-repeat;
 }
 
-.map_button.nurse_revival_target
+.map_button.nurse_leech
 {
-	background-image: url("s2r://panorama/images/minimap/necro_gravestone_psd.vtex");
-	background-size: 100% 100%;
+	background-image: url("s2r://panorama/images/hud/hero_specific/nurse_leech.vsvg");
+	background-size: 80% 80%;
 	background-position: 50% 50%;
 	background-repeat: no-repeat;
 	wash-color: orange;
+	width: 17px;
+	height: 14px;
+	img-shadow: 0px 0px 8px 1 black;
 }
 
 .map_button.doorman_doorway
@@ -1875,6 +1879,81 @@
 	background-color: rgba(200, 50, 50, 0.5);
 }
 
+#MinimapTargetingReticle
+{
+	width: 28px;
+	height: 28px;
+	border: 2px solid #ffd27a;
+	border-radius: 50%;
+	box-shadow: #000000aa 0px 0px 4px 0px;
+	z-index: 20;
+	opacity: 0;
+}
+
+#MinimapTargetingReticle.visible
+{
+	opacity: 1;
+}
+
+.MinimapTravelDestination
+{
+	width: 24px;
+	height: 24px;
+	border: 3px solid #e0b25a;
+	border-radius: 50%;
+	background-color: #e0b25a55;
+	z-index: 15;
+	animation-name: travelDestinationPulse;
+	animation-duration: 1s;
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-in-out;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+}
+
+.MinimapTravelDestination.landed
+{
+	animation-name: none;
+	border-color: #5ad16a;
+	background-color: #5ad16a44;
+}
+
+.MinimapTravelDestination.fade_out
+{
+	opacity: 0;
+}
+
+@keyframes 'travelDestinationPulse'
+{
+	0%
+	{
+		pre-transform-scale2d: 0.85;
+	}
+	
+	50%
+	{
+		pre-transform-scale2d: 1.2;
+	}
+	
+	100%
+	{
+		pre-transform-scale2d: 0.85;
+	}
+	
+}
+
+.MinimapAllyTargetingCursor
+{
+	width: 24px;
+	height: 24px;
+	border: 2px solid #8fd3ff;
+	border-radius: 50%;
+	background-color: #8fd3ff22;
+	box-shadow: #000000aa 0px 0px 4px 0px;
+	opacity: 0.85;
+	z-index: 19;
+}
+
 /* ======================================================================== */
 /* ===== BetterMap - everything below Valve's hud_minimap.css is ours. ===== */
 /* Source: pipeline/minimap_styles/bettermap.vcss. build_minimap_styles.py    */
@@ -2016,9 +2095,104 @@
 }
 
 /* BEGIN GENERATED: bettermap icon sizes (pipeline/build_minimap_styles.py - do not edit) */
+#hud_minimap.bm_size_self_20 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.2;
+}
+
+#hud_minimap.bm_size_self_22 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.22;
+}
+
+#hud_minimap.bm_size_self_24 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.24;
+}
+
+#hud_minimap.bm_size_self_26 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.26;
+}
+
+#hud_minimap.bm_size_self_28 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.28;
+}
+
+#hud_minimap.bm_size_self_30 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.3;
+}
+
+#hud_minimap.bm_size_self_32 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.32;
+}
+
+#hud_minimap.bm_size_self_34 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.34;
+}
+
+#hud_minimap.bm_size_self_36 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.36;
+}
+
+#hud_minimap.bm_size_self_38 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.38;
+}
+
+#hud_minimap.bm_size_self_40 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.4;
+}
+
+#hud_minimap.bm_size_self_42 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.42;
+}
+
+#hud_minimap.bm_size_self_44 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.44;
+}
+
+#hud_minimap.bm_size_self_46 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.46;
+}
+
+#hud_minimap.bm_size_self_48 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.48;
+}
+
 #hud_minimap.bm_size_self_50 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_self_52 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.52;
+}
+
+#hud_minimap.bm_size_self_54 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.54;
+}
+
+#hud_minimap.bm_size_self_56 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.56;
+}
+
+#hud_minimap.bm_size_self_58 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.58;
 }
 
 #hud_minimap.bm_size_self_60 .map_button.player.friend.localplayer
@@ -2026,9 +2200,49 @@
 	pre-transform-scale2d: 0.6;
 }
 
+#hud_minimap.bm_size_self_62 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.62;
+}
+
+#hud_minimap.bm_size_self_64 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.64;
+}
+
+#hud_minimap.bm_size_self_66 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.66;
+}
+
+#hud_minimap.bm_size_self_68 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.68;
+}
+
 #hud_minimap.bm_size_self_70 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_self_72 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.72;
+}
+
+#hud_minimap.bm_size_self_74 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.74;
+}
+
+#hud_minimap.bm_size_self_76 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.76;
+}
+
+#hud_minimap.bm_size_self_78 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.78;
 }
 
 #hud_minimap.bm_size_self_80 .map_button.player.friend.localplayer
@@ -2036,9 +2250,49 @@
 	pre-transform-scale2d: 0.8;
 }
 
+#hud_minimap.bm_size_self_82 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.82;
+}
+
+#hud_minimap.bm_size_self_84 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.84;
+}
+
+#hud_minimap.bm_size_self_86 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.86;
+}
+
+#hud_minimap.bm_size_self_88 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.88;
+}
+
 #hud_minimap.bm_size_self_90 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_self_92 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.92;
+}
+
+#hud_minimap.bm_size_self_94 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.94;
+}
+
+#hud_minimap.bm_size_self_96 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.96;
+}
+
+#hud_minimap.bm_size_self_98 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 0.98;
 }
 
 #hud_minimap.bm_size_self_100 .map_button.player.friend.localplayer
@@ -2046,9 +2300,49 @@
 	pre-transform-scale2d: 1;
 }
 
+#hud_minimap.bm_size_self_102 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.02;
+}
+
+#hud_minimap.bm_size_self_104 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.04;
+}
+
+#hud_minimap.bm_size_self_106 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.06;
+}
+
+#hud_minimap.bm_size_self_108 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.08;
+}
+
 #hud_minimap.bm_size_self_110 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_self_112 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.12;
+}
+
+#hud_minimap.bm_size_self_114 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.14;
+}
+
+#hud_minimap.bm_size_self_116 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.16;
+}
+
+#hud_minimap.bm_size_self_118 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.18;
 }
 
 #hud_minimap.bm_size_self_120 .map_button.player.friend.localplayer
@@ -2056,9 +2350,49 @@
 	pre-transform-scale2d: 1.2;
 }
 
+#hud_minimap.bm_size_self_122 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.22;
+}
+
+#hud_minimap.bm_size_self_124 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.24;
+}
+
+#hud_minimap.bm_size_self_126 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.26;
+}
+
+#hud_minimap.bm_size_self_128 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.28;
+}
+
 #hud_minimap.bm_size_self_130 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_self_132 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.32;
+}
+
+#hud_minimap.bm_size_self_134 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.34;
+}
+
+#hud_minimap.bm_size_self_136 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.36;
+}
+
+#hud_minimap.bm_size_self_138 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.38;
 }
 
 #hud_minimap.bm_size_self_140 .map_button.player.friend.localplayer
@@ -2066,9 +2400,49 @@
 	pre-transform-scale2d: 1.4;
 }
 
+#hud_minimap.bm_size_self_142 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.42;
+}
+
+#hud_minimap.bm_size_self_144 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.44;
+}
+
+#hud_minimap.bm_size_self_146 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.46;
+}
+
+#hud_minimap.bm_size_self_148 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.48;
+}
+
 #hud_minimap.bm_size_self_150 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_self_152 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.52;
+}
+
+#hud_minimap.bm_size_self_154 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.54;
+}
+
+#hud_minimap.bm_size_self_156 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.56;
+}
+
+#hud_minimap.bm_size_self_158 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.58;
 }
 
 #hud_minimap.bm_size_self_160 .map_button.player.friend.localplayer
@@ -2076,9 +2450,49 @@
 	pre-transform-scale2d: 1.6;
 }
 
+#hud_minimap.bm_size_self_162 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.62;
+}
+
+#hud_minimap.bm_size_self_164 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.64;
+}
+
+#hud_minimap.bm_size_self_166 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.66;
+}
+
+#hud_minimap.bm_size_self_168 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.68;
+}
+
 #hud_minimap.bm_size_self_170 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_self_172 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.72;
+}
+
+#hud_minimap.bm_size_self_174 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.74;
+}
+
+#hud_minimap.bm_size_self_176 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.76;
+}
+
+#hud_minimap.bm_size_self_178 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.78;
 }
 
 #hud_minimap.bm_size_self_180 .map_button.player.friend.localplayer
@@ -2086,9 +2500,49 @@
 	pre-transform-scale2d: 1.8;
 }
 
+#hud_minimap.bm_size_self_182 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.82;
+}
+
+#hud_minimap.bm_size_self_184 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.84;
+}
+
+#hud_minimap.bm_size_self_186 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.86;
+}
+
+#hud_minimap.bm_size_self_188 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.88;
+}
+
 #hud_minimap.bm_size_self_190 .map_button.player.friend.localplayer
 {
 	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_size_self_192 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.92;
+}
+
+#hud_minimap.bm_size_self_194 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.94;
+}
+
+#hud_minimap.bm_size_self_196 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.96;
+}
+
+#hud_minimap.bm_size_self_198 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 1.98;
 }
 
 #hud_minimap.bm_size_self_200 .map_button.player.friend.localplayer
@@ -2096,9 +2550,604 @@
 	pre-transform-scale2d: 2;
 }
 
+#hud_minimap.bm_size_self_202 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.02;
+}
+
+#hud_minimap.bm_size_self_204 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.04;
+}
+
+#hud_minimap.bm_size_self_206 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.06;
+}
+
+#hud_minimap.bm_size_self_208 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.08;
+}
+
+#hud_minimap.bm_size_self_210 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.1;
+}
+
+#hud_minimap.bm_size_self_212 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.12;
+}
+
+#hud_minimap.bm_size_self_214 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.14;
+}
+
+#hud_minimap.bm_size_self_216 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.16;
+}
+
+#hud_minimap.bm_size_self_218 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.18;
+}
+
+#hud_minimap.bm_size_self_220 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.2;
+}
+
+#hud_minimap.bm_size_self_222 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.22;
+}
+
+#hud_minimap.bm_size_self_224 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.24;
+}
+
+#hud_minimap.bm_size_self_226 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.26;
+}
+
+#hud_minimap.bm_size_self_228 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.28;
+}
+
+#hud_minimap.bm_size_self_230 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.3;
+}
+
+#hud_minimap.bm_size_self_232 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.32;
+}
+
+#hud_minimap.bm_size_self_234 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.34;
+}
+
+#hud_minimap.bm_size_self_236 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.36;
+}
+
+#hud_minimap.bm_size_self_238 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.38;
+}
+
+#hud_minimap.bm_size_self_240 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.4;
+}
+
+#hud_minimap.bm_size_self_242 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.42;
+}
+
+#hud_minimap.bm_size_self_244 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.44;
+}
+
+#hud_minimap.bm_size_self_246 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.46;
+}
+
+#hud_minimap.bm_size_self_248 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.48;
+}
+
+#hud_minimap.bm_size_self_250 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.5;
+}
+
+#hud_minimap.bm_size_self_252 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.52;
+}
+
+#hud_minimap.bm_size_self_254 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.54;
+}
+
+#hud_minimap.bm_size_self_256 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.56;
+}
+
+#hud_minimap.bm_size_self_258 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.58;
+}
+
+#hud_minimap.bm_size_self_260 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.6;
+}
+
+#hud_minimap.bm_size_self_262 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.62;
+}
+
+#hud_minimap.bm_size_self_264 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.64;
+}
+
+#hud_minimap.bm_size_self_266 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.66;
+}
+
+#hud_minimap.bm_size_self_268 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.68;
+}
+
+#hud_minimap.bm_size_self_270 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.7;
+}
+
+#hud_minimap.bm_size_self_272 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.72;
+}
+
+#hud_minimap.bm_size_self_274 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.74;
+}
+
+#hud_minimap.bm_size_self_276 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.76;
+}
+
+#hud_minimap.bm_size_self_278 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.78;
+}
+
+#hud_minimap.bm_size_self_280 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.8;
+}
+
+#hud_minimap.bm_size_self_282 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.82;
+}
+
+#hud_minimap.bm_size_self_284 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.84;
+}
+
+#hud_minimap.bm_size_self_286 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.86;
+}
+
+#hud_minimap.bm_size_self_288 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.88;
+}
+
+#hud_minimap.bm_size_self_290 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.9;
+}
+
+#hud_minimap.bm_size_self_292 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.92;
+}
+
+#hud_minimap.bm_size_self_294 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.94;
+}
+
+#hud_minimap.bm_size_self_296 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.96;
+}
+
+#hud_minimap.bm_size_self_298 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 2.98;
+}
+
+#hud_minimap.bm_size_self_300 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3;
+}
+
+#hud_minimap.bm_size_self_302 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.02;
+}
+
+#hud_minimap.bm_size_self_304 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.04;
+}
+
+#hud_minimap.bm_size_self_306 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.06;
+}
+
+#hud_minimap.bm_size_self_308 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.08;
+}
+
+#hud_minimap.bm_size_self_310 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.1;
+}
+
+#hud_minimap.bm_size_self_312 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.12;
+}
+
+#hud_minimap.bm_size_self_314 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.14;
+}
+
+#hud_minimap.bm_size_self_316 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.16;
+}
+
+#hud_minimap.bm_size_self_318 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.18;
+}
+
+#hud_minimap.bm_size_self_320 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.2;
+}
+
+#hud_minimap.bm_size_self_322 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.22;
+}
+
+#hud_minimap.bm_size_self_324 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.24;
+}
+
+#hud_minimap.bm_size_self_326 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.26;
+}
+
+#hud_minimap.bm_size_self_328 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.28;
+}
+
+#hud_minimap.bm_size_self_330 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.3;
+}
+
+#hud_minimap.bm_size_self_332 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.32;
+}
+
+#hud_minimap.bm_size_self_334 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.34;
+}
+
+#hud_minimap.bm_size_self_336 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.36;
+}
+
+#hud_minimap.bm_size_self_338 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.38;
+}
+
+#hud_minimap.bm_size_self_340 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.4;
+}
+
+#hud_minimap.bm_size_self_342 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.42;
+}
+
+#hud_minimap.bm_size_self_344 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.44;
+}
+
+#hud_minimap.bm_size_self_346 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.46;
+}
+
+#hud_minimap.bm_size_self_348 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.48;
+}
+
+#hud_minimap.bm_size_self_350 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.5;
+}
+
+#hud_minimap.bm_size_self_352 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.52;
+}
+
+#hud_minimap.bm_size_self_354 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.54;
+}
+
+#hud_minimap.bm_size_self_356 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.56;
+}
+
+#hud_minimap.bm_size_self_358 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.58;
+}
+
+#hud_minimap.bm_size_self_360 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.6;
+}
+
+#hud_minimap.bm_size_self_362 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.62;
+}
+
+#hud_minimap.bm_size_self_364 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.64;
+}
+
+#hud_minimap.bm_size_self_366 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.66;
+}
+
+#hud_minimap.bm_size_self_368 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.68;
+}
+
+#hud_minimap.bm_size_self_370 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.7;
+}
+
+#hud_minimap.bm_size_self_372 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.72;
+}
+
+#hud_minimap.bm_size_self_374 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.74;
+}
+
+#hud_minimap.bm_size_self_376 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.76;
+}
+
+#hud_minimap.bm_size_self_378 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.78;
+}
+
+#hud_minimap.bm_size_self_380 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.8;
+}
+
+#hud_minimap.bm_size_self_382 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.82;
+}
+
+#hud_minimap.bm_size_self_384 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.84;
+}
+
+#hud_minimap.bm_size_self_386 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.86;
+}
+
+#hud_minimap.bm_size_self_388 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.88;
+}
+
+#hud_minimap.bm_size_self_390 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.9;
+}
+
+#hud_minimap.bm_size_self_392 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.92;
+}
+
+#hud_minimap.bm_size_self_394 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.94;
+}
+
+#hud_minimap.bm_size_self_396 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.96;
+}
+
+#hud_minimap.bm_size_self_398 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 3.98;
+}
+
+#hud_minimap.bm_size_self_400 .map_button.player.friend.localplayer
+{
+	pre-transform-scale2d: 4;
+}
+
+#hud_minimap.bm_size_ally_20 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.2;
+}
+
+#hud_minimap.bm_size_ally_22 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.22;
+}
+
+#hud_minimap.bm_size_ally_24 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.24;
+}
+
+#hud_minimap.bm_size_ally_26 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.26;
+}
+
+#hud_minimap.bm_size_ally_28 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.28;
+}
+
+#hud_minimap.bm_size_ally_30 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.3;
+}
+
+#hud_minimap.bm_size_ally_32 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.32;
+}
+
+#hud_minimap.bm_size_ally_34 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.34;
+}
+
+#hud_minimap.bm_size_ally_36 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.36;
+}
+
+#hud_minimap.bm_size_ally_38 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.38;
+}
+
+#hud_minimap.bm_size_ally_40 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.4;
+}
+
+#hud_minimap.bm_size_ally_42 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.42;
+}
+
+#hud_minimap.bm_size_ally_44 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.44;
+}
+
+#hud_minimap.bm_size_ally_46 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.46;
+}
+
+#hud_minimap.bm_size_ally_48 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.48;
+}
+
 #hud_minimap.bm_size_ally_50 .map_button.player.friend
 {
 	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_size_ally_52 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.52;
+}
+
+#hud_minimap.bm_size_ally_54 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.54;
+}
+
+#hud_minimap.bm_size_ally_56 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.56;
+}
+
+#hud_minimap.bm_size_ally_58 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.58;
 }
 
 #hud_minimap.bm_size_ally_60 .map_button.player.friend
@@ -2106,9 +3155,49 @@
 	pre-transform-scale2d: 0.6;
 }
 
+#hud_minimap.bm_size_ally_62 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.62;
+}
+
+#hud_minimap.bm_size_ally_64 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.64;
+}
+
+#hud_minimap.bm_size_ally_66 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.66;
+}
+
+#hud_minimap.bm_size_ally_68 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.68;
+}
+
 #hud_minimap.bm_size_ally_70 .map_button.player.friend
 {
 	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_size_ally_72 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.72;
+}
+
+#hud_minimap.bm_size_ally_74 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.74;
+}
+
+#hud_minimap.bm_size_ally_76 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.76;
+}
+
+#hud_minimap.bm_size_ally_78 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.78;
 }
 
 #hud_minimap.bm_size_ally_80 .map_button.player.friend
@@ -2116,9 +3205,69 @@
 	pre-transform-scale2d: 0.8;
 }
 
+#hud_minimap.bm_size_ally_82 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.82;
+}
+
+#hud_minimap.bm_size_ally_84 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.84;
+}
+
+#hud_minimap.bm_size_ally_86 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.86;
+}
+
+#hud_minimap.bm_size_ally_88 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.88;
+}
+
 #hud_minimap.bm_size_ally_90 .map_button.player.friend
 {
 	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_size_ally_92 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.92;
+}
+
+#hud_minimap.bm_size_ally_94 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.94;
+}
+
+#hud_minimap.bm_size_ally_96 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.96;
+}
+
+#hud_minimap.bm_size_ally_98 .map_button.player.friend
+{
+	pre-transform-scale2d: 0.98;
+}
+
+#hud_minimap.bm_size_ally_102 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.02;
+}
+
+#hud_minimap.bm_size_ally_104 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.04;
+}
+
+#hud_minimap.bm_size_ally_106 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.06;
+}
+
+#hud_minimap.bm_size_ally_108 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.08;
 }
 
 #hud_minimap.bm_size_ally_110 .map_button.player.friend
@@ -2126,9 +3275,49 @@
 	pre-transform-scale2d: 1.1;
 }
 
+#hud_minimap.bm_size_ally_112 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.12;
+}
+
+#hud_minimap.bm_size_ally_114 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.14;
+}
+
+#hud_minimap.bm_size_ally_116 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.16;
+}
+
+#hud_minimap.bm_size_ally_118 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.18;
+}
+
 #hud_minimap.bm_size_ally_120 .map_button.player.friend
 {
 	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_size_ally_122 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.22;
+}
+
+#hud_minimap.bm_size_ally_124 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.24;
+}
+
+#hud_minimap.bm_size_ally_126 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.26;
+}
+
+#hud_minimap.bm_size_ally_128 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.28;
 }
 
 #hud_minimap.bm_size_ally_130 .map_button.player.friend
@@ -2136,9 +3325,49 @@
 	pre-transform-scale2d: 1.3;
 }
 
+#hud_minimap.bm_size_ally_132 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.32;
+}
+
+#hud_minimap.bm_size_ally_134 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.34;
+}
+
+#hud_minimap.bm_size_ally_136 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.36;
+}
+
+#hud_minimap.bm_size_ally_138 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.38;
+}
+
 #hud_minimap.bm_size_ally_140 .map_button.player.friend
 {
 	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_size_ally_142 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.42;
+}
+
+#hud_minimap.bm_size_ally_144 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.44;
+}
+
+#hud_minimap.bm_size_ally_146 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.46;
+}
+
+#hud_minimap.bm_size_ally_148 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.48;
 }
 
 #hud_minimap.bm_size_ally_150 .map_button.player.friend
@@ -2146,9 +3375,49 @@
 	pre-transform-scale2d: 1.5;
 }
 
+#hud_minimap.bm_size_ally_152 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.52;
+}
+
+#hud_minimap.bm_size_ally_154 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.54;
+}
+
+#hud_minimap.bm_size_ally_156 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.56;
+}
+
+#hud_minimap.bm_size_ally_158 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.58;
+}
+
 #hud_minimap.bm_size_ally_160 .map_button.player.friend
 {
 	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_size_ally_162 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.62;
+}
+
+#hud_minimap.bm_size_ally_164 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.64;
+}
+
+#hud_minimap.bm_size_ally_166 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.66;
+}
+
+#hud_minimap.bm_size_ally_168 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.68;
 }
 
 #hud_minimap.bm_size_ally_170 .map_button.player.friend
@@ -2156,9 +3425,49 @@
 	pre-transform-scale2d: 1.7;
 }
 
+#hud_minimap.bm_size_ally_172 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.72;
+}
+
+#hud_minimap.bm_size_ally_174 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.74;
+}
+
+#hud_minimap.bm_size_ally_176 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.76;
+}
+
+#hud_minimap.bm_size_ally_178 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.78;
+}
+
 #hud_minimap.bm_size_ally_180 .map_button.player.friend
 {
 	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_size_ally_182 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.82;
+}
+
+#hud_minimap.bm_size_ally_184 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.84;
+}
+
+#hud_minimap.bm_size_ally_186 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.86;
+}
+
+#hud_minimap.bm_size_ally_188 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.88;
 }
 
 #hud_minimap.bm_size_ally_190 .map_button.player.friend
@@ -2166,9 +3475,604 @@
 	pre-transform-scale2d: 1.9;
 }
 
+#hud_minimap.bm_size_ally_192 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.92;
+}
+
+#hud_minimap.bm_size_ally_194 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.94;
+}
+
+#hud_minimap.bm_size_ally_196 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.96;
+}
+
+#hud_minimap.bm_size_ally_198 .map_button.player.friend
+{
+	pre-transform-scale2d: 1.98;
+}
+
 #hud_minimap.bm_size_ally_200 .map_button.player.friend
 {
 	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_ally_202 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.02;
+}
+
+#hud_minimap.bm_size_ally_204 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.04;
+}
+
+#hud_minimap.bm_size_ally_206 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.06;
+}
+
+#hud_minimap.bm_size_ally_208 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.08;
+}
+
+#hud_minimap.bm_size_ally_210 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.1;
+}
+
+#hud_minimap.bm_size_ally_212 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.12;
+}
+
+#hud_minimap.bm_size_ally_214 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.14;
+}
+
+#hud_minimap.bm_size_ally_216 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.16;
+}
+
+#hud_minimap.bm_size_ally_218 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.18;
+}
+
+#hud_minimap.bm_size_ally_220 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.2;
+}
+
+#hud_minimap.bm_size_ally_222 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.22;
+}
+
+#hud_minimap.bm_size_ally_224 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.24;
+}
+
+#hud_minimap.bm_size_ally_226 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.26;
+}
+
+#hud_minimap.bm_size_ally_228 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.28;
+}
+
+#hud_minimap.bm_size_ally_230 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.3;
+}
+
+#hud_minimap.bm_size_ally_232 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.32;
+}
+
+#hud_minimap.bm_size_ally_234 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.34;
+}
+
+#hud_minimap.bm_size_ally_236 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.36;
+}
+
+#hud_minimap.bm_size_ally_238 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.38;
+}
+
+#hud_minimap.bm_size_ally_240 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.4;
+}
+
+#hud_minimap.bm_size_ally_242 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.42;
+}
+
+#hud_minimap.bm_size_ally_244 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.44;
+}
+
+#hud_minimap.bm_size_ally_246 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.46;
+}
+
+#hud_minimap.bm_size_ally_248 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.48;
+}
+
+#hud_minimap.bm_size_ally_250 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.5;
+}
+
+#hud_minimap.bm_size_ally_252 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.52;
+}
+
+#hud_minimap.bm_size_ally_254 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.54;
+}
+
+#hud_minimap.bm_size_ally_256 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.56;
+}
+
+#hud_minimap.bm_size_ally_258 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.58;
+}
+
+#hud_minimap.bm_size_ally_260 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.6;
+}
+
+#hud_minimap.bm_size_ally_262 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.62;
+}
+
+#hud_minimap.bm_size_ally_264 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.64;
+}
+
+#hud_minimap.bm_size_ally_266 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.66;
+}
+
+#hud_minimap.bm_size_ally_268 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.68;
+}
+
+#hud_minimap.bm_size_ally_270 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.7;
+}
+
+#hud_minimap.bm_size_ally_272 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.72;
+}
+
+#hud_minimap.bm_size_ally_274 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.74;
+}
+
+#hud_minimap.bm_size_ally_276 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.76;
+}
+
+#hud_minimap.bm_size_ally_278 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.78;
+}
+
+#hud_minimap.bm_size_ally_280 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.8;
+}
+
+#hud_minimap.bm_size_ally_282 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.82;
+}
+
+#hud_minimap.bm_size_ally_284 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.84;
+}
+
+#hud_minimap.bm_size_ally_286 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.86;
+}
+
+#hud_minimap.bm_size_ally_288 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.88;
+}
+
+#hud_minimap.bm_size_ally_290 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.9;
+}
+
+#hud_minimap.bm_size_ally_292 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.92;
+}
+
+#hud_minimap.bm_size_ally_294 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.94;
+}
+
+#hud_minimap.bm_size_ally_296 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.96;
+}
+
+#hud_minimap.bm_size_ally_298 .map_button.player.friend
+{
+	pre-transform-scale2d: 2.98;
+}
+
+#hud_minimap.bm_size_ally_300 .map_button.player.friend
+{
+	pre-transform-scale2d: 3;
+}
+
+#hud_minimap.bm_size_ally_302 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.02;
+}
+
+#hud_minimap.bm_size_ally_304 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.04;
+}
+
+#hud_minimap.bm_size_ally_306 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.06;
+}
+
+#hud_minimap.bm_size_ally_308 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.08;
+}
+
+#hud_minimap.bm_size_ally_310 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.1;
+}
+
+#hud_minimap.bm_size_ally_312 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.12;
+}
+
+#hud_minimap.bm_size_ally_314 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.14;
+}
+
+#hud_minimap.bm_size_ally_316 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.16;
+}
+
+#hud_minimap.bm_size_ally_318 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.18;
+}
+
+#hud_minimap.bm_size_ally_320 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.2;
+}
+
+#hud_minimap.bm_size_ally_322 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.22;
+}
+
+#hud_minimap.bm_size_ally_324 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.24;
+}
+
+#hud_minimap.bm_size_ally_326 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.26;
+}
+
+#hud_minimap.bm_size_ally_328 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.28;
+}
+
+#hud_minimap.bm_size_ally_330 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.3;
+}
+
+#hud_minimap.bm_size_ally_332 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.32;
+}
+
+#hud_minimap.bm_size_ally_334 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.34;
+}
+
+#hud_minimap.bm_size_ally_336 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.36;
+}
+
+#hud_minimap.bm_size_ally_338 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.38;
+}
+
+#hud_minimap.bm_size_ally_340 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.4;
+}
+
+#hud_minimap.bm_size_ally_342 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.42;
+}
+
+#hud_minimap.bm_size_ally_344 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.44;
+}
+
+#hud_minimap.bm_size_ally_346 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.46;
+}
+
+#hud_minimap.bm_size_ally_348 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.48;
+}
+
+#hud_minimap.bm_size_ally_350 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.5;
+}
+
+#hud_minimap.bm_size_ally_352 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.52;
+}
+
+#hud_minimap.bm_size_ally_354 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.54;
+}
+
+#hud_minimap.bm_size_ally_356 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.56;
+}
+
+#hud_minimap.bm_size_ally_358 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.58;
+}
+
+#hud_minimap.bm_size_ally_360 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.6;
+}
+
+#hud_minimap.bm_size_ally_362 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.62;
+}
+
+#hud_minimap.bm_size_ally_364 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.64;
+}
+
+#hud_minimap.bm_size_ally_366 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.66;
+}
+
+#hud_minimap.bm_size_ally_368 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.68;
+}
+
+#hud_minimap.bm_size_ally_370 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.7;
+}
+
+#hud_minimap.bm_size_ally_372 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.72;
+}
+
+#hud_minimap.bm_size_ally_374 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.74;
+}
+
+#hud_minimap.bm_size_ally_376 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.76;
+}
+
+#hud_minimap.bm_size_ally_378 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.78;
+}
+
+#hud_minimap.bm_size_ally_380 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.8;
+}
+
+#hud_minimap.bm_size_ally_382 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.82;
+}
+
+#hud_minimap.bm_size_ally_384 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.84;
+}
+
+#hud_minimap.bm_size_ally_386 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.86;
+}
+
+#hud_minimap.bm_size_ally_388 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.88;
+}
+
+#hud_minimap.bm_size_ally_390 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.9;
+}
+
+#hud_minimap.bm_size_ally_392 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.92;
+}
+
+#hud_minimap.bm_size_ally_394 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.94;
+}
+
+#hud_minimap.bm_size_ally_396 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.96;
+}
+
+#hud_minimap.bm_size_ally_398 .map_button.player.friend
+{
+	pre-transform-scale2d: 3.98;
+}
+
+#hud_minimap.bm_size_ally_400 .map_button.player.friend
+{
+	pre-transform-scale2d: 4;
+}
+
+#hud_minimap.bm_size_enemy_20 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.2;
+}
+
+#hud_minimap.bm_size_enemy_22 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.22;
+}
+
+#hud_minimap.bm_size_enemy_24 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.24;
+}
+
+#hud_minimap.bm_size_enemy_26 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.26;
+}
+
+#hud_minimap.bm_size_enemy_28 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.28;
+}
+
+#hud_minimap.bm_size_enemy_30 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.3;
+}
+
+#hud_minimap.bm_size_enemy_32 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.32;
+}
+
+#hud_minimap.bm_size_enemy_34 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.34;
+}
+
+#hud_minimap.bm_size_enemy_36 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.36;
+}
+
+#hud_minimap.bm_size_enemy_38 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.38;
+}
+
+#hud_minimap.bm_size_enemy_40 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.4;
+}
+
+#hud_minimap.bm_size_enemy_42 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.42;
+}
+
+#hud_minimap.bm_size_enemy_44 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.44;
+}
+
+#hud_minimap.bm_size_enemy_46 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.46;
+}
+
+#hud_minimap.bm_size_enemy_48 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.48;
 }
 
 #hud_minimap.bm_size_enemy_50 .map_button.player.enemy
@@ -2176,9 +4080,49 @@
 	pre-transform-scale2d: 0.5;
 }
 
+#hud_minimap.bm_size_enemy_52 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.52;
+}
+
+#hud_minimap.bm_size_enemy_54 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.54;
+}
+
+#hud_minimap.bm_size_enemy_56 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.56;
+}
+
+#hud_minimap.bm_size_enemy_58 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.58;
+}
+
 #hud_minimap.bm_size_enemy_60 .map_button.player.enemy
 {
 	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_size_enemy_62 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.62;
+}
+
+#hud_minimap.bm_size_enemy_64 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.64;
+}
+
+#hud_minimap.bm_size_enemy_66 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.66;
+}
+
+#hud_minimap.bm_size_enemy_68 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.68;
 }
 
 #hud_minimap.bm_size_enemy_70 .map_button.player.enemy
@@ -2186,9 +4130,49 @@
 	pre-transform-scale2d: 0.7;
 }
 
+#hud_minimap.bm_size_enemy_72 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.72;
+}
+
+#hud_minimap.bm_size_enemy_74 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.74;
+}
+
+#hud_minimap.bm_size_enemy_76 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.76;
+}
+
+#hud_minimap.bm_size_enemy_78 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.78;
+}
+
 #hud_minimap.bm_size_enemy_80 .map_button.player.enemy
 {
 	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_size_enemy_82 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.82;
+}
+
+#hud_minimap.bm_size_enemy_84 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.84;
+}
+
+#hud_minimap.bm_size_enemy_86 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.86;
+}
+
+#hud_minimap.bm_size_enemy_88 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.88;
 }
 
 #hud_minimap.bm_size_enemy_90 .map_button.player.enemy
@@ -2196,9 +4180,69 @@
 	pre-transform-scale2d: 0.9;
 }
 
+#hud_minimap.bm_size_enemy_92 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.92;
+}
+
+#hud_minimap.bm_size_enemy_94 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.94;
+}
+
+#hud_minimap.bm_size_enemy_96 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.96;
+}
+
+#hud_minimap.bm_size_enemy_98 .map_button.player.enemy
+{
+	pre-transform-scale2d: 0.98;
+}
+
+#hud_minimap.bm_size_enemy_102 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.02;
+}
+
+#hud_minimap.bm_size_enemy_104 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.04;
+}
+
+#hud_minimap.bm_size_enemy_106 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.06;
+}
+
+#hud_minimap.bm_size_enemy_108 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.08;
+}
+
 #hud_minimap.bm_size_enemy_110 .map_button.player.enemy
 {
 	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_size_enemy_112 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.12;
+}
+
+#hud_minimap.bm_size_enemy_114 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.14;
+}
+
+#hud_minimap.bm_size_enemy_116 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.16;
+}
+
+#hud_minimap.bm_size_enemy_118 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.18;
 }
 
 #hud_minimap.bm_size_enemy_120 .map_button.player.enemy
@@ -2206,9 +4250,49 @@
 	pre-transform-scale2d: 1.2;
 }
 
+#hud_minimap.bm_size_enemy_122 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.22;
+}
+
+#hud_minimap.bm_size_enemy_124 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.24;
+}
+
+#hud_minimap.bm_size_enemy_126 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.26;
+}
+
+#hud_minimap.bm_size_enemy_128 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.28;
+}
+
 #hud_minimap.bm_size_enemy_130 .map_button.player.enemy
 {
 	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_size_enemy_132 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.32;
+}
+
+#hud_minimap.bm_size_enemy_134 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.34;
+}
+
+#hud_minimap.bm_size_enemy_136 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.36;
+}
+
+#hud_minimap.bm_size_enemy_138 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.38;
 }
 
 #hud_minimap.bm_size_enemy_140 .map_button.player.enemy
@@ -2216,9 +4300,49 @@
 	pre-transform-scale2d: 1.4;
 }
 
+#hud_minimap.bm_size_enemy_142 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.42;
+}
+
+#hud_minimap.bm_size_enemy_144 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.44;
+}
+
+#hud_minimap.bm_size_enemy_146 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.46;
+}
+
+#hud_minimap.bm_size_enemy_148 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.48;
+}
+
 #hud_minimap.bm_size_enemy_150 .map_button.player.enemy
 {
 	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_size_enemy_152 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.52;
+}
+
+#hud_minimap.bm_size_enemy_154 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.54;
+}
+
+#hud_minimap.bm_size_enemy_156 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.56;
+}
+
+#hud_minimap.bm_size_enemy_158 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.58;
 }
 
 #hud_minimap.bm_size_enemy_160 .map_button.player.enemy
@@ -2226,9 +4350,49 @@
 	pre-transform-scale2d: 1.6;
 }
 
+#hud_minimap.bm_size_enemy_162 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.62;
+}
+
+#hud_minimap.bm_size_enemy_164 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.64;
+}
+
+#hud_minimap.bm_size_enemy_166 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.66;
+}
+
+#hud_minimap.bm_size_enemy_168 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.68;
+}
+
 #hud_minimap.bm_size_enemy_170 .map_button.player.enemy
 {
 	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_size_enemy_172 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.72;
+}
+
+#hud_minimap.bm_size_enemy_174 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.74;
+}
+
+#hud_minimap.bm_size_enemy_176 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.76;
+}
+
+#hud_minimap.bm_size_enemy_178 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.78;
 }
 
 #hud_minimap.bm_size_enemy_180 .map_button.player.enemy
@@ -2236,14 +4400,554 @@
 	pre-transform-scale2d: 1.8;
 }
 
+#hud_minimap.bm_size_enemy_182 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.82;
+}
+
+#hud_minimap.bm_size_enemy_184 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.84;
+}
+
+#hud_minimap.bm_size_enemy_186 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.86;
+}
+
+#hud_minimap.bm_size_enemy_188 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.88;
+}
+
 #hud_minimap.bm_size_enemy_190 .map_button.player.enemy
 {
 	pre-transform-scale2d: 1.9;
 }
 
+#hud_minimap.bm_size_enemy_192 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.92;
+}
+
+#hud_minimap.bm_size_enemy_194 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.94;
+}
+
+#hud_minimap.bm_size_enemy_196 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.96;
+}
+
+#hud_minimap.bm_size_enemy_198 .map_button.player.enemy
+{
+	pre-transform-scale2d: 1.98;
+}
+
 #hud_minimap.bm_size_enemy_200 .map_button.player.enemy
 {
 	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_size_enemy_202 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.02;
+}
+
+#hud_minimap.bm_size_enemy_204 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.04;
+}
+
+#hud_minimap.bm_size_enemy_206 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.06;
+}
+
+#hud_minimap.bm_size_enemy_208 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.08;
+}
+
+#hud_minimap.bm_size_enemy_210 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.1;
+}
+
+#hud_minimap.bm_size_enemy_212 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.12;
+}
+
+#hud_minimap.bm_size_enemy_214 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.14;
+}
+
+#hud_minimap.bm_size_enemy_216 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.16;
+}
+
+#hud_minimap.bm_size_enemy_218 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.18;
+}
+
+#hud_minimap.bm_size_enemy_220 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.2;
+}
+
+#hud_minimap.bm_size_enemy_222 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.22;
+}
+
+#hud_minimap.bm_size_enemy_224 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.24;
+}
+
+#hud_minimap.bm_size_enemy_226 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.26;
+}
+
+#hud_minimap.bm_size_enemy_228 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.28;
+}
+
+#hud_minimap.bm_size_enemy_230 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.3;
+}
+
+#hud_minimap.bm_size_enemy_232 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.32;
+}
+
+#hud_minimap.bm_size_enemy_234 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.34;
+}
+
+#hud_minimap.bm_size_enemy_236 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.36;
+}
+
+#hud_minimap.bm_size_enemy_238 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.38;
+}
+
+#hud_minimap.bm_size_enemy_240 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.4;
+}
+
+#hud_minimap.bm_size_enemy_242 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.42;
+}
+
+#hud_minimap.bm_size_enemy_244 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.44;
+}
+
+#hud_minimap.bm_size_enemy_246 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.46;
+}
+
+#hud_minimap.bm_size_enemy_248 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.48;
+}
+
+#hud_minimap.bm_size_enemy_250 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.5;
+}
+
+#hud_minimap.bm_size_enemy_252 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.52;
+}
+
+#hud_minimap.bm_size_enemy_254 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.54;
+}
+
+#hud_minimap.bm_size_enemy_256 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.56;
+}
+
+#hud_minimap.bm_size_enemy_258 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.58;
+}
+
+#hud_minimap.bm_size_enemy_260 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.6;
+}
+
+#hud_minimap.bm_size_enemy_262 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.62;
+}
+
+#hud_minimap.bm_size_enemy_264 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.64;
+}
+
+#hud_minimap.bm_size_enemy_266 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.66;
+}
+
+#hud_minimap.bm_size_enemy_268 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.68;
+}
+
+#hud_minimap.bm_size_enemy_270 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.7;
+}
+
+#hud_minimap.bm_size_enemy_272 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.72;
+}
+
+#hud_minimap.bm_size_enemy_274 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.74;
+}
+
+#hud_minimap.bm_size_enemy_276 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.76;
+}
+
+#hud_minimap.bm_size_enemy_278 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.78;
+}
+
+#hud_minimap.bm_size_enemy_280 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.8;
+}
+
+#hud_minimap.bm_size_enemy_282 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.82;
+}
+
+#hud_minimap.bm_size_enemy_284 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.84;
+}
+
+#hud_minimap.bm_size_enemy_286 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.86;
+}
+
+#hud_minimap.bm_size_enemy_288 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.88;
+}
+
+#hud_minimap.bm_size_enemy_290 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.9;
+}
+
+#hud_minimap.bm_size_enemy_292 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.92;
+}
+
+#hud_minimap.bm_size_enemy_294 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.94;
+}
+
+#hud_minimap.bm_size_enemy_296 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.96;
+}
+
+#hud_minimap.bm_size_enemy_298 .map_button.player.enemy
+{
+	pre-transform-scale2d: 2.98;
+}
+
+#hud_minimap.bm_size_enemy_300 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3;
+}
+
+#hud_minimap.bm_size_enemy_302 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.02;
+}
+
+#hud_minimap.bm_size_enemy_304 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.04;
+}
+
+#hud_minimap.bm_size_enemy_306 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.06;
+}
+
+#hud_minimap.bm_size_enemy_308 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.08;
+}
+
+#hud_minimap.bm_size_enemy_310 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.1;
+}
+
+#hud_minimap.bm_size_enemy_312 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.12;
+}
+
+#hud_minimap.bm_size_enemy_314 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.14;
+}
+
+#hud_minimap.bm_size_enemy_316 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.16;
+}
+
+#hud_minimap.bm_size_enemy_318 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.18;
+}
+
+#hud_minimap.bm_size_enemy_320 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.2;
+}
+
+#hud_minimap.bm_size_enemy_322 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.22;
+}
+
+#hud_minimap.bm_size_enemy_324 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.24;
+}
+
+#hud_minimap.bm_size_enemy_326 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.26;
+}
+
+#hud_minimap.bm_size_enemy_328 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.28;
+}
+
+#hud_minimap.bm_size_enemy_330 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.3;
+}
+
+#hud_minimap.bm_size_enemy_332 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.32;
+}
+
+#hud_minimap.bm_size_enemy_334 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.34;
+}
+
+#hud_minimap.bm_size_enemy_336 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.36;
+}
+
+#hud_minimap.bm_size_enemy_338 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.38;
+}
+
+#hud_minimap.bm_size_enemy_340 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.4;
+}
+
+#hud_minimap.bm_size_enemy_342 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.42;
+}
+
+#hud_minimap.bm_size_enemy_344 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.44;
+}
+
+#hud_minimap.bm_size_enemy_346 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.46;
+}
+
+#hud_minimap.bm_size_enemy_348 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.48;
+}
+
+#hud_minimap.bm_size_enemy_350 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.5;
+}
+
+#hud_minimap.bm_size_enemy_352 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.52;
+}
+
+#hud_minimap.bm_size_enemy_354 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.54;
+}
+
+#hud_minimap.bm_size_enemy_356 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.56;
+}
+
+#hud_minimap.bm_size_enemy_358 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.58;
+}
+
+#hud_minimap.bm_size_enemy_360 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.6;
+}
+
+#hud_minimap.bm_size_enemy_362 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.62;
+}
+
+#hud_minimap.bm_size_enemy_364 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.64;
+}
+
+#hud_minimap.bm_size_enemy_366 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.66;
+}
+
+#hud_minimap.bm_size_enemy_368 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.68;
+}
+
+#hud_minimap.bm_size_enemy_370 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.7;
+}
+
+#hud_minimap.bm_size_enemy_372 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.72;
+}
+
+#hud_minimap.bm_size_enemy_374 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.74;
+}
+
+#hud_minimap.bm_size_enemy_376 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.76;
+}
+
+#hud_minimap.bm_size_enemy_378 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.78;
+}
+
+#hud_minimap.bm_size_enemy_380 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.8;
+}
+
+#hud_minimap.bm_size_enemy_382 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.82;
+}
+
+#hud_minimap.bm_size_enemy_384 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.84;
+}
+
+#hud_minimap.bm_size_enemy_386 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.86;
+}
+
+#hud_minimap.bm_size_enemy_388 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.88;
+}
+
+#hud_minimap.bm_size_enemy_390 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.9;
+}
+
+#hud_minimap.bm_size_enemy_392 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.92;
+}
+
+#hud_minimap.bm_size_enemy_394 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.94;
+}
+
+#hud_minimap.bm_size_enemy_396 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.96;
+}
+
+#hud_minimap.bm_size_enemy_398 .map_button.player.enemy
+{
+	pre-transform-scale2d: 3.98;
+}
+
+#hud_minimap.bm_size_enemy_400 .map_button.player.enemy
+{
+	pre-transform-scale2d: 4;
 }
 
 #hud_minimap.bm_size_tower_50 .map_button.boss_icon_t1,
@@ -2846,11 +5550,6 @@
 	pre-transform-scale2d: 0.540541;
 }
 
-#hud_minimap.bm_mapsize_750 .map_button.ability_castrange #CastRange
-{
-	pre-transform-scale2d: 0.533333;
-}
-
 #hud_minimap.bm_mapsize_760 .map_button.ability_castrange #CastRange
 {
 	pre-transform-scale2d: 0.526316;
@@ -2864,6 +5563,1947 @@
 #hud_minimap.bm_mapsize_800 .map_button.ability_castrange #CastRange
 {
 	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_mapsize_820 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.487805;
+}
+
+#hud_minimap.bm_mapsize_840 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.47619;
+}
+
+#hud_minimap.bm_mapsize_860 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.465116;
+}
+
+#hud_minimap.bm_mapsize_880 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.454545;
+}
+
+#hud_minimap.bm_mapsize_900 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.444444;
+}
+
+#hud_minimap.bm_mapsize_920 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.434783;
+}
+
+#hud_minimap.bm_mapsize_940 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.425532;
+}
+
+#hud_minimap.bm_mapsize_960 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.416667;
+}
+
+#hud_minimap.bm_mapsize_980 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.408163;
+}
+
+#hud_minimap.bm_mapsize_1000 .map_button.ability_castrange #CastRange
+{
+	pre-transform-scale2d: 0.4;
+}
+
+#hud_minimap.bm_fit_40 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.4;
+}
+
+#hud_minimap.bm_fit_42 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.42;
+}
+
+#hud_minimap.bm_fit_44 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.44;
+}
+
+#hud_minimap.bm_fit_46 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.46;
+}
+
+#hud_minimap.bm_fit_48 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.48;
+}
+
+#hud_minimap.bm_fit_50 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.5;
+}
+
+#hud_minimap.bm_fit_52 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.52;
+}
+
+#hud_minimap.bm_fit_54 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.54;
+}
+
+#hud_minimap.bm_fit_56 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.56;
+}
+
+#hud_minimap.bm_fit_58 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.58;
+}
+
+#hud_minimap.bm_fit_60 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.6;
+}
+
+#hud_minimap.bm_fit_62 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.62;
+}
+
+#hud_minimap.bm_fit_64 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.64;
+}
+
+#hud_minimap.bm_fit_66 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.66;
+}
+
+#hud_minimap.bm_fit_68 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.68;
+}
+
+#hud_minimap.bm_fit_70 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.7;
+}
+
+#hud_minimap.bm_fit_72 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.72;
+}
+
+#hud_minimap.bm_fit_74 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.74;
+}
+
+#hud_minimap.bm_fit_76 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.76;
+}
+
+#hud_minimap.bm_fit_78 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.78;
+}
+
+#hud_minimap.bm_fit_80 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.8;
+}
+
+#hud_minimap.bm_fit_82 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.82;
+}
+
+#hud_minimap.bm_fit_84 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.84;
+}
+
+#hud_minimap.bm_fit_86 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.86;
+}
+
+#hud_minimap.bm_fit_88 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.88;
+}
+
+#hud_minimap.bm_fit_90 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.9;
+}
+
+#hud_minimap.bm_fit_92 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.92;
+}
+
+#hud_minimap.bm_fit_94 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.94;
+}
+
+#hud_minimap.bm_fit_96 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.96;
+}
+
+#hud_minimap.bm_fit_98 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 0.98;
+}
+
+#hud_minimap.bm_fit_102 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.02;
+}
+
+#hud_minimap.bm_fit_104 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.04;
+}
+
+#hud_minimap.bm_fit_106 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.06;
+}
+
+#hud_minimap.bm_fit_108 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.08;
+}
+
+#hud_minimap.bm_fit_110 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.1;
+}
+
+#hud_minimap.bm_fit_112 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.12;
+}
+
+#hud_minimap.bm_fit_114 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.14;
+}
+
+#hud_minimap.bm_fit_116 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.16;
+}
+
+#hud_minimap.bm_fit_118 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.18;
+}
+
+#hud_minimap.bm_fit_120 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.2;
+}
+
+#hud_minimap.bm_fit_122 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.22;
+}
+
+#hud_minimap.bm_fit_124 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.24;
+}
+
+#hud_minimap.bm_fit_126 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.26;
+}
+
+#hud_minimap.bm_fit_128 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.28;
+}
+
+#hud_minimap.bm_fit_130 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.3;
+}
+
+#hud_minimap.bm_fit_132 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.32;
+}
+
+#hud_minimap.bm_fit_134 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.34;
+}
+
+#hud_minimap.bm_fit_136 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.36;
+}
+
+#hud_minimap.bm_fit_138 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.38;
+}
+
+#hud_minimap.bm_fit_140 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.4;
+}
+
+#hud_minimap.bm_fit_142 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.42;
+}
+
+#hud_minimap.bm_fit_144 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.44;
+}
+
+#hud_minimap.bm_fit_146 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.46;
+}
+
+#hud_minimap.bm_fit_148 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.48;
+}
+
+#hud_minimap.bm_fit_150 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.5;
+}
+
+#hud_minimap.bm_fit_152 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.52;
+}
+
+#hud_minimap.bm_fit_154 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.54;
+}
+
+#hud_minimap.bm_fit_156 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.56;
+}
+
+#hud_minimap.bm_fit_158 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.58;
+}
+
+#hud_minimap.bm_fit_160 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.6;
+}
+
+#hud_minimap.bm_fit_162 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.62;
+}
+
+#hud_minimap.bm_fit_164 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.64;
+}
+
+#hud_minimap.bm_fit_166 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.66;
+}
+
+#hud_minimap.bm_fit_168 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.68;
+}
+
+#hud_minimap.bm_fit_170 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.7;
+}
+
+#hud_minimap.bm_fit_172 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.72;
+}
+
+#hud_minimap.bm_fit_174 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.74;
+}
+
+#hud_minimap.bm_fit_176 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.76;
+}
+
+#hud_minimap.bm_fit_178 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.78;
+}
+
+#hud_minimap.bm_fit_180 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.8;
+}
+
+#hud_minimap.bm_fit_182 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.82;
+}
+
+#hud_minimap.bm_fit_184 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.84;
+}
+
+#hud_minimap.bm_fit_186 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.86;
+}
+
+#hud_minimap.bm_fit_188 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.88;
+}
+
+#hud_minimap.bm_fit_190 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.9;
+}
+
+#hud_minimap.bm_fit_192 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.92;
+}
+
+#hud_minimap.bm_fit_194 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.94;
+}
+
+#hud_minimap.bm_fit_196 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.96;
+}
+
+#hud_minimap.bm_fit_198 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 1.98;
+}
+
+#hud_minimap.bm_fit_200 .map_button.gold_dropping
+{
+	pre-transform-scale2d: 2;
+}
+
+#hud_minimap.bm_rot_1 .map_button,
+#hud_minimap.bm_rot_1 .bm_urn
+{
+	pre-transform-rotate2d: 5deg;
+}
+
+#hud_minimap.bm_rot_1 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_1 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_1 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_2 .map_button,
+#hud_minimap.bm_rot_2 .bm_urn
+{
+	pre-transform-rotate2d: 10deg;
+}
+
+#hud_minimap.bm_rot_2 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_2 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_2 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_3 .map_button,
+#hud_minimap.bm_rot_3 .bm_urn
+{
+	pre-transform-rotate2d: 15deg;
+}
+
+#hud_minimap.bm_rot_3 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_3 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_3 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_4 .map_button,
+#hud_minimap.bm_rot_4 .bm_urn
+{
+	pre-transform-rotate2d: 20deg;
+}
+
+#hud_minimap.bm_rot_4 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_4 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_4 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_5 .map_button,
+#hud_minimap.bm_rot_5 .bm_urn
+{
+	pre-transform-rotate2d: 25deg;
+}
+
+#hud_minimap.bm_rot_5 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_5 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_5 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_6 .map_button,
+#hud_minimap.bm_rot_6 .bm_urn
+{
+	pre-transform-rotate2d: 30deg;
+}
+
+#hud_minimap.bm_rot_6 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_6 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_6 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_7 .map_button,
+#hud_minimap.bm_rot_7 .bm_urn
+{
+	pre-transform-rotate2d: 35deg;
+}
+
+#hud_minimap.bm_rot_7 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_7 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_7 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_8 .map_button,
+#hud_minimap.bm_rot_8 .bm_urn
+{
+	pre-transform-rotate2d: 40deg;
+}
+
+#hud_minimap.bm_rot_8 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_8 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_8 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_9 .map_button,
+#hud_minimap.bm_rot_9 .bm_urn
+{
+	pre-transform-rotate2d: 45deg;
+}
+
+#hud_minimap.bm_rot_9 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_9 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_9 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_10 .map_button,
+#hud_minimap.bm_rot_10 .bm_urn
+{
+	pre-transform-rotate2d: 50deg;
+}
+
+#hud_minimap.bm_rot_10 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_10 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_10 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_11 .map_button,
+#hud_minimap.bm_rot_11 .bm_urn
+{
+	pre-transform-rotate2d: 55deg;
+}
+
+#hud_minimap.bm_rot_11 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_11 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_11 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_12 .map_button,
+#hud_minimap.bm_rot_12 .bm_urn
+{
+	pre-transform-rotate2d: 60deg;
+}
+
+#hud_minimap.bm_rot_12 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_12 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_12 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_13 .map_button,
+#hud_minimap.bm_rot_13 .bm_urn
+{
+	pre-transform-rotate2d: 65deg;
+}
+
+#hud_minimap.bm_rot_13 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_13 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_13 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_14 .map_button,
+#hud_minimap.bm_rot_14 .bm_urn
+{
+	pre-transform-rotate2d: 70deg;
+}
+
+#hud_minimap.bm_rot_14 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_14 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_14 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_15 .map_button,
+#hud_minimap.bm_rot_15 .bm_urn
+{
+	pre-transform-rotate2d: 75deg;
+}
+
+#hud_minimap.bm_rot_15 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_15 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_15 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_16 .map_button,
+#hud_minimap.bm_rot_16 .bm_urn
+{
+	pre-transform-rotate2d: 80deg;
+}
+
+#hud_minimap.bm_rot_16 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_16 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_16 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_17 .map_button,
+#hud_minimap.bm_rot_17 .bm_urn
+{
+	pre-transform-rotate2d: 85deg;
+}
+
+#hud_minimap.bm_rot_17 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_17 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_17 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_18 .map_button,
+#hud_minimap.bm_rot_18 .bm_urn
+{
+	pre-transform-rotate2d: 90deg;
+}
+
+#hud_minimap.bm_rot_18 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_18 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_18 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_19 .map_button,
+#hud_minimap.bm_rot_19 .bm_urn
+{
+	pre-transform-rotate2d: 95deg;
+}
+
+#hud_minimap.bm_rot_19 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_19 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_19 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_20 .map_button,
+#hud_minimap.bm_rot_20 .bm_urn
+{
+	pre-transform-rotate2d: 100deg;
+}
+
+#hud_minimap.bm_rot_20 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_20 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_20 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_21 .map_button,
+#hud_minimap.bm_rot_21 .bm_urn
+{
+	pre-transform-rotate2d: 105deg;
+}
+
+#hud_minimap.bm_rot_21 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_21 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_21 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_22 .map_button,
+#hud_minimap.bm_rot_22 .bm_urn
+{
+	pre-transform-rotate2d: 110deg;
+}
+
+#hud_minimap.bm_rot_22 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_22 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_22 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_23 .map_button,
+#hud_minimap.bm_rot_23 .bm_urn
+{
+	pre-transform-rotate2d: 115deg;
+}
+
+#hud_minimap.bm_rot_23 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_23 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_23 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_24 .map_button,
+#hud_minimap.bm_rot_24 .bm_urn
+{
+	pre-transform-rotate2d: 120deg;
+}
+
+#hud_minimap.bm_rot_24 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_24 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_24 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_25 .map_button,
+#hud_minimap.bm_rot_25 .bm_urn
+{
+	pre-transform-rotate2d: 125deg;
+}
+
+#hud_minimap.bm_rot_25 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_25 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_25 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_26 .map_button,
+#hud_minimap.bm_rot_26 .bm_urn
+{
+	pre-transform-rotate2d: 130deg;
+}
+
+#hud_minimap.bm_rot_26 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_26 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_26 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_27 .map_button,
+#hud_minimap.bm_rot_27 .bm_urn
+{
+	pre-transform-rotate2d: 135deg;
+}
+
+#hud_minimap.bm_rot_27 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_27 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_27 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_28 .map_button,
+#hud_minimap.bm_rot_28 .bm_urn
+{
+	pre-transform-rotate2d: 140deg;
+}
+
+#hud_minimap.bm_rot_28 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_28 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_28 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_29 .map_button,
+#hud_minimap.bm_rot_29 .bm_urn
+{
+	pre-transform-rotate2d: 145deg;
+}
+
+#hud_minimap.bm_rot_29 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_29 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_29 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_30 .map_button,
+#hud_minimap.bm_rot_30 .bm_urn
+{
+	pre-transform-rotate2d: 150deg;
+}
+
+#hud_minimap.bm_rot_30 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_30 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_30 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_31 .map_button,
+#hud_minimap.bm_rot_31 .bm_urn
+{
+	pre-transform-rotate2d: 155deg;
+}
+
+#hud_minimap.bm_rot_31 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_31 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_31 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_32 .map_button,
+#hud_minimap.bm_rot_32 .bm_urn
+{
+	pre-transform-rotate2d: 160deg;
+}
+
+#hud_minimap.bm_rot_32 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_32 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_32 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_33 .map_button,
+#hud_minimap.bm_rot_33 .bm_urn
+{
+	pre-transform-rotate2d: 165deg;
+}
+
+#hud_minimap.bm_rot_33 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_33 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_33 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_34 .map_button,
+#hud_minimap.bm_rot_34 .bm_urn
+{
+	pre-transform-rotate2d: 170deg;
+}
+
+#hud_minimap.bm_rot_34 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_34 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_34 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_35 .map_button,
+#hud_minimap.bm_rot_35 .bm_urn
+{
+	pre-transform-rotate2d: 175deg;
+}
+
+#hud_minimap.bm_rot_35 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_35 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_35 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_36 .map_button,
+#hud_minimap.bm_rot_36 .bm_urn
+{
+	pre-transform-rotate2d: 180deg;
+}
+
+#hud_minimap.bm_rot_36 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_36 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_36 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_37 .map_button,
+#hud_minimap.bm_rot_37 .bm_urn
+{
+	pre-transform-rotate2d: 185deg;
+}
+
+#hud_minimap.bm_rot_37 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_37 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_37 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_38 .map_button,
+#hud_minimap.bm_rot_38 .bm_urn
+{
+	pre-transform-rotate2d: 190deg;
+}
+
+#hud_minimap.bm_rot_38 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_38 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_38 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_39 .map_button,
+#hud_minimap.bm_rot_39 .bm_urn
+{
+	pre-transform-rotate2d: 195deg;
+}
+
+#hud_minimap.bm_rot_39 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_39 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_39 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_40 .map_button,
+#hud_minimap.bm_rot_40 .bm_urn
+{
+	pre-transform-rotate2d: 200deg;
+}
+
+#hud_minimap.bm_rot_40 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_40 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_40 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_41 .map_button,
+#hud_minimap.bm_rot_41 .bm_urn
+{
+	pre-transform-rotate2d: 205deg;
+}
+
+#hud_minimap.bm_rot_41 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_41 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_41 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_42 .map_button,
+#hud_minimap.bm_rot_42 .bm_urn
+{
+	pre-transform-rotate2d: 210deg;
+}
+
+#hud_minimap.bm_rot_42 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_42 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_42 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_43 .map_button,
+#hud_minimap.bm_rot_43 .bm_urn
+{
+	pre-transform-rotate2d: 215deg;
+}
+
+#hud_minimap.bm_rot_43 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_43 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_43 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_44 .map_button,
+#hud_minimap.bm_rot_44 .bm_urn
+{
+	pre-transform-rotate2d: 220deg;
+}
+
+#hud_minimap.bm_rot_44 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_44 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_44 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_45 .map_button,
+#hud_minimap.bm_rot_45 .bm_urn
+{
+	pre-transform-rotate2d: 225deg;
+}
+
+#hud_minimap.bm_rot_45 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_45 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_45 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_46 .map_button,
+#hud_minimap.bm_rot_46 .bm_urn
+{
+	pre-transform-rotate2d: 230deg;
+}
+
+#hud_minimap.bm_rot_46 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_46 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_46 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_47 .map_button,
+#hud_minimap.bm_rot_47 .bm_urn
+{
+	pre-transform-rotate2d: 235deg;
+}
+
+#hud_minimap.bm_rot_47 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_47 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_47 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_48 .map_button,
+#hud_minimap.bm_rot_48 .bm_urn
+{
+	pre-transform-rotate2d: 240deg;
+}
+
+#hud_minimap.bm_rot_48 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_48 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_48 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_49 .map_button,
+#hud_minimap.bm_rot_49 .bm_urn
+{
+	pre-transform-rotate2d: 245deg;
+}
+
+#hud_minimap.bm_rot_49 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_49 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_49 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_50 .map_button,
+#hud_minimap.bm_rot_50 .bm_urn
+{
+	pre-transform-rotate2d: 250deg;
+}
+
+#hud_minimap.bm_rot_50 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_50 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_50 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_51 .map_button,
+#hud_minimap.bm_rot_51 .bm_urn
+{
+	pre-transform-rotate2d: 255deg;
+}
+
+#hud_minimap.bm_rot_51 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_51 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_51 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_52 .map_button,
+#hud_minimap.bm_rot_52 .bm_urn
+{
+	pre-transform-rotate2d: 260deg;
+}
+
+#hud_minimap.bm_rot_52 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_52 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_52 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_53 .map_button,
+#hud_minimap.bm_rot_53 .bm_urn
+{
+	pre-transform-rotate2d: 265deg;
+}
+
+#hud_minimap.bm_rot_53 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_53 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_53 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_54 .map_button,
+#hud_minimap.bm_rot_54 .bm_urn
+{
+	pre-transform-rotate2d: 270deg;
+}
+
+#hud_minimap.bm_rot_54 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_54 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_54 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_55 .map_button,
+#hud_minimap.bm_rot_55 .bm_urn
+{
+	pre-transform-rotate2d: 275deg;
+}
+
+#hud_minimap.bm_rot_55 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_55 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_55 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_56 .map_button,
+#hud_minimap.bm_rot_56 .bm_urn
+{
+	pre-transform-rotate2d: 280deg;
+}
+
+#hud_minimap.bm_rot_56 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_56 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_56 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_57 .map_button,
+#hud_minimap.bm_rot_57 .bm_urn
+{
+	pre-transform-rotate2d: 285deg;
+}
+
+#hud_minimap.bm_rot_57 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_57 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_57 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_58 .map_button,
+#hud_minimap.bm_rot_58 .bm_urn
+{
+	pre-transform-rotate2d: 290deg;
+}
+
+#hud_minimap.bm_rot_58 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_58 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_58 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_59 .map_button,
+#hud_minimap.bm_rot_59 .bm_urn
+{
+	pre-transform-rotate2d: 295deg;
+}
+
+#hud_minimap.bm_rot_59 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_59 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_59 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_60 .map_button,
+#hud_minimap.bm_rot_60 .bm_urn
+{
+	pre-transform-rotate2d: 300deg;
+}
+
+#hud_minimap.bm_rot_60 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_60 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_60 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_61 .map_button,
+#hud_minimap.bm_rot_61 .bm_urn
+{
+	pre-transform-rotate2d: 305deg;
+}
+
+#hud_minimap.bm_rot_61 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_61 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_61 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_62 .map_button,
+#hud_minimap.bm_rot_62 .bm_urn
+{
+	pre-transform-rotate2d: 310deg;
+}
+
+#hud_minimap.bm_rot_62 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_62 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_62 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_63 .map_button,
+#hud_minimap.bm_rot_63 .bm_urn
+{
+	pre-transform-rotate2d: 315deg;
+}
+
+#hud_minimap.bm_rot_63 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_63 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_63 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_64 .map_button,
+#hud_minimap.bm_rot_64 .bm_urn
+{
+	pre-transform-rotate2d: 320deg;
+}
+
+#hud_minimap.bm_rot_64 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_64 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_64 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_65 .map_button,
+#hud_minimap.bm_rot_65 .bm_urn
+{
+	pre-transform-rotate2d: 325deg;
+}
+
+#hud_minimap.bm_rot_65 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_65 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_65 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_66 .map_button,
+#hud_minimap.bm_rot_66 .bm_urn
+{
+	pre-transform-rotate2d: 330deg;
+}
+
+#hud_minimap.bm_rot_66 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_66 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_66 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_67 .map_button,
+#hud_minimap.bm_rot_67 .bm_urn
+{
+	pre-transform-rotate2d: 335deg;
+}
+
+#hud_minimap.bm_rot_67 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_67 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_67 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_68 .map_button,
+#hud_minimap.bm_rot_68 .bm_urn
+{
+	pre-transform-rotate2d: 340deg;
+}
+
+#hud_minimap.bm_rot_68 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_68 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_68 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_69 .map_button,
+#hud_minimap.bm_rot_69 .bm_urn
+{
+	pre-transform-rotate2d: 345deg;
+}
+
+#hud_minimap.bm_rot_69 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_69 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_69 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_70 .map_button,
+#hud_minimap.bm_rot_70 .bm_urn
+{
+	pre-transform-rotate2d: 350deg;
+}
+
+#hud_minimap.bm_rot_70 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_70 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_70 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_71 .map_button,
+#hud_minimap.bm_rot_71 .bm_urn
+{
+	pre-transform-rotate2d: 355deg;
+}
+
+#hud_minimap.bm_rot_71 .map_button.localplayer
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_71 .client_cone_fov
+{
+	pre-transform-rotate2d: 0deg;
+}
+
+#hud_minimap.bm_rot_71 .map_button.guided_arrow
+{
+	pre-transform-rotate2d: 0deg;
 }
 
 /* END GENERATED: bettermap icon sizes */

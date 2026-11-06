@@ -53,12 +53,19 @@ FILES = {
     "bettermap_state.js": "qollite_map_state.js",
     "bettermap_draw.js": "qollite_map_draw.js",
     "bettermap_minimap.js": "qollite_map_minimap.js",
+    # 3.5: TAB / Alt state, shared by size, the TAB map and rotation.
+    "bettermap_view.js": "qollite_map_view.js",
     "bettermap_size.js": "qollite_map_size.js",
     "bettermap_position.js": "qollite_map_position.js",
+    # 3.5: Larger Map on TAB and the Rotating Minimap.
+    "bettermap_tabmap.js": "qollite_map_tabmap.js",
+    "bettermap_rotate.js": "qollite_map_rotate.js",
     "bettermap_poi.js": "qollite_map_poi.js",
     "bettermap_umm.js": "qollite_map_umm_adapter.js",
     "bettermap_minimal.js": "qollite_map_minimal.js",
     "bettermap_icons.js": "qollite_map_icons.js",
+    # 3.4: Location Label Size, the district label next to the minimap.
+    "bettermap_location.js": "qollite_map_location.js",
     "bettermap_preview.js": "qollite_map_preview.js",
     "bettermap_urn.js": "qollite_map_urn.js",
     "bettermap_apply.js": "qollite_map_apply.js",

@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_icons.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_icons.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -18,6 +18,9 @@
 // player also carries .friend, so without its own class an ally size would reach it.
 // Valve sizes players itself in the zoomed minimap (pre-transform-scale2d 0.3 / 0.2),
 // so `zoomAside` entries drop their class while useZoomedMinimap is on.
+// `fit` entries (the players, sized in % of the map) keep Valve's size at any drawn map (spec
+// 2026-11-05-icons-keep-size K1, K4): their class carries the setting times native / drawn on the entry's grid,
+// with the drawn size from QolLiteMapSize, which refreshes this module when it changes.
 var QolLiteMapIcons = (function () {
     var HUD_ID = "hud_minimap";
     var NATIVE_PCT = 100;
@@ -37,6 +40,8 @@ var QolLiteMapIcons = (function () {
     function _want(e, zoomed) {
         if (e.icon.zoomAside && zoomed) { return null; }
         var pct = _pct(e);
+        var drawn = e.icon.fit ? QolLiteMapSize.drawnPx() : null;
+        if (drawn) { pct = QolLiteMapSchema.fitSnap(e.icon.fit, pct * QolLiteMapSchema.LIMITS.mapDrawnNativePx / drawn); }
         if (pct === NATIVE_PCT && !e.icon.always) { return null; }
         return e.icon.cls + pct;
     }

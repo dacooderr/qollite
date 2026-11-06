@@ -114,7 +114,7 @@ Quick Commend, `b2c12cc`) are not in the table yet:
 
 | Layout | Scripts | Feature |
 |---|---|---|
-| `hud_data_feed.xml` | `qollite_map_*` ×25 — BetterMap's HUD modules, `QolLiteMapHud` among them, which builds the minimap structure at runtime, and the four that run its section in Valve's settings window — and `qollite_passive` (BetterMap 3.3, 2026-10-14; before it, `hud.xml`, no longer shipped) | [minimap](systems/minimap.md), [passives](systems/passives.md) |
+| `hud_data_feed.xml` | `qollite_map_*` ×29 — BetterMap's HUD modules, `QolLiteMapHud` among them, which builds the minimap structure at runtime, and the four that run its section in Valve's settings window — and `qollite_passive` (BetterMap 3.3, 2026-10-14; before it, `hud.xml`, no longer shipped) | [minimap](systems/minimap.md), [passives](systems/passives.md) |
 | `citadel_hud_and_db_overlay.xml` | `qollite_map_overlay` — Valve's always-on overlay, its own context (BetterMap 3.2, 2026-10-04) | [minimap](systems/minimap.md) |
 | `base_hud_and_db_overlay.xml` | `qollite_notifications_*` ×9 | [event reminders](systems/event-reminders.md) |
 | `citadel_hud_top_bar.xml` | `qollite_topbar`, `qollite_notifications_clock_bridge`, `qollite_notifications_urn_detector` | [top bar](systems/top-bar.md), [event reminders](systems/event-reminders.md) |
@@ -606,3 +606,19 @@ copies from the build output too** (`hud.vxml_c`, `neutral_*_custom_png.vtex_c`)
 `hud.vxml_c` would keep overriding Valve's HUD with the old static wrapper and overlay, which
 `QolLiteMapHud` would then wrap a second time (inferred, not tried), and it would bring back the
 start-up crash class of 6722 / 6779.
+
+**BetterMap 3.5 (re-bundled 2026-11-06) — files to compile.** Four new HUD scripts:
+`panorama/scripts/qollite_map_view.js`, `qollite_map_tabmap.js`, `qollite_map_rotate.js` and
+`qollite_map_location.js`, plus the changed `hud_data_feed.xml` that includes them and the regenerated
+`hud_minimap.css`. The bootstrap waits for all four (`boot: gave up after 20 attempts; missing
+modules: ...` in the console otherwise, and no BetterMap). Nothing was deleted, so the build output
+needs no cleaning for this update. What to look at in game:
+
+| Area | Check |
+|---|---|
+| Settings → Minimap | The new rows: Location Label Size, Larger Map on TAB, TAB Map Size, TAB Map Opacity, Rotating Minimap, Rotating Minimap Zoom; no "Larger Map for Traveler". Changing a TAB setting shows the TAB map for a few seconds. With UMM: the same six in UMM, other saved values kept |
+| TAB map | On: while TAB is held the map is centred, at TAB Map Size and Opacity, above the scoreboard; off again on release |
+| Rotating Minimap | On: the map turns with the view, your arrow centred pointing up, other icons upright; north-up again while TAB / Alt is held or Traveler is aimed; Sapphire side too. Watch frame time with it on — the pack's most expensive loop |
+| Icon sizes | Your, ally and enemy icons keep their size when Minimap Size changes |
+| Traveler (Mirage) | Aiming it shows the game's own enlarged, centred map |
+| Console | No `[BetterMap] [ERROR]` lines; `init ok:` for `view`, `tabmap`, `rotate`, `location` only with DEBUG on |

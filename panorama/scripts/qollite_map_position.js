@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_position.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_position.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -17,6 +17,11 @@
 // driven only.
 var QolLiteMapPosition = (function () {
     var FALLBACK_W = 1920, FALLBACK_H = 1080;   // used until the HUD has laid out (actuallayout* = 0)
+    // The TAB map sits above the TAB screen (spec 2026-11-04-tab-map B5): QOL Lock's value for the
+    // same purpose (ql_minimap_runtime/manifest.js:535), on the wrapper, not by a reparent (Valve's
+    // location label then reads "INVALID", QOL :527-530). Whether it beats the scoreboard is in-game
+    // check 2 of that spec.
+    var Z_ABOVE_TAB = 2147483647;
     var GAME_STATE_EVENT = "CitadelGameStateChanged";
     var LAYOUT_SETTLE_SEC = 0.35;               // layout lands a frame or two late (qollite_map_apply.js, panorama_notes)
 
@@ -47,6 +52,9 @@ var QolLiteMapPosition = (function () {
     function apply() {
         var wrap = _panel("minimap_persp_wrapper");
         if (!wrap) { return; }
+        if (QolLiteMapView.targeting()) { _centre(wrap, null); return; }   // remove-traveler spec T5
+        if (QolLiteMapTabMap.active()) { _centre(wrap, String(Z_ABOVE_TAB)); return; }
+        wrap.style.zIndex = null;      // null clears the inline value (Valve idiom, dota play.js)
         var s = QolLiteMapState.get();
         var b = _bounds(wrap), M = _mapSize();
         var p = QolLiteMapDraw.placement(s, b, M);
@@ -66,6 +74,18 @@ var QolLiteMapPosition = (function () {
         _log("apply: bounds=" + Math.round(b.w) + "x" + Math.round(b.h) +
             " map=" + M + " uiScale=" + b.scale + " frac=" + p.fx.toFixed(2) + "," + p.fy.toFixed(2) +
             " margin=" + p.marginH + "," + p.marginV);
+    }
+
+    // The TAB map (above the TAB screen) and Valve's map targeting (its own stacking): the screen centre, no offsets.
+    function _centre(wrap, zIndex) {
+        wrap.style.horizontalAlign = "center";
+        wrap.style.verticalAlign = "center";
+        wrap.style.marginLeft = "0px";
+        wrap.style.marginTop = "0px";
+        wrap.style.marginRight = "0px";
+        wrap.style.marginBottom = "0px";
+        wrap.style.zIndex = zIndex;      // null clears the inline value
+        _log("apply: " + (zIndex ? "TAB map" : "map targeting") + ", centred");
     }
 
     function init() {

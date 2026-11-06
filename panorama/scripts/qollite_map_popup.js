@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_popup.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_popup.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -95,7 +95,10 @@ var QolLiteMapPopup = (function () {
     function _live(gen) { return gen === _gen && !!_win && _win.IsValid(); }
 
     function _ctx() { return _win; }
-    function _find(id) { return _ctx().FindChildTraverse(id); }
+    // Per window instance (start): a state answer comes per `set`, and searching the window for every control
+    // cost ~5 ms an answer in-game (runtime-cost audit §4.1).
+    var _finder = null;
+    function _find(id) { return _finder(id); }
     function _root() { return QolLiteMapHud.root(); }
     function _log(m) { QolLiteMapLog.log("popup: " + m); }
     function _groups() { return QolLiteMapSchema.groups(); }
@@ -507,6 +510,7 @@ var QolLiteMapPopup = (function () {
     function start(win) {
         _gen++;
         _win = win;
+        _finder = QolLiteMapHud.finder(_ctx);
         _resetSession();
         if (_root().FindChildTraverse(UMM_ROOT_ID)) { _hide("UMM is installed"); }
         var list = QolLiteMapSchema.list();

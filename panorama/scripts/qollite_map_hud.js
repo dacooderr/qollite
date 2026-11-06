@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_hud.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_hud.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -25,6 +25,8 @@ var QolLiteMapHud = (function () {
     var PERSP_ID = "minimap_persp";
     var MAP_ID = "hud_minimap";
     var CONTAINER_ID = "minimap_container";
+    // Valve's #minimap_container margin-top (hud.css of 2026-11-04, :2030), kept while a map ability is aimed.
+    var VALVE_CONTAINER_MARGIN_TOP = "80px";
     var WRAPPER_ID = "minimap_persp_wrapper";
     var OVERLAY_ID = "minimap_overlay_root";
     var MARKERS_ID = "minimap_markers";
@@ -49,7 +51,30 @@ var QolLiteMapHud = (function () {
         return r;
     }
 
-    function find(id) { var r = root(); return r ? r.FindChildTraverse(id) : null; }
+    // True while p is valid and still hangs under r: a walk up a few dozen parents, not a search.
+    function _under(p, r) {
+        if (!p.IsValid()) { return false; }
+        while (p && p !== r) { p = p.GetParent(); }
+        return p === r;
+    }
+
+    // A lookup by id under top() that keeps each panel it found while that panel is valid and still under
+    // top(): the HUD holds ~51 000 panels in a match, and a search cost the poll loops 0.2-2 ms a tick, 11-15 ms
+    // of JS a second in all (runtime-cost audit §4.1, 2026-10-14). A miss is not kept, so a panel that appears
+    // later is found. The settings window keeps one per window instance (qollite_map_popup.js).
+    function finder(top) {
+        var found = {};
+        return function (id) {
+            var r = top();
+            var p = found[id];
+            if (p && r && _under(p, r)) { return p; }
+            p = r ? r.FindChildTraverse(id) : null;
+            if (p) { found[id] = p; } else { delete found[id]; }
+            return p;
+        };
+    }
+
+    var find = finder(root);
 
     function _alive(p) { return !!p && p.IsValid(); }
 
@@ -65,6 +90,16 @@ var QolLiteMapHud = (function () {
         try { _styleWrapped(parent, w, persp); }
         catch (e) { QolLiteMapLog.error("hud: styling the wrapped minimap threw: " + _msg(e)); }
         return w;
+    }
+
+    // The one owner of #minimap_container's margin-top (remove-traveler spec T5): Valve's 80 px (null) while a
+    // map ability is aimed, our 0 otherwise. Written at every build and on every view change; the structure
+    // never depends on QolLiteMapView existing.
+    function _containerMargin(container) {
+        var targeting = typeof QolLiteMapView !== "undefined" && QolLiteMapView.targeting();
+        // marginTop is an alias: `= null` throws (panorama_notes "Strict style/CSS parsing"), so Valve's own value
+        // is written back explicitly.
+        container.style.marginTop = targeting ? VALVE_CONTAINER_MARGIN_TOP : "0px";
     }
 
     function _styleWrapped(parent, w, persp) {
@@ -85,7 +120,7 @@ var QolLiteMapHud = (function () {
         persp.style.marginBottom = "0px";
         persp.style.marginRight = "0px";
         var container = persp.FindChildTraverse(CONTAINER_ID);
-        if (container) { container.style.marginTop = "0px"; }
+        if (container) { _containerMargin(container); }
         else { QolLiteMapLog.error("hud: no #" + CONTAINER_ID + " in #" + PERSP_ID + " - the map may sit low"); }
     }
 
@@ -152,12 +187,20 @@ var QolLiteMapHud = (function () {
         return w ? w.GetParent() : null;
     }
 
+    function _onView() {
+        var container = find(CONTAINER_ID);
+        if (container) { _containerMargin(container); }
+    }
+
     function init() {
         // On the next frame: C++ has then made whatever the new game state needs.
         try { $.RegisterForUnhandledEvent(REBUILD_EVENT, function () { $.Schedule(0, _check); }); }
         catch (e) { QolLiteMapLog.error("hud: " + REBUILD_EVENT + " not registered (" + _msg(e) + ") - the safety poll covers it"); }
         _poll();
+        // After the structure: a throw here must not stop the build.
+        try { QolLiteMapView.onChange(_onView); }
+        catch (e3) { QolLiteMapLog.error("hud: QolLiteMapView.onChange failed (" + _msg(e3) + ") - the container margin follows targeting only at a build"); }
     }
 
-    return { init: init, root: root, find: find, clamp: clamp, onReady: onReady };
+    return { init: init, root: root, find: find, finder: finder, clamp: clamp, onReady: onReady };
 })();

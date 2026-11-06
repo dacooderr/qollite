@@ -109,7 +109,7 @@ new widget type co-designed with the UMM author.
 
 | Mod `id` | Display `name` | Adapter | Settings |
 |---|---|---|---|
-| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 3 groups ("Minimap", "Minimap Icons", "Map Objects"), 9 toggles, 13 sliders — 22 widgets, built from `qollite_map_schema.js` |
+| `bettermap` | BetterMap | `qollite_map_umm_adapter.js` | 3 groups ("Minimap", "Minimap Icons", "Map Objects"), 10 toggles, 17 sliders — 27 widgets, built from `qollite_map_schema.js` |
 | `eventnotifier` | Map Event Reminders | `qollite_notifications_umm_adapter.js` | 4 toggles, 1 select (`warnSecs`: 5/10/15/30 s), plus an `Events` group (`ev_group`) of 7 per-event toggles `ev_<event>` |
 | `enhanced_quickbuy` | Enhanced Quickbuy | `qollite_quickbuy.js` | 3 toggles, 1 slider, 2 groups |
 | `always_show_passives` | Always Show Passives & Actives | `qollite_passive.js` | 2 toggles (`enabled`, `compact`) |
@@ -123,7 +123,7 @@ two-character `umm` ids. Full list with ranges: [minimap § Settings](systems/mi
 
 | Group | Widget ids |
 |---|---|
-| Minimap | sliders `ms` (size, 200–800 px), `ox` / `oy` (offsets, −100..100 %), `mo` (map opacity, 10–100 %); toggles `mm` (Minimalist), `ul` (Traveler enlarge), `fw` (Full-Width HUD) |
+| Minimap | sliders `ms` (size, 200–800 px), `ox` / `oy` (offsets, −100..100 %), `mo` (map opacity, 10–100 %), `ll` (Location Label Size, 50–200 %), `ts` (TAB Map Size, 400–1000 px), `to` (TAB Map Opacity, 10–100 %), `rz` (Rotating Minimap Zoom, 100–200 %); toggles `mm` (Minimalist), `fw` (Full-Width HUD), `tz` (Larger Map on TAB), `rm` (Rotating Minimap) |
 | Minimap Icons | sliders `is`, `ia`, `ie`, `it`, `ih`, `ir`, `iu` (you / ally / enemy / tower / shop / rune / urn, 50–200 %) |
 | Map Objects | toggles `pc`, `ps`, `pt`, `pa` (healing apples, 3.1), `p3`, `ut`; sliders `pz` (marker size, 1–8 px), `po` (marker opacity, 10–100 %) |
 
@@ -138,6 +138,11 @@ CHANGELOG.
 
 - Removed: `minimapCorner`, `poiLevelAuto`, `playerIconScalePct` (split into `is` / `ia` / `ie`).
 - Removed: the QOL Lite delta `minimalMapOpacityPct` ([`BUNDLE.md`](BUNDLE.md) §3).
+- **3.5 (`3d4444c`, 2026-11-05):** `ul` (Traveler enlarge) removed; added `ll`, `tz`, `ts`, `to`,
+  `rm`, `rz`. No existing id changed, so other UMM-saved values are kept. Upstream's test caps
+  BetterMap's share of the shared 500-character token at 250 at the longest values (247 at 3.5, in
+  UMM's old text format; UMM's current binary token keeps only changed values). The total for all
+  five QOL Lite mods together is not measured.
 - Seed and mirror: with UMM installed, the adapter's first register waits up to 2 s for values
   BetterMap's own store holds, so a player who adds UMM keeps them. Since BetterMap 3.3 the store also
   mirrors every value UMM sends (upstream spec `2026-10-14-umm-mirror`), so the next launch seeds UMM

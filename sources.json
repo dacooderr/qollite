@@ -9,9 +9,9 @@
       "upstream": "https://github.com/gfkm/BetterMap",
       "note": "BetterMap. Rebuild with scripts/bundle_bettermap.py; do not edit the bundled scripts. One QOL Lite delta since 3.2 (the credit text in citadel_hud_and_db_overlay.xml); hud_data_feed.xml (the HUD entry), the overlay layout and hud_minimap.css are merged by hand; since 3.3 nothing of BetterMap's is in hud.xml (not shipped), hud.css or popup_settings.xml, see docs/BUNDLE.md section 3.",
       "bundled": {
-        "commit": "a9f121acc63469690339f3c5325a97d99e1368ac",
-        "date": "2026-10-14",
-        "version": "3.3"
+        "commit": "3d4444cdfdc62c1d33cb879baf774fa3887dae68",
+        "date": "2026-11-05",
+        "version": "3.5"
       },
       "pinned": {}
     },

@@ -116,6 +116,18 @@ class BetterMapFiles(unittest.TestCase):
         out = bb.transform("bettermap_hud.js", "var BettermapHud = 1; BettermapHud.root();\n", "abc1234")
         self.assertIn("var QolLiteMapHud = 1; QolLiteMapHud.root();", out)
 
+    def test_bettermap_3_4_and_3_5_modules(self):
+        # 3.4: Location Label Size (f05ff60). 3.5: TAB / Alt state, Larger Map on TAB and the
+        # rotating minimap (upstream 3d4444c).
+        for mod in ("location", "view", "tabmap", "rotate"):
+            self.assertEqual(bb.FILES[f"bettermap_{mod}.js"], f"qollite_map_{mod}.js")
+        out = bb.transform("bettermap_rotate.js",
+                           "var BettermapRotate = 1; BettermapView.isTabHeld(); BettermapTabmap.x();\n"
+                           "// zoom read by bettermap_size.js\n", "abc1234")
+        for name in ("var QolLiteMapRotate", "QolLiteMapView.isTabHeld", "QolLiteMapTabmap.x",
+                     "qollite_map_size.js"):
+            self.assertIn(name, out)
+
     def test_runtime_settings_globals_renamed(self):
         src = ("if (BettermapUmm.isPresent()) { return; }\n"
                "BettermapSettingsNav.mount(win, section, subs); BettermapPopup.start(win);\n"
