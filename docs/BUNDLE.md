@@ -100,9 +100,34 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   re-checked on 2026-10-01
 - **Upstream repo:** `github.com/gfkm/BetterMap` — the checkout's `origin`. Its `old-origin`,
   `github.com/gfkm-gpt/deadlockmapmod`, is the address this file used to give.
-- **Bundled version:** BetterMap **3.3** (upstream CHANGELOG, 2026-10-14) at commit **`a9f121a`**
-  (`a9f121acc63469690339f3c5325a97d99e1368ac`, "Merge feat/hud-runtime-entry: BetterMap 3.3 - no
-  replaced HUD or settings window, game build 6779"), upstream `main`. Bundled 2026-10-14.
+- **Bundled version:** BetterMap **3.5** (upstream CHANGELOG, 2026-11-05) at commit **`3d4444c`**
+  (`3d4444cdfdc62c1d33cb879baf774fa3887dae68`, upstream `main`; a docs-only commit on top of the 3.5
+  merge `388b2f7`, "Merge feat/tab-map-rotation: BetterMap 3.5 - Larger Map on TAB, Rotating Minimap,
+  icons keep their size"). Bundled 2026-11-06. Takes in 3.4 (2026-10-31) and 3.4.1 (2026-11-03).
+  - What 3.4 – 3.5 change for QOL Lite:
+    - **Four new HUD scripts**, `qollite_map_view.js`, `qollite_map_tabmap.js`,
+      `qollite_map_rotate.js` and `qollite_map_location.js`, in `hud_data_feed.xml` in upstream's
+      order. The bootstrap waits for all four: a build that misses one has no BetterMap at all.
+    - **Larger Map on TAB** and **Rotating Minimap**, both off by default; **Location Label Size**
+      (3.4, in UMM since 3.5). **Larger Map for Traveler** is removed: the game enlarges the map
+      itself while a map ability is aimed, and BetterMap now steps aside for it.
+    - Minimap icons keep their size at any map size; Map Opacity fades the frame and backdrop too;
+      Minimap Size and TAB Map Size apply once the slider settles (texture memory, upstream spec
+      `2026-11-04-rotating-minimap.md` R11).
+    - `hud_minimap.css` grows from 2,869 to 7,509 lines (62 → 150 KB): the generated rules for the
+      icon-size grids, the TAB map's sizes and the 5° icon turns. Its Valve part is the 6842 sheet.
+    - Every HUD lookup is cached (upstream's runtime-cost audit, 3.4). Loops: two new always-on
+      (2 Hz zoom poll; the 17 Hz targeting poll, no longer behind a setting), three only while
+      their feature is on, the rotation up to 100 Hz ([`TECH_DEBT.md`](TECH_DEBT.md) §2).
+    - Map objects moved for game builds 6835 (Halloween) and 6842; checked against 6851 upstream. The
+      Halloween cauldrons of 3.4 were removed again in 3.4.1 and are not in this bundle.
+    - UMM: `ul` removed, six ids added, none renamed ([`UMM.md`](UMM.md) §4).
+    - Upstream's author checked the rotating minimap and the icon sizes in game (upstream specs
+      `2026-11-04-rotating-minimap.md`, `2026-11-05-icons-keep-size.md`). This bundle of it was not
+      checked in game.
+  - Previously bundled: **`a9f121a`** (`a9f121acc63469690339f3c5325a97d99e1368ac`, BetterMap 3.3,
+    "Merge feat/hud-runtime-entry: BetterMap 3.3 - no replaced HUD or settings window, game build
+    6779"), bundled 2026-10-14.
   - What 3.3 changes for QOL Lite:
     - **BetterMap no longer overrides `hud.xml` or `hud.css`.** Its scripts load from an entry
       layout, `panorama/layout/hud_data_feed.xml` (Valve's 9-line `hud_data_feed.xml` + the script
@@ -184,7 +209,7 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `docs/specs`, "in-game run 3"). This bundle of it was not checked in game.
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_bettermap.py`
-- **Files:** `panorama/scripts/qollite_map_*.js` (26, readable source: 25 loaded by the HUD entry
+- **Files:** `panorama/scripts/qollite_map_*.js` (30, readable source: 29 loaded by the HUD entry
   layout, `overlay` by the overlay), `panorama/layout/hud_data_feed.xml` (3.3, the HUD entry layout,
   shared with the `qollite_passive` include), `panorama/layout/citadel_hud_and_db_overlay.xml`
   (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2),
@@ -213,6 +238,13 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
   `#objectives_health_friendly`). `hud_minimap.css` is upstream's
   verbatim. The overlay did not change upstream. The three `neutral_*_custom_png` images went with
   the `.dmm_custom_*` rules that were their only reference (upstream dropped both, spec H8).
+  At `3d4444c` (3.5, 2026-11-06), checked by script against upstream's files: `hud_data_feed.xml`'s
+  script list, minus `qollite_passive.vjs_c`, equals upstream's 29 includes renamed through the
+  bundler's `FILES`, in the same order, and the body outside `<scripts>` equals upstream's;
+  `hud_minimap.css` is byte-equal to upstream's `hud_minimap.vcss`. Upstream's overlay layout,
+  `bettermap_overlay.vcss` and images did not change since `a9f121a`. The one new asset reference,
+  `compass_frame_mask_psd.vtex` in `qollite_map_rotate.js`, is Valve's (its name is in the game's
+  `pak01_dir.vpk`, build 6853); nothing new ships for it.
   - `citadel_hud_and_db_overlay.xml` (3.2) is upstream's generated file with two changes. The
     stylesheet and script names are QOL Lite's (`qollite_map_overlay.*`). The first line is the
     decompiler header every layout here starts with, which `scripts/rebase_overrides.py` expects,

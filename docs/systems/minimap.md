@@ -1,13 +1,13 @@
 # Minimap
 
-> Resizable, movable minimap with per-type icon sizes, an objective overlay, and its own section in
-> the game's settings window.
+> Resizable, movable minimap with per-type icon sizes, a larger map on TAB, an optional rotating
+> minimap, an objective overlay, and its own section in the game's settings window.
 >
-> **Origin:** BetterMap 3.3 (`a9f121a`) · **Runs in:** every match · **Off switch:** settings window or
+> **Origin:** BetterMap 3.5 (`3d4444c`) · **Runs in:** every match · **Off switch:** settings window or
 > UMM `bettermap` (partial — see [Known issues](#known-issues))
-> **Last verified:** 2026-10-14 against the BetterMap 3.3 re-bundle (branch `feat/bettermap-3.3`).
+> **Last verified:** 2026-11-06 against the BetterMap 3.5 re-bundle (branch `feat/bettermap-3.5`).
 
-The largest feature in the mod: 26 scripts, loaded from a small entry layout (`hud_data_feed.xml`),
+The largest feature in the mod: 30 scripts, loaded from a small entry layout (`hud_data_feed.xml`),
 which build their minimap structure into Valve's own HUD and their section into Valve's own settings
 window at runtime — **no override of `hud.xml`, `hud.css` or the settings window for BetterMap**. Its
 only stylesheet is `hud_minimap.css`; the always-on overlay is overridden for the credit line. The
@@ -17,6 +17,9 @@ upstream and re-bundle, never the bundled copy ([`../BUNDLE.md`](../BUNDLE.md) �
 Nothing on this page has been checked in game with the QOL Lite bundle. BetterMap's author checked
 3.3 standalone on game build 6779 — hideout, bot matches, TAB / Alt, POI markers, death, the Sapphire
 side, a release build with DEBUG off (upstream spec `docs/specs/2026-10-07-hud-runtime-entry.md` §9).
+For 3.5 the upstream specs record the author's in-game checks of the rotating minimap (team 2,
+tunnels) and of the icon sizes (`2026-11-04-rotating-minimap.md`, `2026-11-05-icons-keep-size.md`);
+upstream's CHANGELOG says the map objects were checked against game build 6851.
 
 ---
 
@@ -26,11 +29,13 @@ side, a release build with DEBUG off (upstream spec `docs/specs/2026-10-07-hud-r
 |---|---|
 | Resize the minimap, 200–800 px in 20 px steps | 400 px |
 | Move it with two offsets from the bottom-right corner: 100 % reaches the opposite edge, negative values push it past its own edge, at most halfway | 0 / 0 |
-| Map opacity, 10–100 % — fades the whole map, BetterMap's markers included (3.3) | 95 % |
+| Map opacity, 10–100 % — fades the whole map, BetterMap's markers (3.3) and the frame and backdrop (3.5) included | 95 % |
 | "Minimalist" mode — strips the frame and decorations, keeps the map and its markers | off |
-| Enlarge to 750 px while a map-targeted ability is aimed (Mirage's Traveler) | **on** |
+| Location Label Size — the district name next to the minimap, 50–200 % (3.4; in UMM since 3.5) | 100 % |
+| Larger Map on TAB — while TAB is held, the minimap in the screen centre at its own size (400–1000 px) and opacity, above the TAB screen; shown for a few seconds while one of its settings changes (3.5) | off (800 px, 100 %) |
+| Rotating Minimap — the map turns with the view, your icon in the centre pointing up, the other icons upright; zoom 100–200 %. TAB, Alt, an aimed map ability and the game's zoomed minimap show the normal north-up map (3.5) | off (zoom 200 %) |
 | Full-Width HUD — lift Valve's 21:9 clamp on ultrawide screens | off |
-| Separate icon sizes, 50–200 %: you, allies, enemies, towers, shops, runes, urn | 100 % |
+| Separate icon sizes, 50–200 %: you, allies, enemies, towers, shops, runes, urn. Since 3.5 icons keep their size at any Minimap Size, TAB Map Size and zoom | 100 % |
 | Overlay markers for crates, tough crates, golden statues and healing apples (3.1), each shown from its own spawn time | off |
 | A colour per marker type, picked on Valve's colour track in the settings window (3.1; not in UMM) | crates blue, statues yellow, tough crates green, apples red |
 | Urn spawn-location tracker with countdown | off |
@@ -38,9 +43,10 @@ side, a release build with DEBUG off (upstream spec `docs/specs/2026-10-07-hud-r
 | Settings in Valve's settings window: its own section **Minimap** at the bottom, three subsections, a sidebar entry with three sub-entries; saved automatically | — |
 | Credit line "QOL Lite Mod" in a match, bottom right under Valve's match / build line, in Valve's font (3.2; the text is a QOL Lite delta) | always, no switch |
 | Ability range circles (Doorman's doorway) keep their true size at any Minimap Size (3.2) | — |
+| While a map ability is aimed (Mirage's Traveler), the game's own enlarged, centred map shows; BetterMap steps aside (3.5 — it replaced BetterMap's own "Larger Map for Traveler", removed) | — |
 
-Everything except the ability enlarge defaults to off or to the game's own look. The loops still run
-whatever the settings are ([Known issues](#known-issues)).
+Everything defaults to off or to the game's own look. Several loops still run whatever the settings
+are ([Known issues](#known-issues)).
 
 ---
 
@@ -67,7 +73,7 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 **Layouts**
 
 - `panorama/layout/hud_data_feed.xml` — the HUD entry (3.3): Valve's 9-line `hud_data_feed.xml`, kept
-  verbatim, plus a `<scripts>` block with BetterMap's 25 HUD scripts and the
+  verbatim, plus a `<scripts>` block with BetterMap's 29 HUD scripts and the
   [passives](passives.md) script. Upstream generates it from Valve's file; here it is merged by hand
   ([`../BUNDLE.md`](../BUNDLE.md) §3). Its `HudDataFeed#DataFeed` hangs directly under `CitadelHud`,
   loads once per session and survives hideout → match (upstream probe E1).
@@ -81,11 +87,15 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Styles**
 
-- `panorama/styles/hud_minimap.css` (2,869 lines at 3.3): upstream's file verbatim, generated in full
-  by upstream from Valve's 6779 sheet, then BetterMap's block (from line 1880: the overlay and urn
-  marker, now inside `#hud_minimap`, Minimalist layers, the vignette), then lines 2018–2869 generated
-  from the schema (`BEGIN GENERATED: bettermap icon sizes`): one rule set per icon-size class and per
-  `bm_mapsize_<px>` class.
+- `panorama/styles/hud_minimap.css` (7,509 lines, 150 KB at 3.5; 2,869 lines, 62 KB at 3.3):
+  upstream's file verbatim, generated in full by upstream from Valve's 6842 sheet (upstream `aab7760`),
+  then BetterMap's block (from line 1958: the overlay and urn marker, inside `#hud_minimap`,
+  Minimalist layers, the vignette), then lines 2097–7509 generated from the schema
+  (`BEGIN GENERATED: bettermap icon sizes`), about 1,050 rules: the icon-size classes
+  (`bm_size_<type>_<pct>`, since 3.5 on a 2 % grid for the three player icons so they keep their size
+  on any drawn map), `bm_fit_<pct>` for the soul drops, `bm_mapsize_<px>` up to the TAB map's 1000 px,
+  and `bm_rot_<n>`, which turns the icons back upright in 5° steps while the rotating minimap turns.
+  The growth is 3.5's; what those unmatched rules cost the style system is not measured.
 - `panorama/styles/qollite_map_overlay.css` (3.2): upstream's `bettermap_overlay.vcss`. Shows
   `#BetterMapCredit` under `.BmCreditShown`, in Valve's font for `#ClientServerDebugStats`, and lifts
   Valve's line by one line meanwhile (21 px, which upstream marks as not measured).
@@ -107,7 +117,7 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
   ([`../BUNDLE.md`](../BUNDLE.md) §3). The label's text, "QOL Lite Mod" (upstream: "BetterMap by gfkm"),
   is the QOL Lite delta.
 
-**Scripts.** Two JS contexts. The HUD entry loads 25 scripts through `hud_data_feed.xml`, in this
+**Scripts.** Two JS contexts. The HUD entry loads 29 scripts through `hud_data_feed.xml`, in this
 order, including the four that build and run the settings section. Its context panel is
 `HudDataFeed#DataFeed`, not the HUD root, so every module finds panels through `QolLiteMapHud.root()`.
 The overlay loads one, `qollite_map_overlay.js`.
@@ -122,12 +132,16 @@ The overlay loads one, `qollite_map_overlay.js`.
 | `qollite_map_state.js` | HUD | `QolLiteMapState` | The in-memory settings object; `DEFAULTS` built from the schema |
 | `qollite_map_draw.js` | HUD | `QolLiteMapDraw` | Shared drawing rules: margins from the offsets, POI colours |
 | `qollite_map_minimap.js` | HUD | `QolLiteMapMinimap` | The anchor (`#MinimapBackgroundTest`), `hasClassAbove()`, DEBUG-only probes |
-| `qollite_map_size.js` | HUD | `QolLiteMapSize` | Size, map opacity, HUD clamp width, Traveler enlarge, normal size while TAB or the ability menu is open (by event since 3.2), the `bm_mapsize_<px>` class that keeps range circles to scale |
-| `qollite_map_position.js` | HUD | `QolLiteMapPosition` | Offsets → margins on `#minimap_persp_wrapper`, always bottom-right |
+| `qollite_map_view.js` | HUD | `QolLiteMapView` | TAB / Alt state (events, 2 Hz safety poll) and Valve's map targeting (17 Hz poll); tells size, position, the HUD module and the TAB map when it changes (3.5, moved out of `size`) |
+| `qollite_map_size.js` | HUD | `QolLiteMapSize` | Size, map and TAB-map opacity, HUD clamp width, our size held while TAB or the ability menu is open, Valve's size while a map ability is aimed, the `bm_mapsize_<px>` and `bm_fit_<pct>` classes that keep range circles and soul drops to scale, `drawnPx()` for the icon sizes, the rotating minimap's zoom; a 2 Hz poll for the game's zoomed minimap (3.5) |
+| `qollite_map_position.js` | HUD | `QolLiteMapPosition` | Offsets → margins on `#minimap_persp_wrapper`, always bottom-right; centred and raised above the TAB screen while the TAB map is active (3.5) |
+| `qollite_map_tabmap.js` | HUD | `QolLiteMapTabMap` | Larger Map on TAB: owns only the mode (`active()`) and its preview while a TAB setting changes; size and position write their own panels (3.5) |
+| `qollite_map_rotate.js` | HUD | `QolLiteMapRotate` | Rotating Minimap: reads the local marker's heading and position each frame, turns `#HudMinimapContainer`, places `#hud_minimap`, masks `#minimap_container` with Valve's `compass_frame_mask_psd`, and puts `bm_rot_<n>` on `#hud_minimap` to keep the icons upright (3.5) |
 | `qollite_map_poi.js` | HUD | `QolLiteMapPoi` | Builds and filters the POI markers |
 | `qollite_map_umm_adapter.js` | HUD | `QolLiteMapUmmAdapter` | UMM registration, id `bettermap`, manifest from the schema, the one-time seed |
 | `qollite_map_minimal.js` | HUD | `QolLiteMapMinimal` | Minimalist mode: `BmMinimalMap` on `#hud_minimap` and `#minimap_persp` |
-| `qollite_map_icons.js` | HUD | `QolLiteMapIcons` | Icon sizes: one `bm_size_<type>_<pct>` class per setting on `#hud_minimap` |
+| `qollite_map_icons.js` | HUD | `QolLiteMapIcons` | Icon sizes: one `bm_size_<type>_<pct>` class per setting on `#hud_minimap`; for the player icons the percentage is divided by the drawn map's scale, so they keep their size (3.5) |
+| `qollite_map_location.js` | HUD | `QolLiteMapLocation` | Location Label Size: scales Valve's `#minimap_location` (3.4) |
 | `qollite_map_preview.js` | HUD | `QolLiteMapPreview` | The real minimap over the escape menu and over the settings window |
 | `qollite_map_urn.js` | HUD | `QolLiteMapUrn` | Urn spawn tracker |
 | `qollite_map_apply.js` | HUD | `QolLiteMapApply` | Re-applies features from state: everything, or only what one key affects |
@@ -147,7 +161,7 @@ The overlay loads one, `qollite_map_overlay.js`.
 
 ### Bootstrap
 
-`qollite_map_bootstrap.js` polls every 0.05 s (at most 20 tries) until the 22 modules it needs are
+`qollite_map_bootstrap.js` polls every 0.05 s (at most 20 tries) until the 26 modules it needs are
 present. It then calls each module's `init()` in its **own** `try`/`catch`: the features first, then
 UMM, the store, the popup, and last the settings mount; each time `QolLiteMapHud` reports the minimap
 built, it re-applies every feature. The two data tables are not waited on. One module
@@ -195,10 +209,11 @@ Panel.clamp_width                        (Valve's; no id)
 │   │                                      position: margins from the offsets
 │   └── #minimap_persp                   ← size: width/height in px (a GlobalClassListener)
 │       ├── #minimap_hints
-│       ├── #minimap_container
+│       ├── #minimap_container               ← opacity (frame and backdrop too since 3.5);
+│       │   │                                  the rotating minimap's round mask
 │       │   ├── #minimap_blur
 │       │   ├── #minimap_frame
-│       │   └── #HudMinimapContainer          ← opacity (fades our markers too since 3.3)
+│       │   └── #HudMinimapContainer          ← the rotating minimap's turn (3.5)
 │       │       └── HudMinimap#hud_minimap    ◀── C++, untouchable; drawn at a fixed 360 px
 │       │           └── #minimap_overlay_root.bm_overlay   ← ours, inside the map so
 │       │               ├── #minimap_markers     hud_minimap.css styles it
@@ -222,7 +237,10 @@ CSS.
 ### Icon sizes
 
 Each icon setting puts one class, `bm_size_<type>_<pct>`, on `#hud_minimap`. A generated rule in
-`hud_minimap.css` scales the matching Valve markers. Some Valve markers are left alone:
+`hud_minimap.css` scales the matching Valve markers. Valve sizes the player markers in % of the
+drawn map, so they grew with Minimap Size; since 3.5 their class is the setting divided by the drawn
+map's scale (snapped to a 2 % grid), and `bm_fit_<pct>` does the same for the soul drops, so icons
+keep their size at any Minimap Size, TAB Map Size and zoom. Some Valve markers are left alone:
 
 - Player sizes step aside in the game's zoomed minimap mode.
 - The broker keeps the game's size, because its own pulse animation would override any other.
@@ -277,8 +295,13 @@ listed and are stored as fractions where the unit is %.
 | Minimap | `minimapOffsetX` / `minimapOffsetY` | 0 | `ox` / `oy` | slider −100..100 %, step 5 |
 | Minimap | `mapOpacity` | 0.95 | `mo` | slider 10–100 % |
 | Minimap | `minimalMap` | `false` | `mm` | toggle "Minimalist Minimap" |
-| Minimap | `ultLargeMapEnabled` | `true` | `ul` | toggle "Larger Map for Traveler (Mirage)" |
 | Minimap | `hudFullWidth` | `false` | `fw` | toggle "Full-Width HUD" |
+| Minimap | `locationLabelScalePct` | 100 | `ll` | slider "Location Label Size" 50–200 %, step 10 — 3.4; in UMM since 3.5 |
+| Minimap | `tabMapEnabled` | `false` | `tz` | toggle "Larger Map on TAB" — 3.5 |
+| Minimap | `tabMapSizePx` | 800 | `ts` | slider "TAB Map Size" 400–1000 px, step 20 — 3.5 |
+| Minimap | `tabMapOpacity` | 1 | `to` | slider "TAB Map Opacity" 10–100 % — 3.5 |
+| Minimap | `rotateMapEnabled` | `false` | `rm` | toggle "Rotating Minimap" — 3.5 |
+| Minimap | `rotateMapZoomPct` | 200 | `rz` | slider "Rotating Minimap Zoom" 100–200 %, step 25 — 3.5 |
 | Minimap Icons | `self` / `ally` / `enemy` / `tower` / `shop` / `rune` / `urn` + `IconScalePct` | 100 | `is` `ia` `ie` `it` `ih` `ir` `iu` | slider 50–200 %, step 10 |
 | Map Objects | `poiCratesEnabled` / `poiStatuesEnabled` / `poiToughEnabled` | `false` | `pc` / `ps` / `pt` | toggle |
 | Map Objects | `poiApplesEnabled` | `false` | `pa` | toggle "Show Healing Apples" — 3.1 |
@@ -295,13 +318,29 @@ listed and are stored as fractions where the unit is %.
 - `playerIconScalePct`: split into three player icon sizes.
 - QOL Lite's `minimalMapOpacity`.
 
+**Removed in 3.5:** `ultLargeMapEnabled` (UMM `ul`, "Larger Map for Traveler (Mirage)"): the game
+enlarges and centres the map itself while a map ability is aimed. **Removed in 3.4.1:** the Halloween
+candy cauldrons (3.4 only). Upstream's CHANGELOG: other saved settings are kept.
+
 ---
 
 ## Known issues
 
 - **The loops run regardless of settings** — [`../TECH_DEBT.md`](../TECH_DEBT.md) D1. Since 3.2
   the 33 Hz detail-view poll is gone: TAB and the ability menu are caught by event, with a 2 Hz
-  safety poll; the 33 Hz re-apply runs only while one of them is open.
+  safety poll; the 33 Hz re-apply runs only while one of them is open. 3.5 adds a 2 Hz zoom poll
+  and makes the 17 Hz map-targeting poll unconditional; the 3.5 features themselves stop when off.
+- **Rotating Minimap ticks up to once per frame (0.01 s) while it is on** — upstream measured
+  0.05–0.07 ms of JS a tick, not the engine's restyle of the markers on each 5° class swap. Off by
+  default. Upstream caps the zoomed map at 720 px because a larger one ran the GPU out of texture
+  memory (`DXGI_ERROR_DEVICE_REMOVED`, schema `rotateMapMaxDrawnPx`); for the same reason Minimap
+  Size and TAB Map Size apply once the slider settles, not while it is dragged.
+- **`hud_minimap.css` grew from 62 KB to 150 KB in 3.5** (about 1,050 generated rules, see Files);
+  what the style system pays for unmatched rules is not measured.
+- **UMM token.** BetterMap's share of UMM's shared 500-character token is, by upstream's test at
+  the longest values in UMM's old text format, 247 characters at 3.5 (it caps itself at 250). UMM's
+  current binary token keeps only changed values, so the real share is smaller; QOL Lite's five UMM
+  mods together have not been measured ([`../UMM.md`](../UMM.md) §4).
 - **The credit line costs a 1 Hz loop in the overlay** in every screen, with no switch (one lookup
   and an ancestor walk a tick). It is a credit, not a feature, so it has no setting.
 - **With UMM, every HUD load still opens the storage page** (read from `_init` in

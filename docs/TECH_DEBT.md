@@ -70,13 +70,18 @@ searches the whole tree; when its target does not exist it visits every panel be
 
 | Loop | Interval | Rate | Work per tick | Stops when off? |
 |---|---:|---:|---|---|
-| `qollite_map_size.js` → `_pollDetailView` | 0.5 s | 2 Hz | Safety net since BetterMap 3.2: the same 8 `FindChildTraverse` (`#minimap_persp` ancestor walk plus 7 ids). TAB and the ability menu are caught by `CitadelScoreboardToggle` / `CitadelMinimapToggle` events. Was 33 Hz until 3.2 | **No** |
-| `qollite_map_size.js` → `_holdTick` | 0.03 s | ~33 Hz | `_keepNormalSize` (the size re-apply that keeps Valve's TAB rescale off the map). New in 3.2 | ✅ **Only while TAB or the ability menu is open** |
-| `qollite_map_size.js` → `_pollMapTargeting` | 0.06 s | ~17 Hz | One anchor lookup plus an ancestor walk for `.map_targeting`, only if `ultLargeMapEnabled` — which **defaults to on** | Loop always runs; lookup gated |
+| `qollite_map_view.js` → `_poll` | 0.5 s | 2 Hz | Safety net: the `gScoreboardOpen` / `gDetailView` classes on `#minimap_persp`'s ancestors and on 6 Valve ids. TAB and the ability menu are caught by `CitadelScoreboardToggle` / `CitadelMinimapToggle` events. Was `qollite_map_size.js` → `_pollDetailView` until 3.5, 33 Hz until 3.2 | **No** |
+| `qollite_map_size.js` → `_holdTick` | 0.03 s | ~33 Hz | `_keepTargetSize` (the size re-apply that keeps Valve's TAB rescale off the map; upstream's runtime-cost audit F3 leaves open whether Valve still rescales). New in 3.2 | ✅ **Only while TAB or the ability menu is open** |
+| `qollite_map_view.js` → `_pollTarget` | 0.06 s | ~17 Hz | `map_targeting` on `#hud_minimap`, else an ancestor walk from `#minimap_persp` for `gMinimapTargeting`. Since 3.5 it serves no setting: it lets Valve's own enlarged, centred map through while a map ability is aimed (Mirage's Traveler), for size, position, the HUD module and the TAB map. Replaced `qollite_map_size.js` → `_pollMapTargeting`, which only looked while `ultLargeMapEnabled` was on (default on, removed in 3.5) | **No** — always; no event for targeting is known (upstream) |
+| `qollite_map_size.js` → `_zoomPoll` | 0.5 s | 2 Hz | One ancestor walk from the anchor for `useZoomedMinimap`; re-applies the size only when it flips. New in 3.5 (icons-keep-size) | **No** |
+| `qollite_map_rotate.js` → `_tick` | 0.01 s | up to 100 Hz (one per frame at most) | The cached local marker, heading and position parsed from its inline style, style writes only on a change, a `bm_rot_<n>` class swap per 5° of turn (each swap restyles the markers — engine-side, unmeasured). Upstream probe P6: 0.05–0.07 ms of JS a tick. New in 3.5 | ✅ **Only while Rotating Minimap is on (default off)** and not suspended by TAB, Alt, an aimed map ability or Valve's zoomed minimap |
+| `qollite_map_rotate.js` → `_retry` | 0.5 s | 2 Hz | `refresh()`: three cached finds and one `FindChildrenWithClassTraverse("localplayer")` under `#hud_minimap` | ✅ Only while the setting is on and the mode is not running (no local marker yet, or a suspension) |
+| `qollite_map_tabmap.js` → `_tick` | 0.25 s | 4 Hz | Ends the TAB-map preview: a time check and `QolLiteMapPreview.showing()` | ✅ Only during a preview in a menu, ≤ 4 s after the last change of a TAB setting |
+| `qollite_map_apply.js` settle timers | one-shot, 0.15 / 0.35 / 0.4 s | — | Re-place after a layout settles; apply Minimap Size / TAB Map Size once a slider stops (3.5) | ✅ One-shot |
 | `qollite_map_urn.js` → `_poll` | 0.15 s | ~7 Hz | `#GameTime`, then up to 6 `FindChildrenWithClassTraverse` **from the root** (`idol_spawn` + 5 live classes) | **No** — runs with the tracker off (it keeps observing the urn side) |
 | `qollite_map_poi.js` → `_pollLevel` | 0.25 s | 4 Hz | 3 anchor lookups (underground, tunnels, inverted) + `#GameTime` | **No** — runs with every POI layer off |
 | `qollite_map_preview.js` → `_poll` | 0.25 s | 4 Hz | `JSON.stringify` of the state + 1 lookup + ancestor walk (new in BetterMap 2.1) | **No** |
-| `qollite_map_icons.js` → `_poll` | 0.5 s | 2 Hz | `#hud_minimap` lookup, two anchor searches (`useZoomedMinimap`, `dl_midtown`), 7 class checks; on `dl_midtown` also one `FindChildrenWithClassTraverse("tier1_shop")` under `#hud_minimap` for the stray-shop workaround. Replaced `qollite_map_player.js` → `_pollZoom` in BetterMap 3.0 | **No** |
+| `qollite_map_icons.js` → `_poll` | 0.5 s | 2 Hz | `#hud_minimap` lookup, one ancestor walk for `useZoomedMinimap`, 7 class checks (the `dl_midtown` stray-shop search went with 3.2's revert of that workaround). Replaced `qollite_map_player.js` → `_pollZoom` in BetterMap 3.0 | **No** |
 | `qollite_map_minimap.js` → `_probeClasses` | 0.5 s | — | DEBUG-only diagnostics | ✅ Never scheduled while `DEBUG = false` (as bundled) |
 | `qollite_map_hud.js` → `_poll` | 2 s | 0.5 Hz | Safety net (BetterMap 3.3): the minimap structure is rebuilt on `CitadelGameStateChanged`; the poll only re-checks its cached panels (`IsValid` / `GetParent`, no tree search, per the module's own comment) for a rebuild the event missed | **No** — whole session, by design: the structure must exist whenever the minimap does |
 | `qollite_map_settings_mount.js` → `_poll` | 0.25 s | 4 Hz | Looks for a `PopupSettings` child of `#PopupManager` (cached once found; one `IsValid` and a scan of its few children a tick); on a window it has not seen, one attribute read, then the mount. **If `#PopupManager` is not found, each tick searches the whole tree twice** (context, then top root) — it was found in upstream's runs; not measured in QOL Lite. New with the runtime settings mount (upstream `5ac7816`) | **No** — runs for the whole session, under UMM too, where it never mounts anything. See the note below |
@@ -99,6 +104,17 @@ BetterMap 3.2 (`a7b55cf`, 2026-10-04) cut the most expensive of them. The detail
 33 Hz to a 2 Hz safety net, and the 33 Hz work now runs only while a view is open — roughly 16× fewer
 tree searches outside TAB, inferred from the intervals (not measured). It also added the credit
 line's 1 Hz loop in the overlay, below.
+
+BetterMap 3.4 / 3.5 (`3d4444c`, 2026-11-05). **Every lookup above now goes through
+`QolLiteMapHud.find`, which keeps a found panel while it is valid and still in the HUD** — a hit is an
+`IsValid` and a walk up the parents, not a tree search; a miss still searches. Upstream measured the
+loops before that change at 11–15 ms of JS a second in a match (runtime-cost audit, 2026-10-14, four
+launches on 6779), with the HUD-wide id searches as the main cost; the fix is **not** measured in game
+(audit status, upstream). 3.5 adds two always-on loops (`view._pollTarget`, which replaced size's,
+and `size._zoomPoll`, 2 Hz) and three that run only with their feature on (rotation, its retry, the
+TAB-map preview). The detail-view safety poll moved from `size` to `view`, same rate. Rotating Minimap
+is the most expensive loop in the pack when it is on — up to one tick per frame — and it is off by
+default.
 
 **The settings mount's always-on poll, measured against the pillars.** Its work per tick is small
 when `#PopupManager` is found (a cached panel and a handful of children), so the cost while playing
@@ -182,17 +198,18 @@ Loops in scripts no layout includes, so they never start (§4):
 
 ### D1. Loops run while their feature is off
 
-**Severity: High. Status: open — upstream BetterMap, still so at `5ac7816`; 3.2 fixed the
-costliest one (proposal 1 below). Files:**
-`qollite_map_size.js` (two loops), `qollite_map_urn.js`, `qollite_map_poi.js`,
-`qollite_map_preview.js`, `qollite_map_icons.js`, and since `5ac7816` `qollite_map_settings_mount.js`
-(under UMM; [§2](#2-polling-budget)).
+**Severity: High. Status: open — upstream BetterMap, still so at `3d4444c` (3.5); 3.2 fixed the
+costliest one (proposal 1 below), 3.4 cached the lookups ([§2](#2-polling-budget)). Files:**
+`qollite_map_view.js` (two loops), `qollite_map_size.js` (`_zoomPoll`), `qollite_map_urn.js`,
+`qollite_map_poi.js`, `qollite_map_preview.js`, `qollite_map_icons.js`, and since `5ac7816`
+`qollite_map_settings_mount.js` (under UMM). The 3.5 features (rotation, TAB map) do stop when off.
 
 The POI overlay and urn tracker default to **off** (`qollite_map_state.js`: `poiCratesEnabled`,
 `poiStatuesEnabled`, `poiToughEnabled`, `urnTrackerEnabled` all `false`). Their loops run anyway — the
 flag is checked *inside* the tick, after the wakeup and often after the tree walk. BetterMap 2.1 added
 two more always-on loops (`preview`, `player` — `icons` since 3.0), cheap but unconditional. Six
-loops in total run with every optional feature off.
+loops in total ran with every optional feature off; 3.5 makes it seven (`view` ×2, `size._zoomPoll`,
+`urn`, `poi`, `preview`, `icons`), not counting the HUD module's 0.5 Hz safety net.
 
 **Fix (upstream, then re-bundle — the bundle is regenerated, [`BUNDLE.md`](BUNDLE.md) §3):** check the
 flag before re-arming, and restart the loop from the setting's change handler.
@@ -217,7 +234,9 @@ Proposals recorded at the re-bundle, in order of expected win:
    `#hud_minimap` instead of the context root.
 3. `poi._pollLevel` — stop with all POI layers off; `QolLiteMapMinimap.anchor()` re-searches the tree
    three times per poi tick, once per size tick and twice per icons tick — cache the anchor.
-4. `ultLargeMapEnabled` defaults on, so the 17 Hz targeting poll does real work for everyone.
+4. ~~`ultLargeMapEnabled` defaults on, so the 17 Hz targeting poll does real work for everyone.~~
+   Moot since 3.5: the setting is gone, and the poll now runs for everyone by design (it lets Valve's
+   own targeting layout through). An event for map targeting would retire it; none is known.
 
 ### D2. Two loops ignore their config entirely
 

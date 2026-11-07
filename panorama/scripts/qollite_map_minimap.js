@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_minimap.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_minimap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -50,7 +50,7 @@ var QolLiteMapMinimap = (function () {
     var PROBE_CENSUS_SEC = [20, 200, 620];  // real seconds after HUD load; ~3:00/~10:00 game time when loaded near match start
     var PROBE_CLASS_POLL_SEC = 0.5;
     var PROBE_CLASSES = ["dl_midtown", "is_underground", "in_tunnels", "useZoomedMinimap",
-                         "invert_map", "map_targeting", "gScoreboardOpen", "ShowNewMinimap"];
+                         "invert_map", "map_targeting", "gScoreboardOpen", "gMinimapTargeting", "ShowNewMinimap"];
     var _probeClassKey = null;
 
     // Which engine .map_button markers exist, grouped by panel type + id, and

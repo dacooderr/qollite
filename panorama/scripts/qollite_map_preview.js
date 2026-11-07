@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_preview.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_preview.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -51,6 +51,8 @@ var QolLiteMapPreview = (function () {
     var _lifted = false;
     var _hidden = [];                        // [{ panel, opacity, hittest, hittestchildren }]
     var _core = null;                        // HudCore while lifted
+    var _wrap = null;                        // #minimap_persp_wrapper while lifted
+    var _wrapHitChildren;                    // its hittestchildren before the lift
     var _coreZ = null;                       // its inline zIndex before the lift
     var _shown = [];                         // [{ panel, prop }]: inline values we set while live
     var _readBackLogged = false;
@@ -173,9 +175,18 @@ var QolLiteMapPreview = (function () {
         if (on) {
             _core = _hudCore();
             if (_core) { _coreZ = _core.style.zIndex; _core.style.zIndex = LIFT_Z_INDEX; }
+            // The minimap itself takes no clicks while above the window: a centred TAB-map preview
+            // (qollite_map_tabmap.js) would otherwise cover the settings' controls (tab-map spec B11).
+            _wrap = _panel(PATH_LEAF_ID);
+            if (_wrap) { _wrapHitChildren = _wrap.hittestchildren; _wrap.hittestchildren = false; }
         } else if (_core) {
             if (_core.IsValid()) { _core.style.zIndex = _coreZ ? _coreZ : null; }
             _core = null;
+        }
+        if (!on && _wrap) {
+            // true is what qollite_map_hud.js gives the wrapper, if the read came back undefined.
+            if (_wrap.IsValid()) { _wrap.hittestchildren = _wrapHitChildren !== undefined ? _wrapHitChildren : true; }
+            _wrap = null;
         }
         _lifted = on;
         _log("lift " + (on ? "on" : "off") + " (" + _hidden.length + " off-path panels)");
@@ -231,5 +242,10 @@ var QolLiteMapPreview = (function () {
         _update();
     }
 
-    return { init: init, hold: hold, lift: lift };
+    // Whether the real minimap is on screen in a menu now: the escape menu is open, or our settings
+    // subsection's lift is applied (not merely requested: it fails closed without a HudCore). Other
+    // modules gate their own previews on it (tab-map spec B10).
+    function showing() { return _menuOpen() || _lifted; }
+
+    return { init: init, hold: hold, lift: lift, showing: showing };
 })();

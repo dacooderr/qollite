@@ -18,7 +18,7 @@ wrote it, whether we can rebuild it, and whether we may change it at all.
 
 | Feature | Origin | Runs in | Off switch | Cost |
 |---|---|---|---|---|
-| [Minimap](minimap.md) | BetterMap | Match; settings window | ✅ settings window or UMM `bettermap`, but six loops ignore it | 6 loops, 17–2 Hz (33 Hz only while TAB is held, since 3.2); 4 Hz for the whole session looking for a new settings window (under UMM too); 33 Hz sidebar sync and 4 Hz lift while the window is open; 1 Hz in the overlay for the credit line |
+| [Minimap](minimap.md) | BetterMap | Match; settings window | ✅ settings window or UMM `bettermap`, but seven loops ignore it | 7 loops, 17–2 Hz (33 Hz only while TAB is held, since 3.2; up to 100 Hz only while Rotating Minimap is on, default off, 3.5); 4 Hz for the whole session looking for a new settings window (under UMM too); 33 Hz sidebar sync and 4 Hz lift while the window is open; 1 Hz in the overlay for the credit line |
 | [Event reminders](event-reminders.md) | Map Event Reminders | Match (overlay also in the dashboard) | ⚠️ UMM `eventnotifier`, but two loops ignore it | 3 standing loops, 5–4 Hz |
 | [Top bar](top-bar.md) | Top Bar Plus | Match, hideout | ❌ none | 1 Hz + a 2 Hz loop per player row |
 | [Statlocker button](statlocker.md) | Statlocker | — | — | **not loaded** — its script is included by no layout; the live Statlocker buttons are Friends Rank's |

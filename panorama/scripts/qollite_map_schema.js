@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap_schema.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_schema.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -22,12 +22,38 @@
 var QolLiteMapSchema = (function () {
     // Not player settings: limits that other modules read through QolLiteMapState.DEFAULTS.
     // minimapSizeNativePx: Valve's own minimap size (hud.css #minimap_container 400px).
-    // minimapUltLargePx: the minimap size while a map ability is aimed (Mirage Traveler).
     var LIMITS = {
         minimapSizeMinPx: 200, minimapSizeMaxPx: 800, minimapSizeStepPx: 20,
-        minimapSizeNativePx: 400, minimapUltLargePx: 750,
-        iconScaleMinPct: 50, iconScaleMaxPct: 200, iconScaleStepPct: 10
+        minimapSizeNativePx: 400,
+        // The TAB map's size range (spec 2026-11-04-tab-map B1), on the minimap size's 20 px grid.
+        tabMapSizeMinPx: 400, tabMapSizeMaxPx: 1000,
+        iconScaleMinPct: 50, iconScaleMaxPct: 200, iconScaleStepPct: 10,
+        // The widest map (#hud_minimap, CSS px) BetterMap draws while the rotating minimap zooms: the largest map
+        // it draws without rotation (Minimap Size 800 x 360 / 400), held for 60 s in four probe runs. A 3-second
+        // zoom drag up to ~1418 CSS px exhausted texture memory (DXGI_ERROR_DEVICE_REMOVED; spec rotating-minimap R11).
+        rotateMapMaxDrawnPx: 720,
+        // Valve's drawn map: #hud_minimap is 360 px inside the 400 px container (hud_minimap.css:62). The size icons
+        // keep at every drawn map size (spec 2026-11-05-icons-keep-size K1).
+        mapDrawnNativePx: 360,
+        // The step of the counter-scaled icon grids, in % of the icon's scale (K4): at most 1 % off at 100 %.
+        iconFitStepPct: 2
     };
+
+    // Icons-keep-size spec §4: the grid of final scales a counter-scaled icon can take, `lo`..`hi` rounded
+    // outward to iconFitStepPct. The drawn map ranges from the smallest Minimap Size to the largest TAB map (above
+    // the rotating zoom's cap), each times Valve's map-to-container ratio.
+    function _fitGrid(lo, hi) {
+        var step = LIMITS.iconFitStepPct;
+        return { min: Math.floor(lo / step) * step, max: Math.ceil(hi / step) * step, step: step };
+    }
+    var _DRAWN_TO_SIZE = LIMITS.mapDrawnNativePx / LIMITS.minimapSizeNativePx;
+    var _DRAWN_MIN = LIMITS.minimapSizeMinPx * _DRAWN_TO_SIZE;
+    var _DRAWN_MAX = LIMITS.tabMapSizeMaxPx * _DRAWN_TO_SIZE;
+    // A player icon: its setting times native / drawn (K4).
+    var ICON_FIT = _fitGrid(LIMITS.iconScaleMinPct * LIMITS.mapDrawnNativePx / _DRAWN_MAX,
+                            LIMITS.iconScaleMaxPct * LIMITS.mapDrawnNativePx / _DRAWN_MIN);
+    // A marker with no size setting: native / drawn alone.
+    var MAP_FIT = _fitGrid(100 * LIMITS.mapDrawnNativePx / _DRAWN_MAX, 100 * LIMITS.mapDrawnNativePx / _DRAWN_MIN);
     var MAP = "Minimap";
     var ICONS = "Minimap Icons";
     // Renamed from "Crates & Statues" when the apples came (spec O1); ids and stored keys did not change.
@@ -55,6 +81,8 @@ var QolLiteMapSchema = (function () {
     // player also carries .friend, so an ally size would otherwise reach it),
     // `zoomAside` drops the class in the zoomed minimap, where Valve sizes players itself,
     // and `exclude` lists engine markers that keep Valve's base scale under the class.
+    // `fit` (icons-keep-size spec §4): the marker's size is a % of the map, so the class carries the setting times
+    // native / drawn on this grid (qollite_map_icons.js), and the generator writes the grid, not the slider's steps.
     function _icon(key, label, umm, tooltip, icon) {
         return { key: key, group: ICONS, type: "slider", label: label, def: 100,
                  min: LIMITS.iconScaleMinPct, max: LIMITS.iconScaleMaxPct, step: LIMITS.iconScaleStepPct,
@@ -77,6 +105,13 @@ var QolLiteMapSchema = (function () {
     // saved under the old long ids are not carried over (a one-time reset).
     // The corner setting was removed (D18, owner 2026-10-01): the offsets are
     // measured from the bottom-right corner and reach every position.
+    // Every size from lo to hi in steps of step, both ends included.
+    function _sizes(lo, hi, step) {
+        var out = [];
+        for (var px = lo; px <= hi; px += step) { out.push(px); }
+        return out;
+    }
+
     var SETTINGS = [
         { key: "minimapSizePx", group: MAP, type: "slider", label: "Minimap Size", def: 400,
           min: LIMITS.minimapSizeMinPx, max: LIMITS.minimapSizeMaxPx, step: LIMITS.minimapSizeStepPx,
@@ -87,10 +122,15 @@ var QolLiteMapSchema = (function () {
           // circle grows with the map twice over (probe run 2, 2026-10-04, build 6745:
           // 21.42 / 42.84 / 59.96 / 85.68 % at 200 / 400 / 560 / 800 px). qollite_map_size.js
           // puts `cls` + the applied size on #hud_minimap; the generated rule scales
-          // `engine` back by native / size. `extra` sizes are applied off the slider grid.
+          // `engine` back by native / size. `extra` sizes are applied off the slider grid: the TAB map's above 800 px (spec
+          // 2026-11-04-tab-map B6).
           mapScale: { cls: "bm_mapsize_", native: LIMITS.minimapSizeNativePx,
-                      extra: [LIMITS.minimapUltLargePx],
-                      engine: [".map_button.ability_castrange #CastRange"] } },
+                      extra: _sizes(LIMITS.minimapSizeMaxPx + LIMITS.minimapSizeStepPx, LIMITS.tabMapSizeMaxPx, LIMITS.minimapSizeStepPx),
+                      engine: [".map_button.ability_castrange #CastRange"] },
+          // Icons-keep-size spec §4: %-sized markers with no size setting (soul drops: 3.5 %, hud_minimap.css:968)
+          // keep Valve's size - qollite_map_size.js puts `cls` + native / drawn on #hud_minimap, on this grid.
+          mapFit: { cls: "bm_fit_", engine: [".map_button.gold_dropping"],
+                    min: MAP_FIT.min, max: MAP_FIT.max, step: MAP_FIT.step } },
         { key: "minimapOffsetX", group: MAP, type: "slider", label: "Horizontal Offset", def: 0,
           min: -100, max: 100, step: 5, unit: "%", scale: 100, umm: "ox",
           tooltip: "Moves the minimap left from the bottom-right corner. 100% reaches the left edge; negative values push it past the right edge, at most halfway." },
@@ -99,25 +139,50 @@ var QolLiteMapSchema = (function () {
           tooltip: "Moves the minimap up from the bottom-right corner. 100% reaches the top edge; negative values push it past the bottom edge, at most halfway." },
         { key: "mapOpacity", group: MAP, type: "slider", label: "Map Opacity", def: 0.95,
           min: 10, max: 100, step: 5, unit: "%", scale: 100, umm: "mo",
-          tooltip: "Opacity of the minimap, its markers included." },
+          tooltip: "Opacity of the minimap, its markers and backdrop included." },
         { key: "minimalMap", group: MAP, type: "toggle", label: "Minimalist Minimap", def: false,
           umm: "mm",
           tooltip: "Hides the minimap frame and decorations and keeps only the map and its markers." },
-        { key: "ultLargeMapEnabled", group: MAP, type: "toggle", label: "Larger Map for Traveler (Mirage)", def: true,
-          umm: "ul",
-          tooltip: "Enlarges the minimap while you aim an ability on the map, such as Mirage's Traveler." },
         { key: "hudFullWidth", group: MAP, type: "toggle", label: "Full-Width HUD", def: false,
           umm: "fw",
           tooltip: "On ultrawide screens, lets the minimap use the full screen width instead of the game's 21:9 limit." },
+        // Valve's district / building label next to the minimap (spec 2026-10-14-camp-icons-and-location-label
+        // L2). In UMM since 2026-11-04 (spec 2026-11-04-tab-map B12, owner).
+        { key: "locationLabelScalePct", group: MAP, type: "slider", label: "Location Label Size", def: 100,
+          min: LIMITS.iconScaleMinPct, max: LIMITS.iconScaleMaxPct, step: LIMITS.iconScaleStepPct,
+          unit: "%", scale: 1, umm: "ll",
+          tooltip: "Size of the district name shown next to the minimap." },
+        // The map in the screen centre while TAB is held (spec 2026-11-04-tab-map B1, B2).
+        { key: "tabMapEnabled", group: MAP, type: "toggle", label: "Larger Map on TAB", def: false,
+          umm: "tz",
+          tooltip: "While TAB is held, shows the minimap in the center of the screen at its own size and opacity." },
+        { key: "tabMapSizePx", group: MAP, type: "slider", label: "TAB Map Size", def: 800,
+          min: LIMITS.tabMapSizeMinPx, max: LIMITS.tabMapSizeMaxPx, step: LIMITS.minimapSizeStepPx,
+          unit: "px", scale: 1, umm: "ts",
+          tooltip: "Width and height of the minimap while TAB is held." },
+        { key: "tabMapOpacity", group: MAP, type: "slider", label: "TAB Map Opacity", def: 1,
+          min: 10, max: 100, step: 5, unit: "%", scale: 100, umm: "to",
+          tooltip: "Opacity of the minimap while TAB is held, its markers and backdrop included." },
+        // Rotating Minimap (spec 2026-11-04-rotating-minimap R1, R5): `turn` drives the generated rules that turn
+        // the icons back upright while the map layer turns (qollite_map_rotate.js puts `cls` + n on #hud_minimap).
+        { key: "rotateMapEnabled", group: MAP, type: "toggle", label: "Rotating Minimap", def: false,
+          umm: "rm",
+          tooltip: "Turns the minimap with your view: your icon stays in the center pointing up. TAB, Alt and map-aimed abilities show the normal map.",
+          turn: { cls: "bm_rot_", stepDeg: 5, engine: [".map_button", ".bm_urn"],
+                  exclude: [".map_button.localplayer", ".client_cone_fov", ".map_button.guided_arrow"] } },
+        { key: "rotateMapZoomPct", group: MAP, type: "slider", label: "Rotating Minimap Zoom", def: 200,
+          min: 100, max: 200, step: 25, unit: "%", scale: 1, umm: "rz",
+          tooltip: "How close the rotating minimap is zoomed in. 100% shows the whole map; a larger Minimap Size allows less zoom." },
         _icon("selfIconScalePct", "Your Icon Size", "is",
               "Size of your own hero's icon on the minimap, relative to the game's size.",
-              { cls: "bm_size_self_", engine: [".map_button.player.friend.localplayer"], always: true, zoomAside: true }),
+              { cls: "bm_size_self_", engine: [".map_button.player.friend.localplayer"], always: true, zoomAside: true,
+                fit: ICON_FIT }),
         _icon("allyIconScalePct", "Ally Icon Size", "ia",
               "Size of your allies' hero icons on the minimap, relative to the game's size.",
-              { cls: "bm_size_ally_", engine: [".map_button.player.friend"], zoomAside: true }),
+              { cls: "bm_size_ally_", engine: [".map_button.player.friend"], zoomAside: true, fit: ICON_FIT }),
         _icon("enemyIconScalePct", "Enemy Icon Size", "ie",
               "Size of the enemy hero icons on the minimap, relative to the game's size.",
-              { cls: "bm_size_enemy_", engine: [".map_button.player.enemy"], zoomAside: true }),
+              { cls: "bm_size_enemy_", engine: [".map_button.player.enemy"], zoomAside: true, fit: ICON_FIT }),
         _icon("towerIconScalePct", "Tower Icon Size", "it",
               "Size of the towers and the other lane objectives on the minimap.",
               { cls: "bm_size_tower_", engine: [".map_button.boss_icon_t1", ".map_button.boss_icon_t2",
@@ -192,6 +257,12 @@ var QolLiteMapSchema = (function () {
     function byKey(key) { _index(); return _own(_byKey, key) ? _byKey[key] : null; }
     function byUmmId(id) { _index(); return _own(_byUmm, id) ? _byUmm[id] : null; }
 
+    // `value` on a `fit` / `mapFit` grid: rounded to its step from its minimum, clamped (icons-keep-size §5).
+    function fitSnap(fit, value) {
+        var v = fit.min + Math.round((value - fit.min) / fit.step) * fit.step;
+        return Math.max(fit.min, Math.min(fit.max, v));
+    }
+
     function defaults() {
         var d = {};
         for (var i = 0; i < SETTINGS.length; i++) { d[SETTINGS[i].key] = SETTINGS[i].def; }
@@ -230,7 +301,7 @@ var QolLiteMapSchema = (function () {
     }
 
     return {
-        LIMITS: LIMITS, list: list, groups: groups, section: section, iconEntries: iconEntries, byKey: byKey,
+        LIMITS: LIMITS, list: list, groups: groups, section: section, iconEntries: iconEntries, byKey: byKey, fitSnap: fitSnap,
         byUmmId: byUmmId, isRanged: isRanged, defaults: defaults, toShown: toShown, fromShown: fromShown,
         sanitize: sanitize
     };

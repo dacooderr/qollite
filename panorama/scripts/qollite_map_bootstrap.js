@@ -1,5 +1,5 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
-// Upstream: github.com/gfkm/BetterMap @ a9f121a, mod/panorama/scripts/bettermap.js
+// Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap.js
 // Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
 // POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
 // "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
@@ -39,11 +39,15 @@
         // registered before init, which may build at once.
         _run("hud", function () { QolLiteMapHud.onReady(_onHudBuild); QolLiteMapHud.init(); });
         _run("minimap", function () { QolLiteMapMinimap.init(); });
+        _run("view", function () { QolLiteMapView.init(); });
         _run("size", function () { QolLiteMapSize.init(); });
         _run("position", function () { QolLiteMapPosition.init(); });
+        _run("tabmap", function () { QolLiteMapTabMap.init(); });
+        _run("rotate", function () { QolLiteMapRotate.init(); });
         _run("poi", function () { QolLiteMapPoi.init(); });
         _run("minimal", function () { QolLiteMapMinimal.init(); });
         _run("icons", function () { QolLiteMapIcons.init(); });
+        _run("location", function () { QolLiteMapLocation.init(); });
         _run("preview", function () { QolLiteMapPreview.init(); });
         _run("urn", function () { QolLiteMapUrn.init(); });
         _featuresStarted = true;
@@ -72,8 +76,10 @@
         var need = {
             Log: typeof QolLiteMapLog, Schema: typeof QolLiteMapSchema, Hud: typeof QolLiteMapHud,
             State: typeof QolLiteMapState, Draw: typeof QolLiteMapDraw,
-            Minimap: typeof QolLiteMapMinimap, Size: typeof QolLiteMapSize, Position: typeof QolLiteMapPosition,
+            Minimap: typeof QolLiteMapMinimap, View: typeof QolLiteMapView, Size: typeof QolLiteMapSize, Position: typeof QolLiteMapPosition,
+            TabMap: typeof QolLiteMapTabMap, Rotate: typeof QolLiteMapRotate,
             Poi: typeof QolLiteMapPoi, Minimal: typeof QolLiteMapMinimal, Icons: typeof QolLiteMapIcons,
+            Location: typeof QolLiteMapLocation,
             Preview: typeof QolLiteMapPreview, Urn: typeof QolLiteMapUrn, Umm: typeof QolLiteMapUmmAdapter,
             Apply: typeof QolLiteMapApply, StoreCodec: typeof QolLiteMapStoreCodec, Store: typeof QolLiteMapStore,
             SettingsBus: typeof QolLiteMapSettingsBus, Slider: typeof QolLiteMapSlider, Popup: typeof QolLiteMapPopup,
