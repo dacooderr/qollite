@@ -15,7 +15,9 @@ Transformation (derived from the previously bundled Closure build vs MER b8907bc
   5. non-ASCII: inside string literals -> \\uXXXX escapes; in comments -> ASCII
      punctuation (COMMENT_ASCII). The previous bundle was pure ASCII; whether
      Panorama decodes raw UTF-8 JS correctly is not verified.
-  6. a 4-line provenance header per file
+  6. code only: every comment is stripped (bundle_common.strip_comments) after
+     step 4; the commented source is upstream
+  7. a 2-line provenance header per file
 Unchanged on purpose: log prefixes ([NOTIF], [NOTIF][bridge], [NOTIF][urn]), bus
 payloads ({notif:1,...}), UMM id "eventnotifier" and every setting key, "use strict".
 
@@ -31,7 +33,7 @@ Exit codes:  0 = written / identical   1 = --check found differences   2 = error
 import re
 import sys
 
-from bundle_common import BundleError, cli, git_show, short_sha
+from bundle_common import BundleError, cli, git_show, short_sha, strip_comments
 
 UPSTREAM_URL = "github.com/gfkm/MapEventReminders"
 UPSTREAM_DIR = "mod/panorama/scripts"
@@ -144,9 +146,7 @@ def to_ascii(src):
 
 def header(short, up):
     return (f"// Bundled from Map Event Reminders ({UPSTREAM_URL}) @ {short}, {UPSTREAM_DIR}/{up}.\n"
-            "// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation\n"
-            "// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments\n"
-            "// below refer to the upstream repo.\n")
+            "// Our own mod: edit upstream and re-bundle; changes made only here are lost.\n")
 
 
 def transform(up, src, short):
@@ -156,7 +156,8 @@ def transform(up, src, short):
     src = rename_files(rename_globals(src))
     if up == DEBUG_FILE:
         src = disable_debug(src)
-    out = header(short, up) + to_ascii(src)
+    # After the DEBUG delta, which anchors on the comment line that follows upstream's DEBUG.
+    out = header(short, up) + to_ascii(strip_comments(src))
     if any(ord(ch) >= 128 for ch in out):
         raise BundleError(f"{up}: non-ASCII survived")
     left = [name for name in GLOBALS if re.search(r"\b" + name + r"\b", out)]

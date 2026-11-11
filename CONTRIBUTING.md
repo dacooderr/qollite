@@ -25,7 +25,7 @@ different rules. [`docs/BUNDLE.md`](docs/BUNDLE.md) is the authoritative list.
 >
 > The first-party scripts (`qollite_map_*`, `qollite_notifications_*`) are readable, but they are
 > **generated** from upstream commits by the bundlers — a hand-edit here is overwritten by the next
-> bundle run. Most of the vendored scripts are minified Closure Compiler output whose readable source
+> bundle run. They ship without comments; the commented source is upstream. Most of the vendored scripts are minified Closure Compiler output whose readable source
 > is not in this repo at all; hand-editing them produces changes nobody can review, which vanish the
 > next time the real source is compiled. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §1 lists
 > which is which.

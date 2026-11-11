@@ -1,32 +1,15 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_store_codec.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// The pure half of the standalone store - no Panorama API, so it runs under node
-// in tests/. It defines the stored record format and the bm1 request/answer
-// format of our storage page (repo gfkm/bettermap-storage, index.html:
-// request "#bm1.<id>.<op>[.<base64url>]", answer title "BM1:" + JSON).
 var QolLiteMapStoreCodec = (function () {
-    // 2 since D18. The owner, 2026-10-01, on the old saves: "you can forget the old
-    // saves and just reset everything" (the corner setting was removed). A v1 record
-    // therefore decodes as malformed: defaults now, overwritten on the next change.
     var VERSION = 2;
     var PROTOCOL = "bm1";
-    var TITLE_PREFIX = "BM1:";   // must match the page's TITLE_PREFIX
+    var TITLE_PREFIX = "BM1:";
     var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
     function _own(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
 
-    // READ-OLD FALLBACK (spec docs/specs/2026-10-01-minimap-icon-sizes.md I7): records
-    // written before the per-type icon sizes hold one playerIconScalePct for every hero.
-    // It seeds the three player sizes unless the record already has one of them, and
-    // it is removed from `extra` either way, so the next write no longer carries it.
-    // After a downgrade and re-upgrade the three new keys win over an old key the older
-    // build wrote back (newer schema wins).
     var OLD_PLAYER_KEY = "playerIconScalePct";
     var PLAYER_KEYS = ["selfIconScalePct", "allyIconScalePct", "enemyIconScalePct"];
 
@@ -41,7 +24,6 @@ var QolLiteMapStoreCodec = (function () {
         }
     }
 
-    // UTF-8 + base64url without padding; Panorama has no btoa/TextEncoder precedent.
     function base64Url(text) {
         var bytes = [];
         for (var i = 0; i < text.length; i++) {
@@ -64,11 +46,6 @@ var QolLiteMapStoreCodec = (function () {
         return out;
     }
 
-    // Stored record -> { ok, empty, values, extra, reason }. `values` holds only
-    // valid, sanitised schema values. When ok=false, `code` is "malformed" (not JSON /
-    // not a record) or "version" (a record version this build cannot read). `extra` keeps unknown keys, so a save
-    // written by a newer mod version survives a downgrade. ok=false means: do not
-    // trust it, and do not overwrite it until the player changes something.
     function decode(raw) {
         if (raw === null || raw === undefined || raw === "") {
             return { ok: true, empty: true, values: {}, extra: {} };
@@ -76,8 +53,6 @@ var QolLiteMapStoreCodec = (function () {
         var rec;
         try { rec = JSON.parse(raw); } catch (e) { return { ok: false, code: "malformed", reason: "malformed", values: {}, extra: {} }; }
         if (!rec || typeof rec !== "object" || rec.v !== VERSION || !rec.values || typeof rec.values !== "object") {
-            // Only a NEWER version is "version" (the store then refuses to overwrite it);
-            // any other unusable record (null, {}, 123, v<1, missing values) is malformed.
             var newer = !!rec && typeof rec === "object" && typeof rec.v === "number" && rec.v > VERSION;
             return { ok: false, code: newer ? "version" : "malformed",
                      reason: "unsupported record (v=" + (rec && rec.v) + ")", values: {}, extra: {} };
@@ -107,7 +82,6 @@ var QolLiteMapStoreCodec = (function () {
         return PROTOCOL + "." + id + "." + op + (payload === undefined ? "" : "." + base64Url(payload));
     }
 
-    // Page title -> answer object, or null for anything that is not a bm1 answer.
     function parseTitle(title) {
         if (typeof title !== "string" || title.indexOf(TITLE_PREFIX) !== 0) { return null; }
         var msg;

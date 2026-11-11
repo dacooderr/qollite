@@ -1,25 +1,21 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_poi.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
 var QolLiteMapPoi = (function () {
     var MAP_NAME = "dl_midtown";
 
-    var SMALL_FACTOR = 0.6;             // small POI = base size * factor (min 1px)
-    var UNDERGROUND_Z_MAX = 0;          // world z below this = underground POI
+    var SMALL_FACTOR = 0.6;
+    var UNDERGROUND_Z_MAX = 0;
     var LEVEL_POLL_SEC = 0.25;
-    var DEFAULT_SPAWN_SEC = 180;        // data without a per-POI `s` (pre-6722 dumps): 3:00
+    var DEFAULT_SPAWN_SEC = 180;
 
-    var _markers = [];                  // { panel, t, small, under, spawn }
-    var _host = null;                   // the #minimap_markers the markers were drawn into
+    var _markers = [];
+    var _host = null;
     var _underground = false;
     var _inTunnels = false;
-    var _inverted = false;              // invert_map at the last placement (team 2's rotated map)
-    var _spawnedKey = "";               // which spawn times the clock has passed (change => re-filter)
+    var _inverted = false;
+    var _spawnedKey = "";
 
     function _log(msg) {
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("poi: " + msg); }
@@ -27,16 +23,9 @@ var QolLiteMapPoi = (function () {
 
     function _panel(id) { return QolLiteMapHud.find(id); }
 
-    // Build 6722 has three minimap views on #hud_minimap: surface, `is_underground`
-    // (mid tunnels) and `in_tunnels` (the new rat-tunnel layer). z splits surface /
-    // underground; small props show only in the rat-tunnel view, and that view
-    // shows only them (owner decision 2026-09-30 - the 0.5-scale props are their
-    // own spawn group 1 on 6722).
     function _isUnderground() { return QolLiteMapMinimap.hasClassAbove("is_underground"); }
     function _isInTunnels() { return QolLiteMapMinimap.hasClassAbove("in_tunnels"); }
 
-    // Match-clock seconds from the top-bar GameTime label; null before the
-    // clock exists (pregame/loading), which we treat as "already spawned".
     function _gameTimeSeconds() {
         var label = _panel("GameTime");
         if (!label || typeof label.text !== "string") { return null; }
@@ -64,16 +53,11 @@ var QolLiteMapPoi = (function () {
         if (m.t === "statue" && !state.poiStatuesEnabled) { return false; }
         if (m.t === "tough" && !state.poiToughEnabled) { return false; }
         if (m.t === "apple" && !state.poiApplesEnabled) { return false; }
-        // Small props live in the rat tunnels: shown only while that view is up.
         if (m.small && !_inTunnels) { return false; }
-        // Always follow the current level (owner, 2026-10-01: no "show all levels" option).
         if (_inTunnels) { return m.small; }
         return m.under === _underground;
     }
 
-    // Comma list of the distinct spawn times already reached; changes only when
-    // the clock crosses one (3:00 / 5:00 / 10:00 on 6722), so the poll re-filters
-    // at those moments instead of every tick. null clock (pregame) = all spawned.
     function _spawnKey(clock) {
         var seen = {}, out = [];
         for (var i = 0; i < _markers.length; i++) {
@@ -91,7 +75,6 @@ var QolLiteMapPoi = (function () {
         }
     }
 
-    // Data u/v are world-oriented; team 2's rotated minimap is drawn mirrored.
     function _placeMarker(m) {
         var at = QolLiteMapMinimap.toScreen(m.u, m.v);
         m.panel.style.x = (at.u * 100).toFixed(4) + "%";
@@ -103,8 +86,6 @@ var QolLiteMapPoi = (function () {
         _host = host;
         _markers = [];
         if (!host) { _log("#minimap_markers not found, skip render"); return; }
-        // Counted once: DeleteAsync may leave a child attached until the next frame, so a loop on
-        // GetChildCount() could spin forever (review 2026-10-10).
         for (var k = host.GetChildCount() - 1; k >= 0; k--) { host.GetChild(k).DeleteAsync(0); }
 
         var data = (typeof QolLiteMapPoiData !== "undefined") ? QolLiteMapPoiData[MAP_NAME] : null;
@@ -113,14 +94,10 @@ var QolLiteMapPoi = (function () {
         for (var i = 0; i < data.pois.length; i++) {
             var p = data.pois[i];
             if (typeof p.u !== "number" || typeof p.v !== "number") { continue; }
-            // A type added to the data before the runtime knows it - skip, never throw.
             if (!QolLiteMapDraw.hasPoiType(p.t)) { continue; }
             var marker = $.CreatePanel("Panel", host, "poi_" + i);
             marker.style.horizontalAlign = "left";
             marker.style.verticalAlign = "top";
-            // x/y are Panorama's position components and accept % of parent
-            // (Valve: citadel_shop_mods_list.css). percentX/percentY are NOT real
-            // properties and the current build throws on unknown style names.
             var m = {
                 panel: marker, t: p.t, small: !!p.small, under: p.z < UNDERGROUND_Z_MAX,
                 spawn: (typeof p.s === "number") ? p.s : DEFAULT_SPAWN_SEC, u: p.u, v: p.v
@@ -181,8 +158,6 @@ var QolLiteMapPoi = (function () {
         }
     }
 
-    // Re-apply everything from QolLiteMapState (QolLiteMapApply.all). QolLiteMapHud rebuilds the
-    // overlay when the HUD replaces the minimap; the markers then go into the fresh host.
     function refresh() {
         if (!_host || !_host.IsValid()) { _renderMarkers(); return; }
         _applyVisibility();

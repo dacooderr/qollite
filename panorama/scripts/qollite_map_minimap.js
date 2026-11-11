@@ -1,20 +1,7 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_minimap.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Read-only probes into Valve's C++ HudMinimap - the one place that knows where
-// the engine hangs its state classes. The engine sets them on #hud_minimap or
-// above (hud_minimap.css: `.invert_map.HudMinimap`,
-// `.dl_midtown.is_underground .backgroundImage1`, `.useZoomedMinimap #hud_minimap`),
-// so walking up from a panel inside it finds each class wherever it lives.
-//
-// The anchor is #MinimapBackgroundTest (hud_minimap.xml, present in the
-// 2026-07 build and in 6722). Build 6722 deleted #map_render, the previous
-// anchor, which silently turned every level/targeting/invert check into false.
 var QolLiteMapMinimap = (function () {
     var ANCHOR_ID = "MinimapBackgroundTest";
 
@@ -31,31 +18,18 @@ var QolLiteMapMinimap = (function () {
         return false;
     }
 
-    // Team 2 (Sapphire / Archmother) sees the minimap turned 180deg: Valve sets
-    // `invert_map` on #hud_minimap and flips the whole panel with
-    // `.invert_map.HudMinimap { transform: scaleY(-1) scaleX(-1) }`, while the
-    // engine keeps placing markers in world orientation. Our overlay lives inside
-    // that panel but is flipped back (`.invert_map .bm_overlay`, bettermap.vcss), so
-    // every mod marker is mirrored here instead - positions only, never the marker
-    // itself (a flipped panel would render text upside down).
     function isInverted() { return hasClassAbove("invert_map"); }
 
-    // World-oriented minimap u/v (0..1, pipeline data) -> where it is drawn now.
     function toScreen(u, v) {
         return isInverted() ? { u: 1 - u, v: 1 - v } : { u: u, v: v };
     }
 
-    // ---- DEBUG-only probes (build 6722 study; the debugger's JS console does not
-    // execute in the retail client, so the mod itself reports into console.log) ----
-    var PROBE_CENSUS_SEC = [20, 200, 620];  // real seconds after HUD load; ~3:00/~10:00 game time when loaded near match start
+    var PROBE_CENSUS_SEC = [20, 200, 620];
     var PROBE_CLASS_POLL_SEC = 0.5;
     var PROBE_CLASSES = ["dl_midtown", "is_underground", "in_tunnels", "useZoomedMinimap",
                          "invert_map", "map_targeting", "gScoreboardOpen", "gMinimapTargeting", "ShowNewMinimap"];
     var _probeClassKey = null;
 
-    // Which engine .map_button markers exist, grouped by panel type + id, and
-    // whether Panorama exposes any entity API - the two ways crates could be
-    // tracked natively (see docs/knowledge/panorama_notes.md "No live world-entity state").
     function _probeCensus() {
         var hud = _panel("hud_minimap");
         if (!hud) { QolLiteMapLog.log("probe: no #hud_minimap"); return; }
@@ -73,8 +47,6 @@ var QolLiteMapMinimap = (function () {
         QolLiteMapLog.log("probe: map_button x" + buttons.length + " " + JSON.stringify(groups));
     }
 
-    // Logs the engine state classes each time the set changes (surface ->
-    // underground -> rat tunnels) to confirm where hasClassAbove finds them.
     function _probeClasses() {
         var hud = _panel("hud_minimap");
         var on = [];

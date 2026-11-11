@@ -1,15 +1,8 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
 (function () {
-    // Run each module init in isolation: a throw in one must not silently abort
-    // the rest. (The pre-diagnostic bootstrap chained them, so one failure hid
-    // every following init - which is exactly how checkpoint #1 stayed invisible.)
     function _run(name, fn) {
         try {
             fn();
@@ -21,12 +14,8 @@
         }
     }
 
-    // Set once every feature module has run its init: until then a minimap build needs no
-    // re-apply, because each feature's own init applies the settings.
     var _featuresStarted = false;
 
-    // Every build of the minimap structure (QolLiteMapHud: first sight, a rebuilt HUD, a vanished
-    // overlay) re-applies all features, so fresh panels get our sizes, classes and markers (spec H5).
     function _onHudBuild(n) {
         if (!_featuresStarted) { return; }
         try { QolLiteMapApply.all(); }
@@ -35,8 +24,6 @@
 
     function init() {
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.info("boot: initializing modules"); }
-        // First: the features find their panels through the structure it builds. The callback is
-        // registered before init, which may build at once.
         _run("hud", function () { QolLiteMapHud.onReady(_onHudBuild); QolLiteMapHud.init(); });
         _run("minimap", function () { QolLiteMapMinimap.init(); });
         _run("view", function () { QolLiteMapView.init(); });
@@ -52,18 +39,15 @@
         _run("urn", function () { QolLiteMapUrn.init(); });
         _featuresStarted = true;
         _run("umm", function () { QolLiteMapUmmAdapter.init(); });
-        // After the features: a load re-applies all of them.
         _run("store", function () {
             QolLiteMapStore.init(function (source) {
                 try { QolLiteMapApply.all(); }
                 catch (e) { QolLiteMapLog.error("apply after load threw: " + (e && e.message ? e.message : e)); }
-                // An open settings window asked before the load finished: push the loaded values.
                 QolLiteMapSettingsBus.broadcast();
                 QolLiteMapLog.log("settings applied from " + source);
             }, function (values) { QolLiteMapUmmAdapter.seed(values); });
         });
         _run("popup", function () { QolLiteMapPopup.init(); });
-        // Last: it builds our section into the settings window, which the modules above serve.
         _run("settings-mount", function () { QolLiteMapSettingsMount.init(); });
         if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("boot: init() complete"); }
     }

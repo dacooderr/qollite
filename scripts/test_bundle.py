@@ -124,9 +124,11 @@ class BetterMapFiles(unittest.TestCase):
         out = bb.transform("bettermap_rotate.js",
                            "var BettermapRotate = 1; BettermapView.isTabHeld(); BettermapTabmap.x();\n"
                            "// zoom read by bettermap_size.js\n", "abc1234")
-        for name in ("var QolLiteMapRotate", "QolLiteMapView.isTabHeld", "QolLiteMapTabmap.x",
-                     "qollite_map_size.js"):
+        for name in ("var QolLiteMapRotate", "QolLiteMapView.isTabHeld", "QolLiteMapTabmap.x"):
             self.assertIn(name, out)
+        # Comments are stripped from the output; rename() still renames file names in them
+        # before leftovers() runs.
+        self.assertIn("qollite_map_size.js", bb.rename("// zoom read by bettermap_size.js\n"))
 
     def test_runtime_settings_globals_renamed(self):
         src = ("if (BettermapUmm.isPresent()) { return; }\n"
@@ -135,9 +137,11 @@ class BetterMapFiles(unittest.TestCase):
                "// started by bettermap_settings_mount.js, sidebar in bettermap_settings_nav.js\n")
         out = bb.transform("bettermap_settings_mount.js", src, "abc1234")
         for name in ("QolLiteMapUmmAdapter.isPresent", "QolLiteMapSettingsNav.mount", "QolLiteMapPopup.start",
-                     "var QolLiteMapSettingsMount", "QolLiteMapSlider.bind", "QolLiteMapSettingsBus.request",
-                     "qollite_map_settings_mount.js", "qollite_map_settings_nav.js"):
+                     "var QolLiteMapSettingsMount", "QolLiteMapSlider.bind", "QolLiteMapSettingsBus.request"):
             self.assertIn(name, out)
+        renamed = bb.rename(src)
+        for name in ("qollite_map_settings_mount.js", "qollite_map_settings_nav.js"):
+            self.assertIn(name, renamed)
 
     def test_unlisted_upstream_module_fails(self):
         listed = [f"{bb.UPSTREAM_DIR}/{up}" for up in bb.FILES]
@@ -157,7 +161,7 @@ class BetterMapFiles(unittest.TestCase):
     def test_header(self):
         h = bb.header("abc1234", "bettermap_log.js")
         self.assertIn("github.com/gfkm/BetterMap @ abc1234, mod/panorama/scripts/bettermap_log.js\n", h)
-        self.assertEqual(h.count("\n"), 6)
+        self.assertEqual(h.count("\n"), 2)
 
 
 class BetterMapDeltas(unittest.TestCase):
@@ -253,11 +257,70 @@ class MerAscii(unittest.TestCase):
         self.assertTrue(all(ord(c) < 128 for c in out))
         self.assertTrue(out.startswith("// Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders)"
                                        " @ abc1234, mod/panorama/scripts/notif_strings.js.\n"))
-        self.assertIn('var QolLiteNotificationsStrings = { ru: "\\u0420" }; // -\n', out)
+        self.assertIn('var QolLiteNotificationsStrings = { ru: "\\u0420" };\n', out)
 
     def test_transform_rejects_cr(self):
         with self.assertRaises(bc.BundleError):
             bm.transform("notif_config.js", "x\r\n", "abc1234")
+
+
+class StripComments(unittest.TestCase):
+    def test_comment_only_lines_dropped(self):
+        self.assertEqual(bc.strip_comments("var a = 1;\n// note\n    // indented note\nvar b = 2;\n"),
+                         "var a = 1;\nvar b = 2;\n")
+
+    def test_trailing_comment_trimmed(self):
+        self.assertEqual(bc.strip_comments("var a = 1;   // why\n"), "var a = 1;\n")
+
+    def test_block_comments_dropped(self):
+        self.assertEqual(bc.strip_comments("/*\n * doc\n */\nfunction f() {\n    /* x */ return 1;\n}\n"),
+                         "function f() {\n    return 1;\n}\n")
+
+    def test_inline_block_comment_keeps_tokens_apart(self):
+        self.assertEqual(bc.strip_comments("return/* x */value;\n"), "return value;\n")
+        self.assertEqual(bc.strip_comments("f(a, /* b */ c);\n"), "f(a, c);\n")
+
+    def test_comment_markers_inside_strings_kept(self):
+        src = 'var u = "https://x.io/a"; var s = \'/* no */\'; var t = `// no`;\n'
+        self.assertEqual(bc.strip_comments(src), src)
+
+    def test_escaped_quote_does_not_end_string(self):
+        self.assertEqual(bc.strip_comments('var s = "a\\" // b"; // c\n'), 'var s = "a\\" // b";\n')
+
+    def test_regex_literals_kept(self):
+        src = ('var a = s.replace(/<[^>]+>/g, ""); var b = /\\/\\/x/; var c = /[/*]/.test(s);\n'
+               "return /a\\/b/i;\n")
+        self.assertEqual(bc.strip_comments(src), src)
+
+    def test_division_is_not_a_regex(self):
+        self.assertEqual(bc.strip_comments("var x = a / b / c; // half\nvar y = (p) / 2;\n"),
+                         "var x = a / b / c;\nvar y = (p) / 2;\n")
+
+    def test_blank_runs_collapse_and_leading_blanks_go(self):
+        self.assertEqual(bc.strip_comments("// head\n\nvar a;\n\n\n// gap\n\nvar b;\n"),
+                         "var a;\n\nvar b;\n")
+
+    def test_unterminated_block_comment_fails(self):
+        with self.assertRaises(bc.BundleError):
+            bc.strip_comments("var a; /* open\n")
+
+    def test_unterminated_string_fails(self):
+        with self.assertRaises(bc.BundleError):
+            bc.strip_comments('var s = "open\nvar t;\n')
+
+
+class BundlesShipCodeOnly(unittest.TestCase):
+    def test_bettermap_transform_strips_comments(self):
+        out = bb.transform("bettermap_log.js", "// why\nvar BettermapLog = 1; // note\n", "abc1234")
+        self.assertEqual(out, bb.header("abc1234", "bettermap_log.js") + "var QolLiteMapLog = 1;\n")
+
+    def test_mer_transform_strips_comments_after_debug_delta(self):
+        out = bm.transform("notif_log.js", MerDebug.SRC, "abc1234")
+        self.assertEqual(out, bm.header("abc1234", "notif_log.js") + "var x;\nvar DEBUG = false;\nvar y;\n")
+
+    def test_mer_transform_keeps_string_escaping(self):
+        out = bm.transform("notif_strings.js", 'var NOTIF_STRINGS = { ru: "Р" }; // é\n', "abc1234")
+        self.assertTrue(out.endswith('var QolLiteNotificationsStrings = { ru: "\\u0420" };\n'))
 
 
 class Common(unittest.TestCase):

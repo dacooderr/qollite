@@ -14,8 +14,9 @@ Transformation (derived from the pre-6711 bundle, closest upstream commit 60fa43
     file names mentioned in comments are renamed the same way
   * kept verbatim: "[BetterMap]" log prefix, UMM id "bettermap" / name "BetterMap",
     bm_* / Bm* classes -- load-bearing names, not branding
-  * not minified: readable upstream source is shipped on purpose
-  * a 6-line provenance header per file
+  * code only: every comment is stripped (bundle_common.strip_comments); the
+    commented source is upstream. Not minified: the code itself stays readable
+  * a 2-line provenance header per file
   * QOL Lite local deltas on top (DELTAS) -- none since BetterMap 3.0. Each anchor
     must match exactly once, so an upstream change that moves it fails the build
     instead of silently dropping the delta.
@@ -34,7 +35,7 @@ Exit codes:  0 = written / identical   1 = --check found differences   2 = error
 import re
 import sys
 
-from bundle_common import BundleError, cli, git, git_show, short_sha
+from bundle_common import BundleError, cli, git, git_show, short_sha, strip_comments
 
 UPSTREAM_URL = "github.com/gfkm/BetterMap"
 UPSTREAM_DIR = "mod/panorama/scripts"
@@ -138,17 +139,13 @@ def header(short, up):
     return (
         "// Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.\n"
         f"// Upstream: {UPSTREAM_URL} @ {short}, {UPSTREAM_DIR}/{up}\n"
-        "// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,\n"
-        "// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. \"[BetterMap]\" log prefix, UMM id\n"
-        "// \"bettermap\" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the\n"
-        "// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.\n"
     )
 
 
 def transform(up, src, short):
     """One upstream file's text -> the bundled file's text. Pure; no git."""
     name = FILES[up]
-    out = apply_deltas(name, rename(normalise_eol(src)))
+    out = strip_comments(apply_deltas(name, rename(normalise_eol(src))))
     left = leftovers(out)
     if left:
         raise BundleError(f"unrenamed identifiers in {name}: {left}")
