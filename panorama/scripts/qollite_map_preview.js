@@ -1,66 +1,37 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_preview.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Live minimap preview in the escape menu (spec:
-// docs/specs/2026-09-30-minimap-preview.md). While the menu is open Valve hides
-// the whole HUD (`.ShowEscapeMenu .HudCore { opacity: 0 }`) - and the hidden
-// minimap's layout freezes - so tuning BetterMap from UMM was blind.
-//
-// For a few seconds after ANY BetterMap setting changes (while the menu is open)
-// we show the REAL minimap instead of a mock: .HudCore gets an inline opacity of 1
-// (an inline value beats Valve's rule), the escape menu's backdrop is cleared inline, and
-// every HudCore panel that is NOT on the path down to #minimap_persp_wrapper is made
-// transparent here. Inline, not a class: since BetterMap stopped overriding hud.xml our CSS
-// does not reach panels outside the minimap (spec 2026-10-07-hud-runtime-entry §4). So size, position, POI markers, player icon size, urn - every
-// change - shows exactly as it will in play.
-//
-// Valve's settings window covers the screen, so BetterMap's own subsection there
-// (qollite_map_popup.js) also asks for a LIFT while it is on screen (spec
-// docs/specs/2026-10-01-native-settings.md §6.2): the same live preview, plus
-// HudCore drawn above PopupManager - its sibling under CitadelHud, which draws
-// later and so on top. The off-path panels, invisible but now above the window,
-// stop taking clicks meanwhile.
 var QolLiteMapPreview = (function () {
-    var MENU_ID = "EscapeMenu";              // CitadelHudEscapeMenu in Valve's hud.xml
+    var MENU_ID = "EscapeMenu";
     var CLEAR = "#00000000";
-    var MENU_CLASS = "ShowEscapeMenu";       // Valve root class while the escape menu is open
+    var MENU_CLASS = "ShowEscapeMenu";
     var PATH_LEAF_ID = "minimap_persp_wrapper";
-    var PATH_TOP_CLASS = "HudCore";          // stop un-hiding siblings here
+    var PATH_TOP_CLASS = "HudCore";
     var IDLE_POLL_SEC = 0.25;
-    var PREVIEW_HOLD_SEC = 4;                // stay up this long after the last change
-    // The popup beats every 0.25 s (qollite_map_popup.js LIFT_BEAT_SEC); three missed
-    // beats drop the lift, so a destroyed popup can never leave the map on top.
+    var PREVIEW_HOLD_SEC = 4;
     var LIFT_TTL_SEC = 0.75;
-    // HudCore and PopupManager are siblings under CitadelHud (Valve's hud.xml); only
-    // the dashboard gives PopupManager a z-index (dashboard.css:69-73, shipped VPK,
-    // read 2026-10-01), so 1 puts HudCore above it.
     var LIFT_Z_INDEX = "1";
 
     var _sig = null;
-    var _shownUntil = 0;                     // Date.now() ms to hide at
-    var _liftUntil = 0;                      // Date.now() ms the lift expires at
-    var _ready = false;                      // init() ran; lift() is a no-op before
+    var _shownUntil = 0;
+    var _liftUntil = 0;
+    var _ready = false;
     var _noCoreLogged = false;
     var _undefLogged = false;
     var _live = false;
     var _lifted = false;
-    var _hidden = [];                        // [{ panel, opacity, hittest, hittestchildren }]
-    var _core = null;                        // HudCore while lifted
-    var _wrap = null;                        // #minimap_persp_wrapper while lifted
-    var _wrapHitChildren;                    // its hittestchildren before the lift
-    var _coreZ = null;                       // its inline zIndex before the lift
-    var _shown = [];                         // [{ panel, prop }]: inline values we set while live
+    var _hidden = [];
+    var _core = null;
+    var _wrap = null;
+    var _wrapHitChildren;
+    var _coreZ = null;
+    var _shown = [];
     var _readBackLogged = false;
 
     function _panel(id) { return QolLiteMapHud.find(id); }
     function _log(m) { if (typeof QolLiteMapLog !== "undefined") { QolLiteMapLog.log("preview: " + m); } }
 
-    // Any BetterMap setting counts (size, position, markers, player icons, ...).
     function _signature() { return JSON.stringify(QolLiteMapState.get()); }
 
     function _menuOpen() {
@@ -81,8 +52,6 @@ var QolLiteMapPreview = (function () {
         return null;
     }
 
-    // Make every sibling off the wrapper -> HudCore path transparent, remembering
-    // its inline opacity so _restore puts back exactly what was there.
     function _hideOffPath() {
         _hidden = [];
         var node = _panel(PATH_LEAF_ID);
@@ -106,24 +75,17 @@ var QolLiteMapPreview = (function () {
         for (var i = 0; i < _hidden.length; i++) {
             var h = _hidden[i];
             if (!h.panel || !h.panel.IsValid || !h.panel.IsValid()) { continue; }
-            // "" / undefined means there was no inline value: clear ours (Valve idiom: = null).
             h.panel.style.opacity = h.opacity ? h.opacity : null;
         }
         _hidden = [];
     }
 
-    // DEBUG: whether reading panel.style.<prop> returns the inline value ("" / undefined when there
-    // is none) or the computed one is unmeasured (review 2026-10-10). _restore relies on the former
-    // for the off-path panels; one line per session settles it in the log.
     function _logReadBack(what, value) {
         if (_readBackLogged) { return; }
         _readBackLogged = true;
         _log("style read-back " + what + " = " + JSON.stringify(value));
     }
 
-    // Sets an inline style while live. Only we write these two values (HudCore's opacity, the escape
-    // menu's backdrop), so live-off clears them to null - Valve's CSS again - instead of writing back
-    // a read value, which could be the computed 0 of `.ShowEscapeMenu .HudCore` and hide the HUD.
     function _setInline(panel, prop, value) {
         if (!panel) { return; }
         _shown.push({ panel: panel, prop: prop });
@@ -151,8 +113,6 @@ var QolLiteMapPreview = (function () {
         _log((on ? "live on" : "live off") + " (hid " + _hidden.length + ")");
     }
 
-    // Runs only while live (_hidden is filled). It must be switched off before
-    // _setLive(false) empties _hidden, or the hit-testing would not come back.
     function _setLift(on) {
         if (on === _lifted) { return; }
         for (var i = 0; i < _hidden.length; i++) {
@@ -167,7 +127,6 @@ var QolLiteMapPreview = (function () {
                 h.panel.hittest = h.hittest;
                 h.panel.hittestchildren = h.hittestchildren;
             } else if (!_undefLogged) {
-                // Reading these members back is not measured in-game.
                 _undefLogged = true;
                 QolLiteMapLog.error("preview: hittest read back undefined - not restored");
             }
@@ -175,8 +134,6 @@ var QolLiteMapPreview = (function () {
         if (on) {
             _core = _hudCore();
             if (_core) { _coreZ = _core.style.zIndex; _core.style.zIndex = LIFT_Z_INDEX; }
-            // The minimap itself takes no clicks while above the window: a centred TAB-map preview
-            // (qollite_map_tabmap.js) would otherwise cover the settings' controls (tab-map spec B11).
             _wrap = _panel(PATH_LEAF_ID);
             if (_wrap) { _wrapHitChildren = _wrap.hittestchildren; _wrap.hittestchildren = false; }
         } else if (_core) {
@@ -184,7 +141,6 @@ var QolLiteMapPreview = (function () {
             _core = null;
         }
         if (!on && _wrap) {
-            // true is what qollite_map_hud.js gives the wrapper, if the read came back undefined.
             if (_wrap.IsValid()) { _wrap.hittestchildren = _wrapHitChildren !== undefined ? _wrapHitChildren : true; }
             _wrap = null;
         }
@@ -201,8 +157,6 @@ var QolLiteMapPreview = (function () {
         if (!menu) { _shownUntil = 0; }
         else if (changed) { _shownUntil = now + PREVIEW_HOLD_SEC * 1000; }
         var lift = now < _liftUntil;
-        // Fail closed: without the HudCore stop, _hideOffPath would walk up to the
-        // root and hide PopupManager itself.
         if (lift && _hudCore() === null) {
             if (!_noCoreLogged) {
                 _noCoreLogged = true;
@@ -220,8 +174,6 @@ var QolLiteMapPreview = (function () {
         $.Schedule(IDLE_POLL_SEC, _poll);
     }
 
-    // The poll starts whether or not the wrapper exists yet: _update finds it each time, and
-    // QolLiteMapHud may build it later (a minimap that appears late, a rebuilt HUD).
     function init() {
         if (!_panel(PATH_LEAF_ID)) { _log("#" + PATH_LEAF_ID + " not there yet - the poll picks it up"); }
         _sig = _signature();
@@ -229,22 +181,14 @@ var QolLiteMapPreview = (function () {
         _poll();
     }
 
-    // Show the live preview as if a setting had just changed. The settings popup's
-    // peek uses it: there the change happens in another context, so this module's
-    // signature poll would only see it after the value arrives.
     function hold() { _shownUntil = Date.now() + PREVIEW_HOLD_SEC * 1000; }
 
-    // The settings popup's heartbeat while our subsection is on screen (on=true), or
-    // its "gone" (on=false). Applied at once, not on the next poll.
     function lift(on) {
         if (!_ready) { return; }
         _liftUntil = on ? Date.now() + LIFT_TTL_SEC * 1000 : 0;
         _update();
     }
 
-    // Whether the real minimap is on screen in a menu now: the escape menu is open, or our settings
-    // subsection's lift is applied (not merely requested: it fails closed without a HudCore). Other
-    // modules gate their own previews on it (tab-map spec B10).
     function showing() { return _menuOpen() || _lifted; }
 
     return { init: init, hold: hold, lift: lift, showing: showing };

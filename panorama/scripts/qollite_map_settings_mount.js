@@ -1,39 +1,20 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_settings_mount.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Mounts BetterMap's settings into Valve's settings window at runtime: our own section at the
-// bottom (owner 2026-10-07: its place depends on no Valve section), one subsection per schema group, its rows and controls built from the schema (spec
-// docs/specs/2026-10-07-runtime-settings-injection.md). Valve's window is not overridden, so
-// a game update that changes it cannot crash it through us: at worst our section is missing (R6).
-// Every panel is made with $.CreatePanel from this (HUD) context: a C++ settings type in our own
-// layout file was FATAL (probe run 1), while CreatePanel resolves Valve's snippets through the
-// window (run 2). A missing snippet is fatal too, so the window must answer BHasLayoutSnippet
-// for every one before anything is created.
-// C++ builds the window on every open and destroys it on close (panorama_notes.md), so the
-// mount repeats per instance; MOUNT_ATTR marks an instance already handled, whatever the outcome.
 var QolLiteMapSettingsMount = (function () {
     var POPUP_TYPE = "PopupSettings";
     var POPUP_MANAGER_ID = "PopupManager";
     var BODY_ID = "SettingsBody";
     var NAV_ID = "SettingsNavigationButtonsContainer";
-    var FOOTER_ID = "SettingsFooter";    // the body's last child in Valve's layout (6759); ours goes before it
+    var FOOTER_ID = "SettingsFooter";
     var FIRST_COLUMN_ID = "SettingsSubsectionFirstColumn";
     var ROW_CONTENT_ID = "SettingsRowContent";
-    // Snippets of Valve's popup_settings.xml: loaded by the types created here
-    // (PopupSettingsSettingsSection / Subsection / Row) and stamped by qollite_map_settings_nav.js.
     var SNIPPETS = ["SettingsSection", "SettingsSubsection", "SettingsRow", "SettingsSectionNavigationButton",
         "SettingsSubSectionNavigationContainer", "SettingsSubSectionNavigationButton"];
-    // Valve's own postfix tokens (citadel_main_english.txt: " px", "%"), so a slider shows the
-    // player's units (native-settings D12; creation properties apply, probe run 3). percentage="true"
-    // is not used: in Valve's sliders it shows the position within the range, not the value.
     var POSTFIX = { px: "#citadel_settings_pixels_postfix", "%": "#citadel_settings_slider_percentage" };
     var RESET_TOKEN = "#citadel_settings_reset";
-    var RESET_ICON = "s2r://panorama/images/icons/reset.vsvg";   // Valve's reset button (its SettingsSection snippet)
+    var RESET_ICON = "s2r://panorama/images/icons/reset.vsvg";
     var MOUNT_ATTR = "bm_mount";
     var POLL_SEC = 0.25;
 
@@ -61,7 +42,6 @@ var QolLiteMapSettingsMount = (function () {
         return row.FindChildTraverse(ROW_CONTENT_ID) || row;
     }
 
-    // One setting's control, with the attributes the generated layout used to carry.
     function _control(e, content) {
         var id = "bm_ctl_" + e.key;
         if (e.type === "toggle") { return $.CreatePanel("CitadelSettingsToggle", content, id, { text: e.label }); }
@@ -71,16 +51,11 @@ var QolLiteMapSettingsMount = (function () {
                 text: e.label, min: String(e.min), max: String(e.max), snap: String(e.step), percentage: "false",
                 postfix: POSTFIX[e.unit], displayprecision: "0", textentry: "true" });
         }
-        // A colour shares its toggle's row, whose label names it, so its own title stays empty
-        // (healing-apples spec C3); qollite_map_popup.js collapses the empty title's width.
         if (e.type === "color") { return $.CreatePanel("CitadelSettingsColorSlider", content, id, { text: "" }); }
         _error("unknown type " + e.type + " of " + e.key + " - left out");
         return null;
     }
 
-    // One group's rows in schema order: [{ head, members }]. An entry with `row` joins the row of
-    // the toggle it names (spec C3); one naming anything else, and a colour without a row, is left
-    // out with an error (tests/schema.test.js keeps the schema free of both).
     function _rows(entries) {
         var rows = [], at = {}, i;
         for (i = 0; i < entries.length; i++) {
@@ -102,7 +77,6 @@ var QolLiteMapSettingsMount = (function () {
         return rows;
     }
 
-    // Valve's InputButton markup, as the generated layout had it.
     function _showRow(column, g) {
         var content = _row(column, "bm_row_show_on_screen_" + g.sfx);
         $.CreatePanel("Label", content, "", { class: "SettingLabel AlignVerticalCenter", text: "Preview on Screen" });
@@ -112,7 +86,6 @@ var QolLiteMapSettingsMount = (function () {
         $.CreatePanel("Label", $.CreatePanel("Panel", button, "", { class: "Content" }), "", { text: "Show on Screen" });
     }
 
-    // Valve's visible reset button (its SettingsSection snippet), native-settings §6.4.
     function _resetRow(column, g) {
         var content = _row(column, "bm_row_reset_" + g.sfx);
         $.CreatePanel("Label", content, "", { class: "SettingLabel AlignVerticalCenter", text: "Reset to Defaults" });
@@ -123,7 +96,7 @@ var QolLiteMapSettingsMount = (function () {
 
     function _subsection(section, g) {
         var sub = $.CreatePanel("PopupSettingsSettingsSubsection", section, g.id);
-        sub.SetDialogVariable("subsection_name", g.title);   // C++ would title it "#<id>": no token exists (D7)
+        sub.SetDialogVariable("subsection_name", g.title);
         var column = sub.FindChildTraverse(FIRST_COLUMN_ID);
         if (!column) { _error("subsection " + g.id + " has no #" + FIRST_COLUMN_ID + " - its rows are not built"); return sub; }
         var list = QolLiteMapSchema.list(), entries = [];
@@ -173,7 +146,7 @@ var QolLiteMapSettingsMount = (function () {
         var win = _window();
         if (!win || win.GetAttributeString(MOUNT_ATTR, "") !== "") { return; }
         var nav = win.FindChildTraverse(NAV_ID);
-        if (nav && nav.GetChildCount() === 0) { return; }   // C++ fills the sidebar around the open
+        if (nav && nav.GetChildCount() === 0) { return; }
         _mount(win);
     }
 

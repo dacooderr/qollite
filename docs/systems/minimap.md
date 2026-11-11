@@ -87,11 +87,12 @@ icons included, so "faint map, solid icons" is no longer possible ([`../BUNDLE.m
 
 **Styles**
 
-- `panorama/styles/hud_minimap.css` (7,509 lines, 150 KB at 3.5; 2,869 lines, 62 KB at 3.3):
-  upstream's file verbatim, generated in full by upstream from Valve's 6842 sheet (upstream `aab7760`),
-  then BetterMap's block (from line 1958: the overlay and urn marker, inside `#hud_minimap`,
-  Minimalist layers, the vignette), then lines 2097–7509 generated from the schema
-  (`BEGIN GENERATED: bettermap icon sizes`), about 1,050 rules: the icon-size classes
+- `panorama/styles/hud_minimap.css` (7,472 lines at 3.5 without comments, 7,509 with; 2,869 lines,
+  62 KB at 3.3): upstream's file without the comments of BetterMap's block
+  ([`../BUNDLE.md`](../BUNDLE.md) §3), generated in full by upstream from Valve's 6842 sheet
+  (upstream `aab7760`), then BetterMap's block (from line 1957, `.bm_overlay`: the overlay and urn
+  marker, inside `#hud_minimap`, Minimalist layers, the vignette), then lines 2063–7472 generated
+  from the schema (upstream marks them `BEGIN GENERATED: bettermap icon sizes`), about 1,050 rules: the icon-size classes
   (`bm_size_<type>_<pct>`, since 3.5 on a 2 % grid for the three player icons so they keep their size
   on any drawn map), `bm_fit_<pct>` for the soul drops, `bm_mapsize_<px>` up to the TAB map's 1000 px,
   and `bm_rot_<n>`, which turns the icons back upright in 5° steps while the rotating minimap turns.

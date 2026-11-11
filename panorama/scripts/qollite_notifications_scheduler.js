@@ -1,20 +1,12 @@
 // Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif_scheduler.js.
-// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
-// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
-// below refer to the upstream repo.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost.
 "use strict";
-// Scheduler (overlay context). Expands the schedule into trigger instances, GROUPS
-// instances that share a trigger time into one combined toast (e.g. 5:00 = Medium Camps
-// & Bridge Buffs), then per group emits a warn then a spawn exactly once. Handles
-// late-init (prime past groups as fired) and match reset.
 var QolLiteNotificationsScheduler = (function () {
-    var HORIZON = 60 * 60;      // expand repeating events up to 60 min
-    var fired = {};             // groupKey:phase -> true (dedup)
-    var primed = false;         // late-init done?
+    var HORIZON = 60 * 60;
+    var fired = {};
+    var primed = false;
     var lastClock = -1;
 
-    // Debug schedule: mid-match times, with two events sharing 0:30 so combining is
-    // visible (weak+medium at 0:30 -> one toast; bridge at 0:45).
     function debugSchedule() {
         return [
             { id: "weak_camps",   initialTime: 30, repeatInterval: null },
@@ -25,9 +17,6 @@ var QolLiteNotificationsScheduler = (function () {
 
     function source() { return QolLiteNotificationsConfig.debugSchedule ? debugSchedule() : QolLiteNotificationsEventSchedule; }
 
-    // one row -> list of trigger instances { id, trigger, warnOnly }
-    // warnOnly: this event contributes to the pre-spawn WARNING but the scheduler never
-    // fires its spawn (e.g. Soul Urn - the live detector owns its spawn).
     function instances(row) {
         var out = [];
         if (row.repeatInterval) {
@@ -40,11 +29,9 @@ var QolLiteNotificationsScheduler = (function () {
         return out;
     }
 
-    // group instances by trigger time -> one combined toast per distinct time
     function groups() {
         var rows = source(), byT = {};
         for (var i = 0; i < rows.length; i++) {
-            // per-event toggle: a disabled event contributes no warn and no spawn
             if (QolLiteNotificationsConfig.events && QolLiteNotificationsConfig.events[rows[i].id] === false) { continue; }
             var insts = instances(rows[i]);
             for (var j = 0; j < insts.length; j++) {
@@ -59,8 +46,6 @@ var QolLiteNotificationsScheduler = (function () {
         return out;
     }
 
-    // combined, localized title from a list of {id,...} entries (names resolved at show
-    // time so a late language broadcast is reflected)
     function titleFor(entries) {
         var names = [];
         for (var i = 0; i < entries.length; i++) { names.push(QolLiteNotificationsStrings.name(entries[i].id)); }
@@ -75,7 +60,6 @@ var QolLiteNotificationsScheduler = (function () {
     }
 
     function prime(clock) {
-        // mark every already-past group (beyond grace) as fired, silently
         var grace = QolLiteNotificationsConfig.graceSecs, gs = groups(), suppressed = [];
         for (var i = 0; i < gs.length; i++) {
             if (clock > gs[i].trigger + grace) { fired[gs[i].key + ":spawn"] = true; suppressed.push(gs[i].trigger); }
@@ -90,9 +74,6 @@ var QolLiteNotificationsScheduler = (function () {
         tick: function (clock) {
             if (!QolLiteNotificationsConfig.enabled) { return; }
 
-            // Match reset only on a BIG backward jump (a new match restarts the clock).
-            // Small read jitter must NOT reset - a reset re-suppresses events via prime(),
-            // which is exactly how a notification would silently go missing.
             if (lastClock >= 0 && clock < lastClock) {
                 var big = clock < lastClock - 30;
                 QolLiteNotificationsLog.log("clock backward " + lastClock + " -> " + clock + (big ? " RESET" : " (ignored jitter)"));
@@ -108,13 +89,9 @@ var QolLiteNotificationsScheduler = (function () {
             for (var i = 0; i < gs.length; i++) {
                 var g = gs[i], sid = g.key + ":spawn";
 
-                // pre-spawn warning: includes ALL events at this time (incl. warnOnly, e.g.
-                // Soul Urn), so it reads "Bridge Buffs & Soul Urn". Native-length, number ticks.
                 if (warnOn && !fired[sid] && clock >= g.trigger - warn && clock < g.trigger) {
                     QolLiteNotificationsManager.countdown(g.key, titleFor(g.ids), Math.max(1, g.trigger - clock));
                 }
-                // spawn: fire once, only for the non-warnOnly events (warnOnly spawns come
-                // from their live detector, so we don't double-notify).
                 if (!fired[sid] && clock >= g.trigger) {
                     fired[sid] = true;
                     if (QolLiteNotificationsConfig.showSpawn) {

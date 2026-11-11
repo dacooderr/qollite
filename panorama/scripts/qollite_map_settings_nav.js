@@ -1,31 +1,11 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_settings_nav.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// BetterMap's entries in the sidebar of Valve's settings window, and what C++ does for its own
-// sections but cannot do for ours, which it does not know (spec
-// docs/specs/2026-10-07-runtime-settings-injection.md R5; probe runs 2-3):
-//   - a section entry at the end of the sidebar, as our section ends the body (owner 2026-10-07),
-//     then our own sub-navigation with one entry per subsection, stamped from Valve's snippets
-//     (C++ clips anything added to its own, run 2);
-//   - while our section is current (it crosses CURRENT_LINE of the viewport) our entry and the
-//     current subsection's entry are selected, our sub-navigation is open and the one C++ opened
-//     is collapsed. C++ keeps selecting the section it thinks current (run 3: 12 of 19 take-overs
-//     lost), so this is re-applied every SYNC_SEC;
-//   - when our section stops being current C++ does not select its entry again (run 3), so the
-//     entry it last chose, and that entry's sub-navigation, are restored here;
-//   - a click puts the title at the top of the viewport: ScrollToBottom, then
-//     ScrollParentToMakePanelFit on the title (run 3: 249 -> 0 px; scrolloffset_y is read-only);
-//   - the ActiveSection hover highlight on our subsections.
-// One window at a time: mount() for a new window stops the old window's loop.
 var QolLiteMapSettingsNav = (function () {
     var NAV_ID = "SettingsNavigationButtonsContainer";
     var BODY_ID = "SettingsBody";
-    var SECTION_RADIO_CLASS = "SettingsNavigationButton";        // the RadioButton of SettingsSectionNavigationButton
+    var SECTION_RADIO_CLASS = "SettingsNavigationButton";
     var SUBNAV_CLASS = "SettingsSectionSubNavigationContainer";
     var SECTION_SNIPPET = "SettingsSectionNavigationButton";
     var SUBNAV_SNIPPET = "SettingsSubSectionNavigationContainer";
@@ -35,13 +15,13 @@ var QolLiteMapSettingsNav = (function () {
     var ICON_ID = "SectionIcon";
     var SECTION_TITLE_ID = "SectionTitleContainer";
     var SUB_TITLE_CLASS = "SettingsSubsectionTitleContainer";
-    var ICON = "s2r://panorama/images/icons/icon_lanes.vsvg";    // Valve's lanes icon (spec R9)
-    var NEW_CLASS = "HaveNewSettings";                            // Valve's purple "new" dot; persists (native-settings run 4)
-    var ACTIVE_CLASS = "ActiveSection";                           // Valve's subsection highlight (popup_settings.css)
-    var CURRENT_LINE = 0.33;          // a part is current while it crosses this fraction of the viewport (run 3)
-    var SYNC_SEC = 0.03;              // about two frames: run 3 lost the selection to C++ between 0.1 s ticks
-    var FIT_BEHAVIOUR = 1;            // ScrollParentToMakePanelFit(1, false), run 3; the bare call throws (run 2)
-    var FIT_DELAY_SEC = 0.05;         // after ScrollToBottom, as in run 3
+    var ICON = "s2r://panorama/images/icons/icon_lanes.vsvg";
+    var NEW_CLASS = "HaveNewSettings";
+    var ACTIVE_CLASS = "ActiveSection";
+    var CURRENT_LINE = 0.33;
+    var SYNC_SEC = 0.03;
+    var FIT_BEHAVIOUR = 1;
+    var FIT_DELAY_SEC = 0.05;
     var COLLAPSED = "0px";
 
     var _gen = 0;
@@ -51,10 +31,8 @@ var QolLiteMapSettingsNav = (function () {
     function _alive(p) { return !!p && p.IsValid(); }
     function _px(h) { var v = parseFloat(h); return isFinite(v) ? v : 0; }
 
-    // The direct child of the sidebar that holds `p`.
     function _holder(nav, p) { while (p && p.GetParent() !== nav) { p = p.GetParent(); } return p; }
 
-    // The sub-navigation right after a section entry's holder, if any.
     function _subnavAfter(nav, holder) {
         for (var i = 0; i < nav.GetChildCount() - 1; i++) {
             if (nav.GetChild(i) === holder && nav.GetChild(i + 1).BHasClass(SUBNAV_CLASS)) { return nav.GetChild(i + 1); }
@@ -78,7 +56,6 @@ var QolLiteMapSettingsNav = (function () {
         sub.SetPanelEvent("onmouseout", function () { sub.RemoveClass(ACTIVE_CLASS); });
     }
 
-    // win: the window; section: our PopupSettingsSettingsSection; subs: [{ group, panel }] in order.
     function mount(win, section, subs) {
         var gen = ++_gen;
         _s = null;
@@ -118,14 +95,12 @@ var QolLiteMapSettingsNav = (function () {
 
     function _top(p, bodyTop) { return p.GetPositionWithinWindow().y - bodyTop; }
 
-    // The Valve section entry selected now, if any.
     function _valveChecked() {
         var r = _s.nav.FindChildrenWithClassTraverse(SECTION_RADIO_CLASS);
         for (var i = 0; i < r.length; i++) { if (r[i] !== _s.radio && r[i].checked) { return r[i]; } }
         return null;
     }
 
-    // Collapse every sub-navigation C++ has open, remembering its height.
     function _collapseValve() {
         var c = _s.nav.FindChildrenWithClassTraverse(SUBNAV_CLASS);
         for (var i = 0; i < c.length; i++) {
@@ -135,8 +110,6 @@ var QolLiteMapSettingsNav = (function () {
         }
     }
 
-    // Our sub-navigation's open height: its entries' heights in layout px, as C++ writes Valve's
-    // ("128.0px" for four entries, run 1). 0 until they are laid out.
     function _openHeight() {
         var h = 0;
         for (var i = 0; i < _s.subs.length; i++) {
@@ -160,9 +133,6 @@ var QolLiteMapSettingsNav = (function () {
         _log("current: Valve's section again");
     }
 
-    // Our entry and sub-navigation stay the sidebar's last two children. In a match Valve's Game
-    // entry was not found when we mounted (in-game 2026-10-07), so C++ may still be filling the
-    // sidebar then; whatever it adds later goes above ours.
     function _keepLast() {
         var nav = _s.nav, n = nav.GetChildCount();
         if (n >= 2 && nav.GetChild(n - 2) === _s.entry && nav.GetChild(n - 1) === _s.subnav) { return; }
@@ -202,7 +172,6 @@ var QolLiteMapSettingsNav = (function () {
         $.Schedule(SYNC_SEC, function () { _tick(gen); });
     }
 
-    // UMM appeared after the mount: our entries go with our section (qollite_map_popup.js hides it).
     function hide() {
         _gen++;
         if (!_s) { return; }

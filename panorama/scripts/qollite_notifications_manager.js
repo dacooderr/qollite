@@ -1,26 +1,11 @@
 // Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif_manager.js.
-// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
-// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
-// below refer to the upstream repo.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost.
 "use strict";
-// Notification manager (overlay context). Single-slot: at most ONE toast on screen.
-// Everything currently active (schedule groups + the live urn) is held in `items` keyed
-// by source; the one toast's title is the join of all active titles, so coincident
-// notifications combine instead of stacking. The look reuses the game's GenericAnnouncement
-// resources (citadel_hud_game_announcements.vcss).
-//
-// Every item lives at most durationSecs (~the game's native toast duration) and then hides
-// - a toast never camps the screen for the whole warn window:
-//   countdown(key,title,seconds) - pre-spawn warning. Shows for durationSecs from first
-//     appearance, its number ticking, then hides; `done` stops it re-appearing.
-//   spawn(key,title)             - "Available now" for durationSecs, then hides.
-// If any active item has spawned, the sub-line shows "Available now"; else the nearest
-// countdown. spawn overrides a still-visible warning for the same key (converts in place).
 var QolLiteNotificationsManager = (function () {
     var root = null;
-    var toast = null;       // { panel, titleLabel, descLabel }
-    var items = {};         // key -> { title, phase:"warn"|"spawn", seconds, expireAt }
-    var done = {};          // key -> true : this key's warning already ran its duration
+    var toast = null;
+    var items = {};
+    var done = {};
     var _lastTitle = null, _lastSub = null;
     var _sweeping = false;
 
@@ -74,7 +59,6 @@ var QolLiteNotificationsManager = (function () {
         var titles = [];
         for (var i = 0; i < keys.length; i++) { titles.push(items[keys[i]].title); }
         var title = titles.length <= 2 ? titles.join(" & ") : titles.join(", ");
-        // sub priority: a live descent countdown wins (time-sensitive), then "available", then warn
         var sub;
         if (minDescent !== null) { sub = QolLiteNotificationsStrings.sub("descent", minDescent); }
         else if (anySpawn) { sub = QolLiteNotificationsStrings.sub("spawn"); }
@@ -103,7 +87,6 @@ var QolLiteNotificationsManager = (function () {
     }
     function schedule() { if (!_sweeping) { _sweeping = true; $.Schedule(0.25, sweep); } }
 
-    // Play the native cue once per spawn moment (coincident events that merge share one cue).
     var _lastSoundMs = 0;
     function playSound() {
         if (!QolLiteNotificationsConfig.soundEnabled || !QolLiteNotificationsConfig.soundEvent) { return; }
@@ -123,34 +106,28 @@ var QolLiteNotificationsManager = (function () {
 
         clearAll: function () { items = {}; done = {}; hideToast(); },
 
-        // pre-spawn countdown. Called each tick while in the warn window; shows for
-        // durationSecs from first appearance (ticking), then hides and won't re-appear.
         countdown: function (key, title, seconds) {
             if (done[key]) { return; }
             var it = items[key];
             if (it && it.phase === "warn") {
-                it.title = title; it.seconds = seconds;        // tick update; keep expireAt
+                it.title = title; it.seconds = seconds;
             } else if (!it) {
                 items[key] = { title: title, phase: "warn", seconds: seconds, expireAt: now() + life() };
                 QolLiteNotificationsLog.log("warn shown: " + title + " (hides in " + QolLiteNotificationsConfig.durationSecs + "s)");
             } else {
-                return;                                        // already spawned; ignore
+                return;
             }
             render(); schedule();
         },
 
-        // descent: live "Landing in Ns" countdown (driven each tick by the urn receiver);
-        // expireAt is refreshed each call so it stays while the receiver drives it, then the
-        // receiver calls spawn() at 0 to flip it to "Available now".
         descent: function (key, title, seconds) {
             var it = items[key];
             var fresh = !it || it.phase !== "descent";
             items[key] = { title: title, phase: "descent", seconds: seconds, expireAt: now() + 2000 };
-            if (fresh) { QolLiteNotificationsLog.log("descent: " + title + " (" + seconds + "s)"); }  // no sound (has a timer)
+            if (fresh) { QolLiteNotificationsLog.log("descent: " + title + " (" + seconds + "s)"); }
             render(); schedule();
         },
 
-        // spawn: "Available now" for durationSecs (overrides a still-visible warning), then hides
         spawn: function (key, title) {
             var fresh = !items[key] || items[key].phase !== "spawn";
             items[key] = { title: title, phase: "spawn", seconds: null, expireAt: now() + life() };

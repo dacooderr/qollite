@@ -1,17 +1,6 @@
 // Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif_urn.js.
-// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
-// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
-// below refer to the upstream repo.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost.
 "use strict";
-// Live urn detector (HUD / top-bar context). Watches the game's OWN minimap idol markers
-// - which the engine draws for everyone, so reading them is not an information advantage
-// (same signal bettermap_urn.js uses). Broadcasts once per GENUINELY fresh urn spawn; the
-// overlay then runs the 12s descent + "available" notifications. Self-contained: no
-// QolLiteNotificationsLog (separate VM), logs via $.Msg.
-//
-// Ready-gate: a fresh spawn is only counted after the previous urn has fully left the map
-// (all idol markers gone). Mid-delivery, an idol_spawn briefly appears on the carry side -
-// that is NOT a new urn; without the gate we fired 2-3 times per urn.
 var QolLiteNotificationsUrnDetector = (function () {
     var CHANNEL = "ClientUI_FireOutput";
     var LIVE_CLASSES = ["idol_spawn", "idol_dropping", "idol_return", "idol_return_friendly", "idol_return_enemy"];
@@ -44,7 +33,7 @@ var QolLiteNotificationsUrnDetector = (function () {
     }
 
     var _wasLive = false;
-    var _ready = true;       // ready to count the next idol_spawn as a fresh urn
+    var _ready = true;
     var _loggedReach = false;
 
     function poll() {
@@ -64,7 +53,7 @@ var QolLiteNotificationsUrnDetector = (function () {
             $.Msg("[NOTIF][urn] fresh urn spawn -> notify");
             try { $.DispatchEvent(CHANNEL, JSON.stringify({ notif: 1, type: "urn" })); } catch (e) {}
         }
-        if (!live && _wasLive) { _ready = true; }   // urn fully gone -> next idol_spawn is fresh
+        if (!live && _wasLive) { _ready = true; }
         _wasLive = live;
 
         $.Schedule(0.2, poll);

@@ -1,17 +1,11 @@
 // Bundled from Map Event Reminders (github.com/gfkm/MapEventReminders) @ 12e6b3b, mod/panorama/scripts/notif_clock.js.
-// Our own mod: edit upstream and re-bundle; changes made only here are lost. Transformation
-// (renames, ASCII escaping, deltas) is recorded in docs/BUNDLE.md. docs/ paths in comments
-// below refer to the upstream repo.
+// Our own mod: edit upstream and re-bundle; changes made only here are lost.
 "use strict";
-// Clock RECEIVER (overlay context). Listens on the bus for {notif:1,type:"clock",t}
-// broadcast by qollite_notifications_clock_bridge.js in the HUD context, and exposes the latest match
-// time to the scheduler. Returns null when no clock has arrived recently (staleness ->
-// treated as "no active match").
 var QolLiteNotificationsClock = (function () {
     var CHANNEL = "ClientUI_FireOutput";
-    var last = null;      // last received match time (seconds)
-    var lastAtMs = 0;     // Date.now() at last receipt (Date.now is available in Panorama)
-    var STALE_MS = 3000;  // no clock for 3s -> inactive
+    var last = null;
+    var lastAtMs = 0;
+    var STALE_MS = 3000;
 
     function onMessage(payload) {
         var d = null;
@@ -27,7 +21,6 @@ var QolLiteNotificationsClock = (function () {
             catch (e) { QolLiteNotificationsLog.error("clock: bus register failed: " + e); }
             QolLiteNotificationsLog.info("clock: receiver registered on bus");
         },
-        // last known match time in seconds, or null if none / stale
         getMatchTime: function () {
             if (last === null) { return null; }
             if (Date.now() - lastAtMs > STALE_MS) { return null; }

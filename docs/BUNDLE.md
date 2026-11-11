@@ -79,7 +79,10 @@ the part of the repo where changes are unambiguously ours to make.
 
 Developed separately, bundled here. Their scripts are **regenerated** from an upstream commit by a
 bundler under `scripts/`; the bundled copies are never edited by hand. Each bundled file opens with a
-provenance header naming the upstream repo, commit and original file.
+two-line provenance header naming the upstream repo, commit and original file. **The bundled scripts
+ship code only:** the bundlers strip every comment (`strip_comments` in `scripts/bundle_common.py`,
+since 2026-11-11); the commented source is upstream's, at the commit the header names. The code
+itself is not minified.
 
 **Re-bundling, in general:**
 
@@ -209,7 +212,7 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `docs/specs`, "in-game run 3"). This bundle of it was not checked in game.
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_bettermap.py`
-- **Files:** `panorama/scripts/qollite_map_*.js` (30, readable source: 29 loaded by the HUD entry
+- **Files:** `panorama/scripts/qollite_map_*.js` (30, code without comments: 29 loaded by the HUD entry
   layout, `overlay` by the overlay), `panorama/layout/hud_data_feed.xml` (3.3, the HUD entry layout,
   shared with the `qollite_passive` include), `panorama/layout/citadel_hud_and_db_overlay.xml`
   (3.2), `panorama/styles/hud_minimap.css`, `panorama/styles/qollite_map_overlay.css` (3.2),
@@ -268,8 +271,11 @@ with upstream's copies by hand — [`ARCHITECTURE.md`](ARCHITECTURE.md) §8.
     `hittest` lines, and the `#hudActivePlayerStats` lines the 6730 rebase had already brought in. It
     still carries QOL Lite's own rules (4×3, passives, `#objectives_health_friendly`).
 - **Re-bundling:** run the bundler, then bring `hud_data_feed.xml` (upstream's script list, renamed,
-  plus the `qollite_passive` line), `hud_minimap.css` (verbatim) and `citadel_hud_and_db_overlay.xml`
-  in line with upstream's files at the new commit. A schema change upstream needs no layout merge:
+  plus the `qollite_passive` line), `hud_minimap.css` and `citadel_hud_and_db_overlay.xml`
+  in line with upstream's files at the new commit. `hud_minimap.css` is upstream's file with the
+  comments of BetterMap's block (from the `===== BetterMap` banner on) removed, and
+  `qollite_map_overlay.css` is upstream's `bettermap_overlay.vcss` without comments (2026-11-11, at
+  `3d4444c`); Valve's part keeps its decompiler header and is otherwise untouched. A schema change upstream needs no layout merge:
   the settings section is built from the schema at runtime. Neither `popup_settings.xml` nor
   `hud.css` holds anything of BetterMap's.
 - **Docs:** [`systems/minimap.md`](systems/minimap.md)
@@ -283,7 +289,8 @@ verbatim, because CSS, layouts and saved settings match them: the `[BetterMap]` 
 `bettermap` and name `BetterMap`, `bm_*` / `Bm*` classes and ids, the `bettermap_*` ids of the
 section (`bettermap_section`) and subsections the mount creates, the `bm_mount` attribute it puts on
 each window, the ids `QolLiteMapHud` gives the panels it builds (`#minimap_persp_wrapper`,
-`#minimap_overlay_root`, `#minimap_markers`, `#minimap_urn_host`, class `bm_overlay`). Not minified. The bundler fails if upstream has a
+`#minimap_overlay_root`, `#minimap_markers`, `#minimap_urn_host`, class `bm_overlay`). Comments
+stripped, code not minified. The bundler fails if upstream has a
 script `FILES` does not list, or `FILES` lists one upstream no longer has.
 
 **QOL Lite local delta — the credit text (since 3.2).** `citadel_hud_and_db_overlay.xml` says
@@ -323,7 +330,7 @@ possible. The way back is a BetterMap setting upstream, not a new local delta.
     (`12e6b3b`). Module set unchanged (11 files).
 - **License:** CC BY-NC-ND 4.0 on GameBanana; the source repo declares **none** — see [§6](#6-licensing)
 - **Rebuildable:** yes — `scripts/bundle_mer.py`
-- **Files:** `panorama/scripts/qollite_notifications_*.js` (11, readable source),
+- **Files:** `panorama/scripts/qollite_notifications_*.js` (11, code without comments),
   `panorama/layout/base_hud_and_db_overlay.xml`, `panorama/styles/notif.css`, and two includes in
   `panorama/layout/citadel_hud_top_bar.xml`
 - **Merge-layer files, compared by hand at `12e6b3b`:** the overlay layout's include list equals
@@ -346,10 +353,11 @@ setting key; `NotifVisible` / `NotifExpired` classes; `#NotificationRoot`.
    minute), so the cost either way is small; off was chosen for a performance-first pack, and
    `info` / `error` plus the bridges' own `$.Msg` lines still print. One line to flip.
 2. Non-ASCII in string literals is written as `\uXXXX` escapes (the Russian strings in
-   `qollite_notifications_strings.js`), and in comments as ASCII punctuation. The previous bundle was
-   pure ASCII and is known to render Russian; whether Panorama decodes raw UTF-8 in JS is not verified.
-   Cost: the Russian strings are not human-readable in this repo (they are upstream).
-3. The provenance header. No logic change of our own.
+   `qollite_notifications_strings.js`). The previous bundle was pure ASCII and is known to render
+   Russian; whether Panorama decodes raw UTF-8 in JS is not verified. Cost: the Russian strings are
+   not human-readable in this repo (they are upstream).
+3. Comments stripped (after delta 1, which anchors on upstream's comment line), and the two-line
+   provenance header. No logic change of our own.
 
 ---
 

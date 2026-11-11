@@ -1,68 +1,34 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_urn.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// Urn spawn tracker. Predicts the next soul-urn spawn and shows a mid-boss-style
-// marker (urn icon + circular progress ring + TAB-only timer) in our overlay
-// (above player markers) at the predicted spot from QolLiteMapUrnData.
-//
-// TIMING is a FIXED schedule, NOT learned: the urn first spawns at 10:00 and then
-// every 5 minutes (10:00, 15:00, 20:00, ...) regardless of when the previous one
-// was delivered. So the countdown is purely arithmetic - the next spawn is the
-// next 5-minute grid slot after "now" - with no interval learning, no delivery-
-// based re-anchoring, and no prediction that can drift or balloon.
-//
-// SIDE alternates every spawn, tied to the ABSOLUTE grid slot (slot 0 = 10:00,
-// slot 1 = 15:00, ...). Sides here are WORLD sides: the engine reports marker
-// positions un-mirrored, and team 2's rotated minimap (invert_map) only flips
-// the drawing - see QolLiteMapMinimap.toScreen, which we draw through.
-// The first urn spawns on the WORLD-left side (owner, 2026-09-30: always "the
-// port" - on screen left for Hidden King / team 1, right for Archmother / team 2
-// whose map is rotated). That seeds the parity from the start of the match; the
-// first real urn we observe then re-anchors it (observation always wins, so a
-// wrong seed self-corrects at 10:00). The earlier "seen on both sides across
-// matches" was this rotation, read on screen. Keying off slot parity (not "flip
-// from the last one I saw") stays robust to a spawn we never observed: an
-// untouched urn auto-returns and re-spawns on the other side mid-life without a
-// clean fresh idol_spawn, but the grid marches on and parity still holds.
-//
-// The marker hides while a real urn is on the map (the live urn always wins).
-//
-// MODE "side" (current patch): the urn spawns at the mid point of the alternating
-// side. MODE "tier" (future): net-worth lead picks top/mid/bottom; QolLiteMapUrnData
-// already carries those bands, so switching is a one-line change.
 var QolLiteMapUrn = (function () {
     var MAP_NAME = "dl_midtown";
     var MODE = "side";
-    var FIRST_SPAWN_SEC = 600;        // fixed schedule: first urn at 10:00 ...
-    var FIRST_SPAWN_SIDE = "left";    // ... on the world-left side (slot 0), until a real urn is seen
-    var SPAWN_PERIOD = 300;           // ... then every 5 minutes, on the grid, regardless of delivery
-    var CLOCK_BACK_SLACK = 3;         // game-clock read jitter tolerance; a larger backward jump = match reset
-    var DESCENT_SEC = 12;             // the urn descends from the sky ~12s before it can be picked up
-    var POLL_SEC = 0.15;              // brisk, so the prediction hides the instant a real urn appears
+    var FIRST_SPAWN_SEC = 600;
+    var FIRST_SPAWN_SIDE = "left";
+    var SPAWN_PERIOD = 300;
+    var CLOCK_BACK_SLACK = 3;
+    var DESCENT_SEC = 12;
+    var POLL_SEC = 0.15;
     var ADV_THRESHOLD = 0.10;
 
-    var _marker = null;               // { root, ring, timer, sizeCls } - sizeCls: the QolLiteMapIcons class now on root
+    var _marker = null;
     var _markerVisible = false;
-    var _anchorTime = null;           // clock (s) of the last observed spawn (for clock-back detection + logs)
-    var _anchorSide = null;           // side of the last observed urn ("left"/"right")
-    var _anchorSlot = null;           // grid slot index of that spawn = round((t - FIRST_SPAWN_SEC)/SPAWN_PERIOD)
+    var _anchorTime = null;
+    var _anchorSide = null;
+    var _anchorSlot = null;
 
-    var _seenUrn = false;             // a real urn has been observed (else the side comes from the first-spawn seed)
-    var _wasLive = false;             // live-urn state last poll (edge detection)
-    var _lastLiveSide = null;         // side of the physical urn (idol_spawn/idol_dropping) while live (diag)
-    var _lastIdolSig = "";            // active-idol snapshot, for change-only diagnostic logging
-    var _readyForNewSpawn = true;     // only anchor a NEW spawn after the previous urn has gone (none);
-                                      // a mid-delivery idol_spawn on the carry side is NOT a fresh spawn
+    var _seenUrn = false;
+    var _wasLive = false;
+    var _lastLiveSide = null;
+    var _lastIdolSig = "";
+    var _readyForNewSpawn = true;
 
-    var _descentMarker = null;        // { root, ring, timer, sizeCls } (as _marker) - the 12s "urn is landing" overlay
+    var _descentMarker = null;
     var _descentVisible = false;
-    var _descentStartT = null;        // clock (s) the current urn spawned (descent start)
-    var _descentUV = null;            // where to draw the descent marker (the fresh urn's spawn point)
+    var _descentStartT = null;
+    var _descentUV = null;
 
     function _ctx() { return QolLiteMapHud.root(); }
     function _panel(id) { return QolLiteMapHud.find(id); }
@@ -74,32 +40,22 @@ var QolLiteMapUrn = (function () {
         return (typeof QolLiteMapUrnData !== "undefined" && QolLiteMapUrnData[MAP_NAME]) ? QolLiteMapUrnData[MAP_NAME] : null;
     }
 
-    // ---- fixed schedule ----
-    // Slot index of the next spawn strictly AFTER t (spawns at FIRST_SPAWN_SEC + N*SPAWN_PERIOD).
     function _nextSlot(t) {
         if (t < FIRST_SPAWN_SEC) { return 0; }
         return Math.floor((t - FIRST_SPAWN_SEC) / SPAWN_PERIOD) + 1;
     }
-    // Grid slot nearest to a clock time (snaps an observed spawn onto the 5-min grid).
     function _slotOfTime(t) { return Math.round((t - FIRST_SPAWN_SEC) / SPAWN_PERIOD); }
     function _spawnTime(slot) { return FIRST_SPAWN_SEC + slot * SPAWN_PERIOD; }
-    // Side of a slot: alternates by ABSOLUTE parity, anchored to the one spawn we
-    // observed. (slot - _anchorSlot) even -> same side, odd -> other. Works for a
-    // negative difference too (odd -> +/-1, both != 0).
     function _sideOfSlot(slot) {
         var side = _anchorSide, at = _anchorSlot;
         if (side === null || at === null) { side = FIRST_SPAWN_SIDE; at = 0; }
         return ((slot - at) % 2 === 0) ? side : _other(side);
     }
 
-    // ---- game-state reads ----
     function _clockSeconds() {
         var label = _panel("GameTime");
         if (!label || typeof label.text !== "string") { return null; }
         var clean = label.text.replace(/<[^>]+>/g, "");
-        // Accept h:mm:ss as well as mm:ss. Past 60:00 the label grows an hours
-        // field, and a naive mm:ss match reads "1:02:03" as 1:02 = 62s, which
-        // sends the clock backwards and balloons the countdown to tens of minutes.
         var h = clean.match(/(\d+):(\d{2}):(\d{2})/);
         if (h) { return parseInt(h[1], 10) * 3600 + parseInt(h[2], 10) * 60 + parseInt(h[3], 10); }
         var mm = clean.match(/(\d+):(\d{2})/);
@@ -152,19 +108,12 @@ var QolLiteMapUrn = (function () {
         return null;
     }
 
-    // The active urn SPAWN-location marker (idol_spawn) - its side is the true
-    // spawn side. Distinct from the two deposit sites (idol_return*, one per side,
-    // active throughout the urn's life), which must NOT drive the alternation.
     function _activeSpawnMarker() { return _firstActiveOfClass("idol_spawn"); }
 
-    // The physical urn (spawn crate or a dropped/carried urn) - its position is
-    // meaningful, unlike the static idol_return deposit sites. Used only for
-    // diagnostics (which side the urn is really on) for now.
     function _physicalUrn() {
         return _activeSpawnMarker() || _firstActiveOfClass("idol_dropping");
     }
 
-    // Any active idol marker on the map (spawn/dropping/return) = a real urn is up.
     var _LIVE_CLASSES = ["idol_spawn", "idol_dropping", "idol_return", "idol_return_friendly", "idol_return_enemy"];
     function _liveUrn() {
         for (var c = 0; c < _LIVE_CLASSES.length; c++) {
@@ -174,9 +123,6 @@ var QolLiteMapUrn = (function () {
         return null;
     }
 
-    // Compact snapshot of every active idol marker (class:side ...), for the
-    // diagnostic log - the untouched-respawn shows up here as whatever classes
-    // the auto-returning urn actually uses.
     function _idolSig() {
         var ctx = _ctx();
         if (!ctx || !ctx.FindChildrenWithClassTraverse) { return ""; }
@@ -203,7 +149,6 @@ var QolLiteMapUrn = (function () {
         var f = _networth("TeamScoreFriendly"), e = _networth("TeamScoreEnemy");
         if (f === null || e === null || e === 0) { return "mid"; }
         var d = (f - e) / e;
-        // top of the map favours the team ahead; invert_map (team 2) flips it.
         if (d > ADV_THRESHOLD) { return _inverted() ? "bottom" : "top"; }
         if (d < -ADV_THRESHOLD) { return _inverted() ? "top" : "bottom"; }
         return "mid";
@@ -213,10 +158,10 @@ var QolLiteMapUrn = (function () {
         if (t === null) { return null; }
         var data = _data();
         if (!data || !data.spawns) { return null; }
-        var slot = _nextSlot(t);             // next fixed 5-min grid spawn after now
+        var slot = _nextSlot(t);
         var side = _sideOfSlot(slot);
         if (!side) { return null; }
-        var secs = _spawnTime(slot) - t;     // countdown to that fixed spawn (0..SPAWN_PERIOD)
+        var secs = _spawnTime(slot) - t;
         var band = (MODE === "tier") ? _tierBand() : "mid";
         var byBand = data.spawns[side];
         var pt = byBand && (byBand[band] || byBand.mid);
@@ -224,11 +169,6 @@ var QolLiteMapUrn = (function () {
         return { u: pt.u, v: pt.v, secs: secs, window: SPAWN_PERIOD, side: side };
     }
 
-    // ---- marker ----
-    // Urn Icon Size (spec docs/specs/2026-10-01-minimap-icon-sizes.md §5.4): the tracker's
-    // marker takes the same class as the game's urn markers, from QolLiteMapIcons, so both
-    // follow one slider. The rule `.bm_urn.<cls><pct>` is generated into hud_minimap.vcss,
-    // which reaches our host: it lives inside #hud_minimap (qollite_map_hud.js).
     function _applySize(m) {
         if (!m || !m.root) { return; }
         var want = QolLiteMapIcons.className("urnIconScalePct");
@@ -266,8 +206,6 @@ var QolLiteMapUrn = (function () {
         m.root.style.y = (at.v * 100).toFixed(3) + "%";
         m.root.style.visibility = "visible";
         _applySize(m);
-        // ring fills clockwise toward the spawn: clip the bordered circle to a
-        // radial arc of 0..360deg (the trick the engine's CircularProgressBar uses).
         var win = pred.window || SPAWN_PERIOD;
         var frac = 1 - Math.max(0, Math.min(1, pred.secs / win));
         if (m.ring) {
@@ -289,15 +227,13 @@ var QolLiteMapUrn = (function () {
         _markerVisible = false;
     }
 
-    // ---- descent overlay (12s "urn is landing" timer) ----
     function _lerp(a, b, k) { return Math.round(a + (b - a) * k); }
     function _h2(n) { n = n < 0 ? 0 : (n > 255 ? 255 : n); var s = n.toString(16); return s.length < 2 ? "0" + s : s; }
-    // colour ramps with the descent: just-spawned = red, half = yellow, landed = green.
     function _descentColor(f) {
         if (f < 0) { f = 0; } if (f > 1) { f = 1; }
         var r, g, b;
-        if (f < 0.5) { var k = f / 0.5; r = 255; g = _lerp(77, 210, k); b = 77; }              // red -> yellow
-        else { var k2 = (f - 0.5) / 0.5; r = _lerp(255, 77, k2); g = _lerp(210, 224, k2); b = _lerp(77, 122, k2); }  // yellow -> green
+        if (f < 0.5) { var k = f / 0.5; r = 255; g = _lerp(77, 210, k); b = 77; }
+        else { var k2 = (f - 0.5) / 0.5; r = _lerp(255, 77, k2); g = _lerp(210, 224, k2); b = _lerp(77, 122, k2); }
         return "#" + _h2(r) + _h2(g) + _h2(b);
     }
     function _ensureDescentMarker() {
@@ -323,16 +259,14 @@ var QolLiteMapUrn = (function () {
         m.root.style.y = (at.v * 100).toFixed(3) + "%";
         m.root.style.visibility = "visible";
         _applySize(m);
-        var frac = Math.max(0, Math.min(1, elapsed / DESCENT_SEC));   // ring fills as it lands
+        var frac = Math.max(0, Math.min(1, elapsed / DESCENT_SEC));
         if (m.ring) {
-            // wash-color tints the white base ring (a colour multiply, not a border
-            // set) - so it never accumulates border width like borderColor did.
             try { m.ring.style.washColor = _descentColor(frac); } catch (e) {}
             try { m.ring.style.clip = "radial(50% 50%, 0deg, " + Math.round(frac * 360) + "deg)"; } catch (e) {}
         }
         if (m.timer) {
             m.timer.text = String(Math.max(0, Math.ceil(DESCENT_SEC - elapsed)));
-            m.timer.style.visibility = "visible";   // the descent count is short + important - always show
+            m.timer.style.visibility = "visible";
         }
         _descentVisible = true;
     }
@@ -341,9 +275,6 @@ var QolLiteMapUrn = (function () {
         _descentVisible = false;
     }
 
-    // Drop the observed side (new match / clock reset): prediction falls back to
-    // the world-left first-spawn seed, never to a side left over from the previous
-    // match. Timing needs no reset - it is the grid.
     function _resetTracking() {
         _anchorTime = null; _anchorSide = null; _anchorSlot = null; _seenUrn = false;
         _wasLive = false; _lastLiveSide = null;
@@ -352,24 +283,17 @@ var QolLiteMapUrn = (function () {
         _hideMarker(); _hideDescent();
     }
 
-    // ---- poll ----
     function _poll() {
         var enabled = !!QolLiteMapState.get().urnTrackerEnabled;
         var t = _clockSeconds();
-        var spawn = _activeSpawnMarker();   // the urn's SPAWN marker (true spawn side)
-        var live = _liveUrn();              // any urn activity (spawn / dropped / returning)
+        var spawn = _activeSpawnMarker();
+        var live = _liveUrn();
 
-        // A new match / sandbox restart resets the game clock while this HUD context
-        // (and our remembered side) survives; the old side then belongs to a game
-        // that is over. If the clock jumped backwards, forget it and re-observe.
         if (t !== null && _anchorTime !== null && t + CLOCK_BACK_SLACK < _anchorTime) {
             _log("clock went backwards (t=" + t + " < anchor=" + _anchorTime + ") - reset tracking");
             _resetTracking();
         }
 
-        // Diagnostics (DEBUG only, so release polls stay light and the console
-        // quiet): snapshot every active idol marker whenever it changes, and
-        // track the physical-urn side. The extra tree scans only run under DEBUG.
         if (typeof QolLiteMapLog !== "undefined" && QolLiteMapLog.isDebug()) {
             var sig = _idolSig();
             if (sig !== _lastIdolSig) {
@@ -380,19 +304,11 @@ var QolLiteMapUrn = (function () {
             if (phys) { var ps = _sideOf(phys); if (ps) { _lastLiveSide = ps; } }
         }
 
-        // Observe the SIDE off the SPAWN marker, and only for a GENUINELY NEW urn -
-        // i.e. once the previous one has left the map (_readyForNewSpawn, set on the
-        // (none) transition below). A urn spawned on side A and carried to side B
-        // briefly shows idol_spawn on B mid-delivery; the ready-gate keeps that from
-        // being mistaken for a fresh spawn. (Deposit sites idol_return* sit on both
-        // sides throughout, which is why we key off idol_spawn only.) The schedule
-        // itself is fixed, so all we take from a spawn is (side, grid slot).
         if (spawn && _readyForNewSpawn) {
             var side = _sideOf(spawn);
             if (side) {
                 var slot = (t !== null) ? _slotOfTime(t) : _anchorSlot;
-                // The first check tests the world-left first-spawn seed itself.
-                var predicted = _sideOfSlot(slot);       // what parity said this slot would be
+                var predicted = _sideOfSlot(slot);
                 if (predicted && side !== predicted) {
                     _info("MISPREDICT: predicted " + predicted + " but urn spawned " + side +
                         " (slot " + slot + (_seenUrn ? "" : ", first-spawn seed") + ") - re-anchoring side");
@@ -402,7 +318,6 @@ var QolLiteMapUrn = (function () {
                 _seenUrn = true;
                 _readyForNewSpawn = false;
                 if (t !== null) { _anchorTime = t; }
-                // a fresh urn just spawned: start its 12s descent timer at its spawn point
                 _descentStartT = t;
                 var _db = _data();
                 var _dbside = _db && _db.spawns && _db.spawns[side];
@@ -413,19 +328,12 @@ var QolLiteMapUrn = (function () {
             }
         }
 
-        // Live-period edge: when the urn leaves the map, the next idol_spawn is a
-        // fresh urn, so re-open the anchor gate. No timing re-anchor - the grid is
-        // fixed, so even an untouched urn that re-spawned off our observation is
-        // covered by the next grid slot automatically.
         if (!live && _wasLive) {
             _readyForNewSpawn = true;
             _log("resolve lastLiveSide=" + _lastLiveSide);
         }
         _wasLive = live;
 
-        // A real urn always wins: whenever any urn is in play, hide our prediction
-        // so it never sits on top of the live urn icon (which we never touch; our
-        // overlay renders above the C++ minimap).
         if (live || !enabled) {
             _hideMarker();
         } else {
@@ -434,9 +342,6 @@ var QolLiteMapUrn = (function () {
             else { _hideMarker(); }
         }
 
-        // Descent overlay: for the first ~12s after a fresh urn spawns it is still
-        // falling from the sky (not pickable). Draw a countdown on it - urn icon +
-        // ring filling to full as it lands, colour red -> yellow (half) -> green.
         if (enabled && live && _descentStartT !== null && t !== null &&
             (t - _descentStartT) >= 0 && (t - _descentStartT) < DESCENT_SEC) {
             _showDescent(t - _descentStartT);

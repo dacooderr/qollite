@@ -1,110 +1,64 @@
 // Bundled from BetterMap (gfkm) - do not edit here: change upstream and re-bundle.
 // Upstream: github.com/gfkm/BetterMap @ 3d4444c, mod/panorama/scripts/bettermap_popup.js
-// Renamed for QOL Lite: Bettermap* -> QolLiteMap*, BettermapUmm -> QolLiteMapUmmAdapter,
-// POI_DATA/URN_DATA -> QolLiteMapPoiData/QolLiteMapUrnData. "[BetterMap]" log prefix, UMM id
-// "bettermap" and bm_/Bm class names are upstream names kept on purpose. Doc paths in the
-// comments below (docs/..., hud.vcss, hud_minimap.vcss) refer to the upstream repository.
 "use strict";
 
-// BetterMap's subsections in Valve's settings window (spec docs/specs/2026-10-01-native-settings.md
-// §6; one subsection per schema group and the per-row reset: docs/specs/2026-10-01-minimap-icon-sizes.md
-// §5.6). Since docs/specs/2026-10-07-runtime-settings-injection.md it runs in the HUD context:
-// qollite_map_settings_mount.js builds our section in each new window and calls start(win); C++
-// destroys the window on close, so everything below is per window instance (`_gen`). It never
-// writes storage: it shows the HUD's live values (`get` -> `state`) and sends every change back
-// (`set`) through QolLiteMapSettingsBus, which applies and saves. On close it sends `flush`, so the
-// HUD writes the change now (D17).
-// The controls are Valve's own, bound without convars, the way Valve's convar-less
-// #EnableConsoleCheckbox works. Sliders bind through qollite_map_slider.js, which never sends a value
-// the player did not set (D16).
-// A colour setting shares its toggle's row (spec 2026-10-01-healing-apples-and-marker-colors.md C3):
-// one tooltip, one modified mark and one reset button for the row, and that reset restores both
-// the toggle and the colour (C7).
-// The preview is the real minimap: while any of our subsections is on screen the HUD
-// lifts it above this window (§6.2).
 var QolLiteMapPopup = (function () {
     var CTL_PREFIX = "bm_ctl_";
     var ROW_PREFIX = "bm_row_";
-    // One of each per subsection, suffixed with its group's sfx (qollite_map_settings_mount.js).
     var SHOW_ROW_PREFIX = "bm_row_show_on_screen_";
     var SHOW_BUTTON_PREFIX = "bm_show_on_screen_";
     var RESET_ROW_PREFIX = "bm_row_reset_";
     var RESET_ROW_BUTTON_PREFIX = "bm_reset_";
-    var RESET_BUTTON_ID = "ResetSectionButton";        // Valve's SettingsSubsection / SettingsSection snippets (hover-only)
-    var SECTION_TITLE_ID = "SectionTitleContainer";    // Valve's SettingsSection snippet
-    var TOOLTIP_STYLE = "SettingsMenuTooltip";         // as Valve's rows: UIShowTextTooltipStyled( ..., SettingsMenuTooltip )
+    var RESET_BUTTON_ID = "ResetSectionButton";
+    var SECTION_TITLE_ID = "SectionTitleContainer";
+    var TOOLTIP_STYLE = "SettingsMenuTooltip";
     var SHOW_TOOLTIP = "Fades this window for a few seconds so you can see the minimap against the game.";
     var RESET_TOOLTIP = "Restores every setting in this section to its default.";
-    // Valve's per-row reset (spec I10, §5.6.1): C++ gives every row a CitadelButton with
-    // this class (client.dll, next to the row type classes) and hides it on a convar-less
-    // row (in-game run 2: visible=false 0x0). popup_settings.css shows it only on a row
-    // that carries ROW_MODIFIED_CLASS, and slides it in on hover. `visible = true` beats
-    // the CSS's `visibility: collapse` (in-game run 1: 32x32 with the class gone), so
-    // `visible` follows our own modified flag and never stands alone: an always-visible
-    // button would sit at opacity 0 over every unmodified row's control and take clicks.
-    // C++ strips ROW_MODIFIED_CLASS from our convar-less rows (run 1: every toggle, some
-    // sliders), so the flag is ours (`on`), not the class: re-adding it on every state
-    // fought C++ in a read-back storm. We re-assert the class when the pointer enters
-    // the row, the one moment its :hover rule needs it.
     var ROW_RESET_CLASS = "SettingsRowResetButton";
     var ROW_MODIFIED_CLASS = "SettingsRowModified";
-    var ROW_RESET_READ_BACK_SEC = [1, 3];              // DEBUG: what C++ does to the button and the class after a change
-    var ROW_REASSERT_READ_BACK_SEC = [1];              // DEBUG: does a hover re-assert stick (one line per re-assert)
-    // A colour slider shares its toggle's row (spec 2026-10-01-healing-apples-and-marker-colors.md
-    // C3). Its own title is empty but would still take Valve's 280 px (settings_color_slider.css
-    // #Title), so its container is collapsed - inferred, unmeasured: in-game run 1 reads the
-    // widths back (DEBUG, LAYOUT_READ_BACK_SEC).
-    var TITLE_CONTAINER_CLASS = "TitleContainer";      // settings_color_slider.xml
+    var ROW_RESET_READ_BACK_SEC = [1, 3];
+    var ROW_REASSERT_READ_BACK_SEC = [1];
+    var TITLE_CONTAINER_CLASS = "TitleContainer";
     var LAYOUT_READ_BACK_SEC = [1];
-    var UMM_ROOT_ID = "UmmRoot";                       // UMM's base_hud.xml / base_dashboard.xml
-    // The bus answers on the next frame (qollite_map_settings_bus.js), so a late `state` must not
-    // drag the thumb back right after a change.
+    var UMM_ROOT_ID = "UmmRoot";
     var ECHO_GRACE_MS = 500;
-    // Valve's own video-preview mode of this window: .ShowGameWorld { opacity: 0.5 }
-    // and its .PopupBackground at 0 (compiled popup_settings.vcss_c, build 6722).
     var GAME_WORLD_CLASS = "ShowGameWorld";
     var PEEK_HOLD_SEC = 3;
-    var HIDDEN_CLASS = "Hidden";                       // the popup root while it closes (run 2), then it is destroyed
-    var LIFT_BEAT_SEC = 0.25;                          // the HUD drops a lift 0.75 s after the last beat (qollite_map_preview.js)
-    var READ_BACK_SEC = [1, 3];                        // DEBUG proof of D16: after the composites' async re-assert
+    var HIDDEN_CLASS = "Hidden";
+    var LIFT_BEAT_SEC = 0.25;
+    var READ_BACK_SEC = [1, 3];
 
     var _values = null;
     var _syncing = false;
     var _hidden = false;
     var _peekUntil = 0;
-    var _sliders = {};       // key -> QolLiteMapSlider binding
-    var _rowResets = {};     // row key -> { row, button, on: our modified flag, keys: the row's settings }
-    var _lastSent = {};      // key -> value we sent
-    var _lastSentAt = {};    // key -> Date.now() of that send
+    var _sliders = {};
+    var _rowResets = {};
+    var _lastSent = {};
+    var _lastSentAt = {};
     var _readBackDone = false;
     var _liftOn = false;
     var _scrollErrLogged = false;
     var _wasShown = false;
-    var _resetPending = false;   // the next state answers our reset: show it even over a focused TextEntry
-    var _win = null;             // the open window instance (start)
-    var _gen = 0;                // which instance a scheduled callback belongs to
+    var _resetPending = false;
+    var _win = null;
+    var _gen = 0;
 
-    // Everything that belongs to one window instance starts over in start().
     function _resetSession() {
         _values = null; _syncing = false; _hidden = false; _peekUntil = 0; _sliders = {}; _rowResets = {};
         _lastSent = {}; _lastSentAt = {}; _readBackDone = false; _liftOn = false; _scrollErrLogged = false;
         _wasShown = false; _resetPending = false;
     }
 
-    // A callback scheduled for window instance `gen` still has that window.
     function _live(gen) { return gen === _gen && !!_win && _win.IsValid(); }
 
     function _ctx() { return _win; }
-    // Per window instance (start): a state answer comes per `set`, and searching the window for every control
-    // cost ~5 ms an answer in-game (runtime-cost audit §4.1).
     var _finder = null;
     function _find(id) { return _finder(id); }
     function _root() { return QolLiteMapHud.root(); }
     function _log(m) { QolLiteMapLog.log("popup: " + m); }
     function _groups() { return QolLiteMapSchema.groups(); }
 
-    // The settings that share one row (spec C3): the row's own setting and every setting
-    // that names it in `row`, in schema order.
     function _rowKeys(rowKey) {
         var out = [], list = QolLiteMapSchema.list();
         for (var i = 0; i < list.length; i++) { if ((list[i].row || list[i].key) === rowKey) { out.push(list[i].key); } }
@@ -117,7 +71,6 @@ var QolLiteMapPopup = (function () {
         return parts.join(" ");
     }
 
-    // Our subsection panels that exist, in group order.
     function _subs() {
         var out = [], g = _groups();
         for (var i = 0; i < g.length; i++) { var s = _find(g[i].id); if (s) { out.push(s); } }
@@ -126,7 +79,6 @@ var QolLiteMapPopup = (function () {
 
     function _send(msg) { QolLiteMapSettingsBus.request(msg); }
 
-    // A panel has one onmouseover, so a caller that also needs the hover passes `onOver`.
     function _tooltip(panel, text, onOver) {
         panel.SetPanelEvent("onmouseover", function () {
             if (onOver) { onOver(); }
@@ -144,19 +96,15 @@ var QolLiteMapPopup = (function () {
         _syncRowResets();
     }
 
-    // group: a schema group name - only that subsection's settings (spec I5).
     function _reset(group) {
         if (!_values || _hidden) { return; }
         _lastSent = {};
         _lastSentAt = {};
         _resetPending = true;
         _send({ t: "reset", group: group });
-        _send({ t: "flush" });   // a reset is deliberate: write it now, not after the idle delay (D17)
+        _send({ t: "flush" });
     }
 
-    // A value we sent that a state has not echoed yet, inside ECHO_GRACE_MS: the control
-    // keeps showing it (_sync skips the key), so the row's mark must judge it too, or a
-    // combined reset's first answer (toggle reset, old colour) re-marks the row.
     function _inFlight(k) {
         return _lastSentAt[k] !== undefined && _lastSent[k] !== _values[k] && Date.now() - _lastSentAt[k] < ECHO_GRACE_MS;
     }
@@ -167,10 +115,6 @@ var QolLiteMapPopup = (function () {
         return QolLiteMapSchema.isRanged(e) ? QolLiteMapSchema.toShown(e, v) !== QolLiteMapSchema.toShown(e, d) : v !== d;
     }
 
-    // Valve's CSS shows a row's reset button only while the row carries ROW_MODIFIED_CLASS;
-    // the button's `visible` follows the same flag. Compared against our flag, not the
-    // class C++ takes back (see ROW_RESET_CLASS). A row is modified while any of its
-    // settings differs from its default (spec C7).
     function _syncRowResets() {
         if (!_values) { return; }
         var d = QolLiteMapSchema.defaults();
@@ -191,8 +135,6 @@ var QolLiteMapPopup = (function () {
         }
     }
 
-    // The pointer entered the row: put back the class C++ stripped, so Valve's
-    // `.SettingsRowModified:hover` rule slides the button in.
     function _reassertRowModified(key) {
         var r = _rowResets[key];
         if (!r || !r.on || r.row.BHasClass(ROW_MODIFIED_CLASS)) { return; }
@@ -201,10 +143,6 @@ var QolLiteMapPopup = (function () {
         _rowResetReadBackLater(key, "reasserted", ROW_REASSERT_READ_BACK_SEC);
     }
 
-    // DEBUG (spec §5.6.1): the revived button's `visible` and layout size, and whether the
-    // row still carries ROW_MODIFIED_CLASS - after a bind, a click, a change of our flag,
-    // or a hover re-assert. Run 1 measured that C++ strips the class; these lines show
-    // whether it still does (the toggle-write guard, _showToggle) and whether a re-assert sticks.
     function _rowResetReadBack(key, tag) {
         var r = _rowResets[key];
         if (!r || !r.button.IsValid() || !r.row.IsValid()) { return; }
@@ -213,8 +151,6 @@ var QolLiteMapPopup = (function () {
             " modified=" + r.row.BHasClass(ROW_MODIFIED_CLASS));
     }
 
-    // Always scheduled: _log is DEBUG-gated when it runs, as the read-backs are.
-    // `secs` defaults to ROW_RESET_READ_BACK_SEC.
     function _rowResetReadBackLater(key, why, secs) {
         var at = secs || ROW_RESET_READ_BACK_SEC, gen = _gen;
         for (var i = 0; i < at.length; i++) {
@@ -227,17 +163,10 @@ var QolLiteMapPopup = (function () {
         }
     }
 
-    // Writes a toggle only when it does not already show the value. Inferred, unmeasured
-    // (spec §5.6.1): a redundant SetSelected on every state is what makes C++ strip
-    // ROW_MODIFIED_CLASS - run 1 stripped it on every toggle but only sometimes on sliders,
-    // and the slider sync already skips a value it shows. In-game run 2 tells.
     function _showToggle(ctl, v) {
         if (ctl.checked !== !!v) { ctl.SetSelected(!!v); }
     }
 
-    // Shows a value at once, past the slider's hover gate: the pointer is on the row
-    // while its reset button is clicked, and the HUD's answer must not be needed to move
-    // the thumb.
     function _showNow(e, v) {
         var ctl = _find(CTL_PREFIX + e.key);
         if (!ctl) { return; }
@@ -250,8 +179,6 @@ var QolLiteMapPopup = (function () {
         }
     }
 
-    // Every setting of the row goes back to its default (spec C7: a colour's row resets
-    // its toggle and its colour). Only a setting that differs is sent; each is shown.
     function _resetRow(rowKey) {
         if (!_values || _hidden) { return; }
         var keys = _rowResets[rowKey].keys, d = QolLiteMapSchema.defaults();
@@ -260,7 +187,7 @@ var QolLiteMapPopup = (function () {
             if (_isModified(e, _shownValue(keys[i]), d[keys[i]])) { _set(keys[i], d[keys[i]]); }
             _showNow(e, d[keys[i]]);
         }
-        _syncRowResets();   // no set at all (nothing differed) still settles the mark
+        _syncRowResets();
         _rowResetReadBackLater(rowKey, "click");
     }
 
@@ -268,7 +195,7 @@ var QolLiteMapPopup = (function () {
         var found = row.FindChildrenWithClassTraverse(ROW_RESET_CLASS);
         if (!found.length) { QolLiteMapLog.error("popup: row-reset " + e.key + " - no " + ROW_RESET_CLASS + " in the row"); return; }
         var button = found[0];
-        button.visible = false;   // until the row is modified (_syncRowResets)
+        button.visible = false;
         button.SetPanelEvent("onactivate", function () { _resetRow(e.key); });
         _rowResets[e.key] = { row: row, button: button, on: false, keys: _rowKeys(e.key) };
         _rowResetReadBack(e.key, "bind");
@@ -281,7 +208,6 @@ var QolLiteMapPopup = (function () {
         else { QolLiteMapLog.error("popup: " + e.key + " has no ." + TITLE_CONTAINER_CLASS + " to collapse"); }
     }
 
-    // DEBUG (spec §5.4): do a toggle and a colour slider fit one row.
     function _layoutReadBackLater(e) {
         var gen = _gen;
         for (var i = 0; i < LAYOUT_READ_BACK_SEC.length; i++) {
@@ -313,7 +239,6 @@ var QolLiteMapPopup = (function () {
             if (!b) { QolLiteMapLog.error("popup: no inner slider for " + e.key); return; }
             _sliders[e.key] = b;
         }
-        // In a toggle's row (spec C3): the row, its tooltip and its reset belong to that toggle.
         if (e.row) {
             _collapseTitle(e, ctl);
             _layoutReadBackLater(e);
@@ -326,14 +251,11 @@ var QolLiteMapPopup = (function () {
     }
 
     function _sync() {
-        // A toggle's SetSelected may fire onactivate synchronously (unmeasured); the
-        // flag keeps that echo from being sent back as a player's change.
         _syncing = true;
         try {
             var list = QolLiteMapSchema.list();
             for (var i = 0; i < list.length; i++) {
                 var e = list[i];
-                // One control throwing must not skip the others.
                 try {
                     var ctl = _find(CTL_PREFIX + e.key), v = _values[e.key];
                     if (!ctl || v === undefined) { continue; }
@@ -341,11 +263,6 @@ var QolLiteMapPopup = (function () {
                         delete _lastSentAt[e.key];
                         delete _lastSent[e.key];
                     } else if (_inFlight(e.key)) {
-                        // The slider's own sync gate also skips while hovered, typing or already
-                        // showing the value. This window additionally covers the moment after
-                        // the pointer leaves, and toggles: it keeps the player's value against a
-                        // late state that differs - e.g. a combined row reset's first answer,
-                        // which still carries the colour's old value.
                         continue;
                     }
                     if (e.type === "toggle") { _showToggle(ctl, v); }
@@ -359,8 +276,6 @@ var QolLiteMapPopup = (function () {
         }
     }
 
-    // DEBUG proof of D16 for the next in-game run (spec §11 session 2): after the
-    // composites have had time to re-assert, every slider must show the HUD's value.
     function _readBack(tag) {
         if (!_values || !QolLiteMapLog.isDebug() || !_ctx() || !_ctx().IsValid()) { return; }
         for (var k in _sliders) {
@@ -423,8 +338,6 @@ var QolLiteMapPopup = (function () {
         _applyHidden();
     }
 
-    // Valve's hover-only reset buttons: a subsection's restores its group, our section's restores
-    // every setting (a reset without a group, native-settings §5.6).
     function _bindSectionResets() {
         var groups = _groups();
         for (var i = 0; i < groups.length; i++) {
@@ -472,26 +385,20 @@ var QolLiteMapPopup = (function () {
         return false;
     }
 
-    // Heartbeat for the HUD's lift (spec §6.2): beats while any of our subsections is on
-    // screen, one "off" on the transition, and stops for good once the window closes.
     function _liftTick(gen) {
         if (!_live(gen)) { return; }
         var c = _ctx();
-        // Valve's markup starts the popup root Hidden and C++ removes the class on open;
-        // when it does is unmeasured. Hidden only means "closing" after it has been seen off,
-        // else one early beat would stop the lift for the whole open.
         if (!c.BHasClass(HIDDEN_CLASS)) { _wasShown = true; }
         var closing = _wasShown && c.BHasClass(HIDDEN_CLASS);
         var on = !!_values && !_hidden && !c.BHasClass(HIDDEN_CLASS) && _anyInView();
         if (on || _liftOn) { _send({ t: "lift", on: on }); }
         if (on !== _liftOn) { _log("lift " + (on ? "on" : "off") + (closing ? " (closing)" : "")); _liftOn = on; }
-        // The tick stops here, so this runs once: the HUD writes the waiting change now (D17).
         if (closing) { _send({ t: "flush" }); return; }
         $.Schedule(LIFT_BEAT_SEC, function () { _liftTick(gen); });
     }
 
     function _onState(msg) {
-        if (!_win || !_win.IsValid()) { return; }   // no window open: the next start() asks again
+        if (!_win || !_win.IsValid()) { return; }
         if (!msg || msg.t !== "state") { return; }
         _values = msg.values;
         if (msg.umm) { _hide("UMM owns the settings"); return; }
@@ -506,7 +413,6 @@ var QolLiteMapPopup = (function () {
         _startReadBack();
     }
 
-    // win: a new instance of Valve's settings window with our section already built in it.
     function start(win) {
         _gen++;
         _win = win;
@@ -528,14 +434,13 @@ var QolLiteMapPopup = (function () {
                 if (resetRow) { _tooltip(resetRow, RESET_TOOLTIP); }
             })(groups[j]);
         }
-        _setEnabled(false);   // until the HUD answers
+        _setEnabled(false);
         _bindSectionResets();
         _send({ t: "get" });
         var gen = _gen;
         $.Schedule(LIFT_BEAT_SEC, function () { _liftTick(gen); });
     }
 
-    // Once, from the bootstrap: the HUD's answers reach whichever window is open.
     function init() { QolLiteMapSettingsBus.subscribe(_onState); }
 
     return { init: init, start: start };

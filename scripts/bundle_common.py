@@ -60,6 +60,128 @@ def git_show(upstream, rev, path):
     return git(upstream, "show", f"{rev}:{path}").decode("utf-8")
 
 
+# A `/` after one of these words starts a regex literal, after any other word it divides.
+_REGEX_AFTER_WORDS = {"return", "typeof", "instanceof", "in", "of", "new", "delete", "void",
+                      "throw", "case", "do", "else", "yield", "await"}
+_CUT = "\x00"   # marks where a comment was cut; never present in source (checked)
+
+
+def strip_comments(src):
+    """The bundled scripts ship code only: drop every // and /* */ comment.
+
+    A small JS lexer keeps string, template and regex literals byte-for-byte, so a
+    `//` inside "https://..." or /\\/\\//g is not taken for a comment. A `/` is a regex
+    when the previous token cannot end an expression (an operator, `(`, `,`, start of
+    file, or a word such as `return`); after a name, number, `)` or `]` it divides.
+    Template literals are copied whole; `${...}` holding a backtick or a comment is not
+    supported (none of the bundled sources has one; `node --check` on the output would
+    catch it). Lines left empty by a cut are removed, a cut between two tokens leaves
+    one space, trailing blanks go, runs of blank lines collapse to one."""
+    if _CUT in src:
+        raise BundleError("NUL in source")
+    out, i, n = [], 0, len(src)
+    prev = ""            # last significant token: a word, or one punctuation char
+    while i < n:
+        c = src[i]
+        if src.startswith("//", i):
+            j = src.find("\n", i)
+            i = n if j < 0 else j
+            out.append(_CUT)
+            continue
+        if src.startswith("/*", i):
+            j = src.find("*/", i + 2)
+            if j < 0:
+                raise BundleError("unterminated block comment")
+            i = j + 2
+            out.append(_CUT)
+            continue
+        if c in "'\"`":
+            j = i + 1
+            while True:
+                if j >= n or (c != "`" and src[j] == "\n"):
+                    raise BundleError(f"unterminated string literal at offset {i}")
+                if src[j] == "\\":
+                    j += 2
+                    continue
+                if src[j] == c:
+                    break
+                j += 1
+            out.append(src[i:j + 1])
+            i = j + 1
+            prev = "0"
+            continue
+        if c == "/" and (prev == "" or prev in _REGEX_AFTER_WORDS
+                         or (not (prev[0].isalnum() or prev[0] in "_$") and prev not in ")]}")):
+            j, in_class = i + 1, False
+            while True:
+                if j >= n or src[j] == "\n":
+                    raise BundleError(f"unterminated regex literal at offset {i}")
+                ch = src[j]
+                if ch == "\\":
+                    j += 2
+                    continue
+                if ch == "[":
+                    in_class = True
+                elif ch == "]":
+                    in_class = False
+                elif ch == "/" and not in_class:
+                    break
+                j += 1
+            j += 1
+            while j < n and src[j].isalpha():
+                j += 1
+            out.append(src[i:j])
+            i = j
+            prev = "0"
+            continue
+        if c.isalnum() or c in "_$":
+            j = i
+            while j < n and (src[j].isalnum() or src[j] in "_$."
+                             and not (src[j] == "." and not src[i].isdigit())):
+                j += 1
+            out.append(src[i:j])
+            prev = src[i:j]
+            i = j
+            continue
+        if not c.isspace():
+            prev = c
+        out.append(c)
+        i += 1
+    return _tidy("".join(out))
+
+
+def _join_cut(line):
+    """Remove the cut marks from one line, keeping indentation and token separation."""
+    while _CUT in line:
+        k = line.index(_CUT)
+        left, right = line[:k], line[k + 1:]
+        if not left.strip():
+            line = left + right.lstrip(" \t") if right.strip() else ""
+            continue
+        if not right.strip():
+            line = left.rstrip(" \t")
+            continue
+        sep = left[-1] in " \t" or right[0] in " \t" or (
+            (left[-1].isalnum() or left[-1] in "_$") and (right[0].isalnum() or right[0] in "_$"))
+        line = left.rstrip(" \t") + (" " if sep else "") + right.lstrip(" \t")
+    return line
+
+
+def _tidy(text):
+    lines = []
+    for raw in text.split("\n"):
+        cut = _CUT in raw
+        line = _join_cut(raw).rstrip(" \t")
+        if cut and not line:
+            continue                      # the line held only a comment
+        if not line and (not lines or not lines[-1]):
+            continue                      # leading blank, or a second blank in a row
+        lines.append(line)
+    while lines and not lines[-1]:
+        lines.pop()
+    return "\n".join(lines) + "\n" if lines else ""
+
+
 def compare(out, out_dir, prefix):
     """Compare the in-memory bundle with disk.
 

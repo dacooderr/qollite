@@ -9,7 +9,7 @@ The most architecturally interesting feature in the mod: it spans **three Panora
 the only one that had to build its own message protocol to do so.
 
 The scripts are **generated** from upstream Map Event Reminders by `scripts/bundle_mer.py` — readable
-source since 2026-09-30; change upstream and re-bundle, never the bundled copy
+code since 2026-09-30, comments stripped since 2026-11-11; change upstream and re-bundle, never the bundled copy
 ([`../BUNDLE.md`](../BUNDLE.md) §3). Nothing on this page has been checked in game since the 6722
 update.
 
